@@ -22,7 +22,7 @@ public class NewSpawner : MonoBehaviour {
 	public float spawnRate;
 	public bool usePoisson = false;
     public Agent agentPrefab;
-
+	internal bool spawn = true;
 
 	// Set the node index for this spawner's node
 	public void SetNode(int node)
@@ -82,7 +82,7 @@ public class NewSpawner : MonoBehaviour {
 			yield return new WaitForSeconds (continousSpawnRate);
 		}
 		
-		if (agentList.Count < mainScript.maxNumberOfAgents) 
+		if (agentList.Count < mainScript.maxNumberOfAgents && spawn) 
         {
 			Vector3 startPos = new Vector3 (Random.Range (-0.5f, 0.5f), 0f, Random.Range (-0.5f, 0.5f)); 
 			startPos = spawnerNode.TransformPoint (startPos);

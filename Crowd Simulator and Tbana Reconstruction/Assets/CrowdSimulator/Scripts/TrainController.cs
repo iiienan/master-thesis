@@ -113,6 +113,10 @@ public class TrainController : MonoBehaviour
 
     private IEnumerator Alight(int trainLine)
     {
+        foreach(MapGen.spawnNode node in mainScript.roadmap.spawns)
+        {
+            node.spawner.spawn = false;
+        }
         yield return new WaitForSeconds(15f);
         Train trainScript = trains[trainLine].GetComponent<Train>();
         measureBAT[trainLine] = true;
