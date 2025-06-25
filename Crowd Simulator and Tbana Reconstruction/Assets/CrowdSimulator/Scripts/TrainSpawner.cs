@@ -50,8 +50,9 @@ public class TrainSpawner : MonoBehaviour
 
         int node = transform.GetComponent<CustomNode>().index;
 
-        int goal;
-        if(goals[1] == -1)
+        int goal = goals[0];
+        /**
+        if (goals[1] == -1)
         {
             goal = goals[0];
         }
@@ -60,6 +61,7 @@ public class TrainSpawner : MonoBehaviour
             // Choose goals[0] 70% of the time, goals[1] 30% of the time
             goal = (Random.value < 0.7f) ? goals[0] : goals[1];
         }
+        **/
 
 		agent.InitializeAgent (startPosition, node, goal, ref mainScript.roadmap);
 
