@@ -306,7 +306,7 @@ public class MapGen : MonoBehaviour {
 
 					for (int k = 0; k < dist[j].Count; k++)
 					{
-						if (k == i || k == j) continue;
+						if (k == j) continue;
 
 						if (dist[j][k] < shortestDistance)
 						{
@@ -315,7 +315,7 @@ public class MapGen : MonoBehaviour {
 						}
 					}
 
-					if (closestNode != -1 && shortestPaths[i][j].Count >= 2)
+					if (!(closestNode == i) && closestNode != -1 && shortestPaths[i][j].Count >= 2)
 					{
 						if (shortestPaths[i][j][shortestPaths[i][j].Count - 2] != closestNode)
 						{

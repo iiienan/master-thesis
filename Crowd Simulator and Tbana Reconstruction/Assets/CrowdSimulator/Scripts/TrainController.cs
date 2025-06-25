@@ -307,6 +307,7 @@ public class TrainController : MonoBehaviour
 
     internal IEnumerator BoardAgent(Agent agent)
     {
+        agent.Reset();
         float delay = Random.Range(0.1f, 1f);
         yield return new WaitForSeconds(delay);
 

@@ -370,7 +370,7 @@ public class Grid : MonoBehaviour {
 				}
 				continue;
 			}
-			if(agentList[a].isWaiting)
+			if(agentList[a].isWaiting || (agentList[a].isPreparingToBoard && agentList[a].done))
 				continue;
 
 			float bumpDiameter = 0.4f;
