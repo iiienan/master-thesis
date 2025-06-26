@@ -115,7 +115,7 @@ public class TrainController : MonoBehaviour
     {
         foreach(MapGen.spawnNode node in mainScript.roadmap.spawns)
         {
-            node.spawner.spawn = false;
+            //node.spawner.spawn = false;
         }
         yield return new WaitForSeconds(15f);
         Train trainScript = trains[trainLine].GetComponent<Train>();
@@ -129,19 +129,10 @@ public class TrainController : MonoBehaviour
         }
         else
         {
-            bool allSpawnersDone = false;
-            while (!allSpawnersDone)
+            Train train = trains[trainLine].GetComponent<Train>();
+            while (!train.spawningDone)
             {
-                allSpawnersDone = true;
-                foreach (var spawner in trainScript.trainSpawners)
-                {
-                    if (!spawner.done)
-                    {
-                        allSpawnersDone = false;
-                        break;
-                    }
-                }
-                yield return null;
+                yield return new WaitForSeconds(0.1f);
             }
             isPreparingToBoard[trainLine] = false;
             Board(trainLine);

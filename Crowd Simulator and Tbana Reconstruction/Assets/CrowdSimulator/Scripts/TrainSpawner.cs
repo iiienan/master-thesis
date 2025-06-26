@@ -4,25 +4,22 @@ using UnityEngine;
 
 public class TrainSpawner : MonoBehaviour
 {
-    private int numberOfAgents;
     private int[] goals = new int[2];
     private float burstRate;
     private GameObject agentContainer;
     private Main mainScript;
     private Agent agentPrefab;
     internal Material alightingAgentMaterial;
-    internal bool done = false;
     private bool alightBeforeBoarding;
     private TrainController.PlatformType platformType;
 
     // Start is called before the first frame update
-    public void Initialize(int numberOfAgents, int goal1, int goal2, float burstRate, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, bool alightBeforeBoarding,
+    public void Initialize(int goal1, int goal2, float burstRate, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, bool alightBeforeBoarding,
     TrainController.PlatformType platformType)
     {
         this.agentPrefab = agentPrefab;
         this.burstRate = burstRate;
         this.agentContainer = agentContainer;
-        this.numberOfAgents = numberOfAgents;
         goals[0] = goal1;
         goals[1] = goal2;
         this.alightingAgentMaterial = alightingAgentMaterial;
@@ -31,19 +28,9 @@ public class TrainSpawner : MonoBehaviour
         mainScript = FindObjectOfType<Main>();
     }
 
-    public IEnumerator SpawnAgents()
-    {
-        for (int i = 0; i < numberOfAgents; ++i) {
-			//Vector3 startPos = new Vector3(transform.position.x + Random.Range(-1.5f, 1.5f), transform.position.y, transform.position.z + Random.Range(-0.5f, 0.5f));
-			Vector3 startPos = new Vector3(transform.position.x, 0f, transform.position.z + Random.Range(-0.5f, 0.5f));
-            spawnOneAgent (startPos);
-			yield return new WaitForSeconds (burstRate + Random.Range(-0.1f, 0.2f));
-		}
-        done = true;
-    }
-
-    public void spawnOneAgent(Vector3 startPosition)
+    public IEnumerator SpawnOneAgent()
 	{
+        yield return new WaitForSeconds (burstRate + Random.Range(-0.1f, 0.2f));
 		Agent agent;
 		agent = Instantiate (agentPrefab);
         agent.GetComponentInChildren<Renderer>().material = alightingAgentMaterial;
@@ -62,7 +49,7 @@ public class TrainSpawner : MonoBehaviour
             goal = (Random.value < 0.7f) ? goals[0] : goals[1];
         }
         **/
-
+        Vector3 startPosition = new Vector3(transform.position.x, 0f, transform.position.z + Random.Range(-0.5f, 0.5f));
 		agent.InitializeAgent (startPosition, node, goal, ref mainScript.roadmap);
 
         if(alightBeforeBoarding)
