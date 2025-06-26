@@ -61,55 +61,58 @@ public class Main : MonoBehaviour {
 	internal WaitingAreaController waitingAreaController;
 	internal TrainController trainController;
 	internal Logger logger;
+	internal float simulationTime = 0f;
+	internal int nExitingAgents = 0;
 
 	/**
 	 * Initialize simulation by taking the user's options into consideration and spawn agents.
 	 * Then create the Staggered Grid along with all cells and velocity nodes.
 	**/
-	void OnEnable () {
-		bool error = false; 
+	void OnEnable()
+	{
+		bool error = false;
 		if (error)
 			return;
-		
-		plane.transform.localScale = new Vector3 (planeSizeX, 1.0f, planeSizeZ);
-		Vector3 planeLength = plane.getLengths (); //Staggered grid length
-		xMinMax = new Vector2 (plane.transform.position.x - planeLength.x / 2, 
-			                   plane.transform.position.x + planeLength.x / 2);
-		zMinMax = new Vector2 (plane.transform.position.z - planeLength.z / 2, 
+
+		plane.transform.localScale = new Vector3(planeSizeX, 1.0f, planeSizeZ);
+		Vector3 planeLength = plane.getLengths(); //Staggered grid length
+		xMinMax = new Vector2(plane.transform.position.x - planeLength.x / 2,
+							   plane.transform.position.x + planeLength.x / 2);
+		zMinMax = new Vector2(plane.transform.position.z - planeLength.z / 2,
 							  plane.transform.position.z + planeLength.z / 2);
 
 		ringDiameter = agentAvoidanceRadius * 2; //Prefered distance between two agents
 
 		//Creates roadmap / pathfinding for agents based on map
-		MapGen m = Instantiate (mapGen) as MapGen; 
-		roadmap = m.generateRoadMap (roadNodeAmount, xMinMax, zMinMax, visibleMap);
+		MapGen m = Instantiate(mapGen) as MapGen;
+		roadmap = m.generateRoadMap(roadNodeAmount, xMinMax, zMinMax, visibleMap);
 
 		waitingAreaController = FindObjectOfType<WaitingAreaController>();
-		if(waitingAreaController != null)
+		if (waitingAreaController != null)
 		{
 			waitingAreaController.Initialize();
 		}
 		trainController = FindObjectOfType<TrainController>();
-		if(trainController == null)
+		if (trainController == null)
 		{
 			Debug.LogError("TrainController not found in scene");
 		}
 		logger = FindObjectOfType<Logger>();
-		if(logger == null)
+		if (logger == null)
 		{
 			Debug.LogError("Logger not found in scene");
 		}
 
-		Grid grid = Instantiate (gridPrefab) as Grid;
+		Grid grid = Instantiate(gridPrefab) as Grid;
 		grid.showSplattedDensity = showSplattedDensity;
 		grid.showSplattedVelocity = showSplattedVelocity;
 		grid.cellsPerRow = cellsPerRow;
 		grid.agentMaxSpeed = agentMaxSpeed;
 		grid.ringDiameter = ringDiameter;
 		grid.usePresetGroupDistances = usePresetGroupDistances;
-		grid.groupDistances = new float[] {p1p2, p2p3, p3p4};
+		grid.groupDistances = new float[] { p1p2, p2p3, p3p4 };
 		grid.mapGen = mapGen;
-		grid.dt = timeStep; 
+		grid.dt = timeStep;
 		grid.neighbourBins = neighbourBins;
 		grid.solver = solver;
 		grid.solverEpsilon = epsilon;
@@ -117,15 +120,17 @@ public class Main : MonoBehaviour {
 		grid.colHandler = handleCollision;
 		grid.agentAvoidanceRadius = agentAvoidanceRadius;
 		Grid.instance = grid;
-		Grid.instance.initGrid (xMinMax, zMinMax, alpha, agentAvoidanceRadius);
+		Grid.instance.initGrid(xMinMax, zMinMax, alpha, agentAvoidanceRadius);
 
 		for (int i = 0; i < roadmap.spawns.Count; ++i)
 		{
 			//roadmap.spawns[i].spawner.InitializeSpawner (ref agentPrefabs, ref groupAgentPrefabs, ref shirtColorPrefab, ref roadmap, 
 			//								 ref agentList, xMinMax, zMinMax, agentAvoidanceRadius);
-			roadmap.spawns[i].spawner.InitializeSpawner(ref roadmap, 
+			roadmap.spawns[i].spawner.InitializeSpawner(ref roadmap,
 											 ref agentList, xMinMax, zMinMax, agentAvoidanceRadius);
 		}
+
+		nExitingAgents = trainController.trains[1].GetComponent<Train>().numberOfAgents + trainController.trains[2].GetComponent<Train>().numberOfAgents;
 	}
 
 
@@ -133,6 +138,7 @@ public class Main : MonoBehaviour {
 	 * Main simulation loop which is called every frame
 	**/
     void Update () {
+		simulationTime += Time.deltaTime;
 		Grid.instance.solver = solver;
 		Grid.instance.solverEpsilon = epsilon;
 		Grid.instance.solverMaxIterations = solverMaxIterations;
@@ -216,6 +222,13 @@ public class Main : MonoBehaviour {
 					else if (agent.isAlighting)
 					{
 						logger.LogTravelTime(agent.travelTime, false);
+						nExitingAgents--;
+						if (nExitingAgents <= 0)
+						{
+							// All exiting agents have exited the platform, end simulation
+							logger.LogEvent("All exiting agents have exited the platform");
+							//UnityEditor.EditorApplication.isPlaying = false;
+						}
 					}
 					agentList.RemoveAt(i);
 					Destroy(agent.gameObject);
