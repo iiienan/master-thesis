@@ -60,6 +60,7 @@ public class Main : MonoBehaviour {
 	public bool handleCollision = false;
 	internal WaitingAreaController waitingAreaController;
 	internal TrainController trainController;
+	internal Logger logger;
 
 	/**
 	 * Initialize simulation by taking the user's options into consideration and spawn agents.
@@ -93,7 +94,11 @@ public class Main : MonoBehaviour {
 		{
 			Debug.LogError("TrainController not found in scene");
 		}
-
+		logger = FindObjectOfType<Logger>();
+		if(logger == null)
+		{
+			Debug.LogError("Logger not found in scene");
+		}
 
 		Grid grid = Instantiate (gridPrefab) as Grid;
 		grid.showSplattedDensity = showSplattedDensity;
@@ -206,6 +211,11 @@ public class Main : MonoBehaviour {
 					if (agent.boarding)
 					{
 						trainController.nBoardingAgents[agent.trainLine]--;
+						logger.LogTravelTime(agent.travelTime, true);
+					}
+					else if (agent.isAlighting)
+					{
+						logger.LogTravelTime(agent.travelTime, false);
 					}
 					agentList.RemoveAt(i);
 					Destroy(agent.gameObject);

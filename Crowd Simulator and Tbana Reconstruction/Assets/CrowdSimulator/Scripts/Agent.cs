@@ -43,9 +43,14 @@ public class Agent : MonoBehaviour {
 	private bool crossingYellowLine = false;
 	private TrainController trainController;
 
-	internal void Start() {
-		animator = transform.gameObject.GetComponent<Animator> ();
-		rbody = transform.gameObject.GetComponent<Rigidbody> ();
+	// Travel time
+	internal float travelTime = 0f;
+
+
+	internal void Start()
+	{
+		animator = transform.gameObject.GetComponent<Animator>();
+		rbody = transform.gameObject.GetComponent<Rigidbody>();
 		trainController = FindObjectOfType<TrainController>();
 
 		if (rbody != null)
@@ -66,12 +71,13 @@ public class Agent : MonoBehaviour {
 
 		//Which cell am i in currently?
 		calculateRowAndColumn();
-		if (!Grid.instance.colHandler && rbody != null) {
-			Destroy (rbody);
+		if (!Grid.instance.colHandler && rbody != null)
+		{
+			Destroy(rbody);
 		}
 
 		Main mainScript = FindObjectOfType<Main>();
-		if(this is SubgroupAgent)
+		if (this is SubgroupAgent)
 		{
 			walkingSpeed = mainScript.agentMaxSpeed;
 		}
@@ -79,7 +85,7 @@ public class Agent : MonoBehaviour {
 		{
 			walkingSpeed = Random.Range(mainScript.agentMinSpeed, mainScript.agentMaxSpeed);
 		}
-		
+
 	}
 
 /**
@@ -281,8 +287,7 @@ public class Agent : MonoBehaviour {
 
     private void Update()
     {
-        
-			
+        travelTime += Time.deltaTime;
     }
 
     internal virtual void calculatePreferredVelocity(ref MapGen.map map) {
