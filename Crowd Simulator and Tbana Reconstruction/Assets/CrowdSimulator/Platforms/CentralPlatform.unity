@@ -1865,7 +1865,7 @@ PrefabInstance:
       objectReference: {fileID: 908229884}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: nAgents
-      value: 100
+      value: 300
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: dwellTime
@@ -1885,7 +1885,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: arriveInterval
-      value: 30
+      value: 240
+      objectReference: {fileID: 0}
+    - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
+      propertyPath: alightBeforeBoarding
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: trains.Array.data[1]
@@ -3914,7 +3918,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 446555961}
-  spawnRate: 4
+  spawnRate: 0.3125
   usePoisson: 1
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
 --- !u!114 &288606869 stripped
@@ -4035,7 +4039,7 @@ PrefabInstance:
       objectReference: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
     - target: {fileID: 114000011453258514, guid: ead6e50105b8a264ab4274d310eab2f7, type: 3}
       propertyPath: maxNumberOfAgents
-      value: 2000
+      value: 3000
       objectReference: {fileID: 0}
     - target: {fileID: 114000011453258514, guid: ead6e50105b8a264ab4274d310eab2f7, type: 3}
       propertyPath: skipNodeIfSeeNext
@@ -6713,7 +6717,7 @@ PrefabInstance:
       objectReference: {fileID: 1937552808}
     - target: {fileID: 5410846902613704895, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
       propertyPath: numberOfAgents
-      value: 1000
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 5410846902613704895, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
       propertyPath: goalNodes.Array.size
@@ -17186,7 +17190,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 216364175}
-  spawnRate: 4
+  spawnRate: 0.3125
   usePoisson: 1
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
 --- !u!1 &1543804604
@@ -20288,7 +20292,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 443753746}
-  spawnRate: 4
+  spawnRate: 0.3125
   usePoisson: 1
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
 --- !u!1 &1864808929
@@ -23368,7 +23372,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 327909441}
-  spawnRate: 4
+  spawnRate: 0.3125
   usePoisson: 1
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
 --- !u!1 &2119348801
@@ -23752,7 +23756,7 @@ PrefabInstance:
       objectReference: {fileID: 1937552808}
     - target: {fileID: 5410846902613704895, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
       propertyPath: numberOfAgents
-      value: 1000
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 5410846902613704895, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
       propertyPath: goalNodes.Array.size
@@ -23892,6 +23896,75 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 434a9d4fff810c6488cc801b40378f60, type: 3}
+--- !u!1001 &5470825416900038960
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1930502029125082690, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_Name
+      value: Logger
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5464502612719492826, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: fileNameSimulation
+      value: SimulationLogEntry
+      objectReference: {fileID: 0}
+    - target: {fileID: 5464502612719492826, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: fileNameTravelTime
+      value: TravelTimeLogEntry
+      objectReference: {fileID: 0}
+    - target: {fileID: 5464502612719492826, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: fileNameYellowLine
+      value: YellowLineLogEntry
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
 --- !u!1001 &8056297172999854413
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -23953,6 +24026,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 588685697}
     - target: {fileID: 2763700356812122246, guid: 376efc2a1a7d6b04e8af58a7157b4bd1, type: 3}
+      propertyPath: fileName
+      value: DensityLogEntry
+      objectReference: {fileID: 0}
+    - target: {fileID: 2763700356812122246, guid: 376efc2a1a7d6b04e8af58a7157b4bd1, type: 3}
       propertyPath: trainController
       value: 
       objectReference: {fileID: 981155499}
@@ -23983,3 +24060,4 @@ SceneRoots:
   - {fileID: 145258749}
   - {fileID: 1578697459}
   - {fileID: 8056297172999854413}
+  - {fileID: 5470825416900038960}
