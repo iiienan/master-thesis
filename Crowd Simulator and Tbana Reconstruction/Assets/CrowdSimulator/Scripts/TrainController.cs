@@ -38,9 +38,7 @@ public class TrainController : MonoBehaviour
 
     public Flow flow;
     internal int[] nBoardingAgents = new int[3];
-    internal float[] BAT = new float[3];
     public bool useDwellTimer = true;
-    internal bool[] measureBAT = new bool[3];
     private Logger logger;
 
 
@@ -101,14 +99,6 @@ public class TrainController : MonoBehaviour
         }
         Dwell(1);
         Dwell(2);
-
-        for(int i = 1; i <= 2; i++)
-        {
-            if (measureBAT[i])
-            {
-                BAT[i] += Time.deltaTime;
-            }
-        }
         
     }
 
@@ -127,31 +117,40 @@ public class TrainController : MonoBehaviour
         }
         yield return new WaitForSeconds(15f);
         Train trainScript = trains[trainLine].GetComponent<Train>();
-        measureBAT[trainLine] = true;
-        Debug.Log("Starting BAT for train line " + trainLine);
         logger.LogEvent("Train " + trainLine + " started alighting");
         trainScript.Alight();
         Train train = trains[trainLine].GetComponent<Train>();
+
+
         if (!alightBeforeBoarding)
         {
             isPreparingToBoard[trainLine] = false;
             Board(trainLine);
-            while (!train.spawningDone)
-            {
-                yield return new WaitForSeconds(0.1f);
-            }
-            logger.LogEvent("Train " + trainLine + " finished alighting");
         }
-        else
+        
+        bool allSpawnersDone = false;
+        while (!allSpawnersDone)
         {
-            while (!train.spawningDone)
+            allSpawnersDone = true;
+            foreach (var spawner in trainScript.trainSpawners)
             {
-                yield return new WaitForSeconds(0.1f);
+                if (!spawner.done)
+                {
+                    allSpawnersDone = false;
+                    break;
+                }
             }
-            logger.LogEvent("Train " + trainLine + " finished alighting");
+            yield return new WaitForSeconds(0.1f);
+        }
+        logger.LogEvent("Train " + trainLine + " finished alighting");
+        trains[trainLine].GetComponent<Train>().nSpawnedAgents = 0;
+
+        if (alightBeforeBoarding)
+        {
             isPreparingToBoard[trainLine] = false;
             Board(trainLine);
         }
+            
     }
 
     public void PrepareBoarding(int trainLine)
@@ -183,9 +182,7 @@ public class TrainController : MonoBehaviour
             ToggleTrain(trainLine);
             dwellTimer[trainLine] = 0f;
             boarding[trainLine] = false;
-            measureBAT[trainLine] = false;
-            Debug.Log("BAT for train line " + trainLine + ": " + BAT[trainLine]);
-            BAT[trainLine] = 0f;
+            logger.LogEvent("Train " + trainLine + " finished boarding");
         }
         
     }

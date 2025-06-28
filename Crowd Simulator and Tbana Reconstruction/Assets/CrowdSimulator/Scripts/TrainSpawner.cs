@@ -10,16 +10,19 @@ public class TrainSpawner : MonoBehaviour
     private Main mainScript;
     private Agent agentPrefab;
     internal Material alightingAgentMaterial;
+    internal bool done = false;
     private bool alightBeforeBoarding;
     private TrainController.PlatformType platformType;
+    private Train train;
 
     // Start is called before the first frame update
-    public void Initialize(int goal1, int goal2, float burstRate, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, bool alightBeforeBoarding,
+    public void Initialize(Train train, int goal1, int goal2, float burstRate, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, bool alightBeforeBoarding,
     TrainController.PlatformType platformType)
     {
         this.agentPrefab = agentPrefab;
         this.burstRate = burstRate;
         this.agentContainer = agentContainer;
+        this.train = train;
         goals[0] = goal1;
         goals[1] = goal2;
         this.alightingAgentMaterial = alightingAgentMaterial;
@@ -28,9 +31,20 @@ public class TrainSpawner : MonoBehaviour
         mainScript = FindObjectOfType<Main>();
     }
 
-    public IEnumerator SpawnOneAgent()
+    public IEnumerator SpawnAgents()
+    {
+        while (train.nSpawnedAgents < train.numberOfAgents)
+        {
+            train.nSpawnedAgents++;
+            spawnOneAgent();
+            yield return new WaitForSeconds(burstRate + Random.Range(-0.1f, 0.2f));
+        }
+        done = true;
+    }
+
+    public void spawnOneAgent()
 	{
-        yield return new WaitForSeconds (burstRate + Random.Range(-0.1f, 0.2f));
+        Vector3 startPosition = new Vector3(transform.position.x, 0f, transform.position.z + Random.Range(-0.5f, 0.5f));
 		Agent agent;
 		agent = Instantiate (agentPrefab);
         agent.GetComponentInChildren<Renderer>().material = alightingAgentMaterial;
@@ -49,7 +63,7 @@ public class TrainSpawner : MonoBehaviour
             goal = (Random.value < 0.7f) ? goals[0] : goals[1];
         }
         **/
-        Vector3 startPosition = new Vector3(transform.position.x, 0f, transform.position.z + Random.Range(-0.5f, 0.5f));
+
 		agent.InitializeAgent (startPosition, node, goal, ref mainScript.roadmap);
 
         if(alightBeforeBoarding)

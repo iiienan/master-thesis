@@ -14,17 +14,16 @@ public class Train : MonoBehaviour
     public Agent agentPrefab;
     public Material alightingAgentMaterial;
     internal int nSpawnedAgents = 0;
-    internal bool spawningDone = false;
 
     // Start is called before the first frame update
     void Start()
     {
-        if (goalNodes == null || goalNodes.Count == 0)
+        if(goalNodes == null || goalNodes.Count == 0)
         {
             Debug.LogError("Goal nodes not set for train " + gameObject.name);
             return;
         }
-        if (agentContainer == null)
+        if(agentContainer == null)
         {
             Debug.LogError("Agent container not set for train " + gameObject.name);
             return;
@@ -75,35 +74,19 @@ public class Train : MonoBehaviour
                     goal2 = temp;
                 }
             }
-            spawner.Initialize(goal1, goal2, burstRate, agentContainer, agentPrefab, alightingAgentMaterial, alightBeforeBoarding, platformType);
-        }
 
+            spawner.Initialize(this, goal1, goal2, burstRate, agentContainer, agentPrefab, alightingAgentMaterial, alightBeforeBoarding, platformType);
+        }
+        
     }
 
     [ContextMenu("Alight")]
     public void Alight()
     {
-        spawningDone = false;
-        StartCoroutine(SpawnAgents());
-    }
-    
-    private IEnumerator SpawnAgents()
-    {
-        while(!spawningDone)
-        {
-            foreach (TrainSpawner spawner in trainSpawners)
-            {
-                if (nSpawnedAgents < numberOfAgents)
-                {
-                    StartCoroutine(spawner.SpawnOneAgent());
-                    nSpawnedAgents++;
-                }
-                else
-                {
-                    spawningDone = true;
-                    yield break;
-                }
-            }
+        foreach (TrainSpawner spawner in trainSpawners)
+        {   
+            spawner.done = false;
+            StartCoroutine (spawner.SpawnAgents());
         }
     }
 }
