@@ -143,7 +143,6 @@ public class DensityLogger : MonoBehaviour
         fileName = fileName + sb.ToString() + ".csv";
         // Construct the full file path
         filePath = Path.Combine(Application.persistentDataPath, fileName);
-        Debug.Log($"Logging data to: {filePath}");
 
         try
         {
@@ -193,8 +192,6 @@ public class DensityLogger : MonoBehaviour
             return;
         }
         TrainController.PlatformType type = trainController.platformType; 
-
-        Debug.Log($"Initializing areas for Platform Type: {type}");
 
         // Calculate half dimension for Z-depth of door measurement areas
         float halfDoorMeasurementZDepth = DoorMeasurementZDepth / 2f; // 1.5f
@@ -445,7 +442,7 @@ public class DensityLogger : MonoBehaviour
         // Log the details of the initialized areas for verification in the Unity Console
         foreach (var area in currentAreas)
         {
-            Debug.Log($"Initialized Area: {area.Name}, X Range: [{area.MinX}, {area.MaxX}], Z Range: [{area.MinZ}, {area.MaxZ}], Area: {area.AreaSqMeters} m²");
+            //Debug.Log($"Initialized Area: {area.Name}, X Range: [{area.MinX}, {area.MaxX}], Z Range: [{area.MinZ}, {area.MaxZ}], Area: {area.AreaSqMeters} m²");
         }
     }
 
