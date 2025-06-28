@@ -3488,6 +3488,63 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 377909107}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &380202528
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1930502029125082690, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_Name
+      value: Logger
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
 --- !u!1 &383962139
 GameObject:
   m_ObjectHideFlags: 0
@@ -8880,7 +8937,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: nAgents
-      value: 1000
+      value: 4000
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: dwellTime
@@ -8903,8 +8960,12 @@ PrefabInstance:
       value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
+      propertyPath: useDwellTimer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: arriveInterval
-      value: 60
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: alightBeforeBoarding
@@ -15498,6 +15559,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2038246482}
     - target: {fileID: 5410846902613704895, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: numberOfAgents
+      value: 2000
+      objectReference: {fileID: 0}
+    - target: {fileID: 5410846902613704895, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
       propertyPath: goalNodes.Array.size
       value: 4
       objectReference: {fileID: 0}
@@ -20594,6 +20659,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2038246482}
     - target: {fileID: 5410846902613704895, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: numberOfAgents
+      value: 2000
+      objectReference: {fileID: 0}
+    - target: {fileID: 5410846902613704895, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
       propertyPath: goalNodes.Array.size
       value: 4
       objectReference: {fileID: 0}
@@ -22416,3 +22485,4 @@ SceneRoots:
   - {fileID: 894782203}
   - {fileID: 932507717}
   - {fileID: 1102999520}
+  - {fileID: 380202528}

@@ -37,7 +37,7 @@ public class DensityLogger : MonoBehaviour
     // --- Configuration ---
     [Header("Logging Settings")]
     [Tooltip("Name of the CSV file. Will be stored in Application.persistentDataPath.")]
-    public string fileName = "PlatformDensityLog.csv";
+    public string fileName = "PlatformDensityLog";
     [Tooltip("How often to log data (in seconds).")]
     public float logInterval = 1.0f; // Log data every 1 second
     public TrainController trainController; // Reference to the TrainController to get platform type
@@ -70,6 +70,7 @@ public class DensityLogger : MonoBehaviour
     // Internal state
     private string filePath;
     private float timer;
+    private StreamWriter writer;
 
     // Helper class to define and manage each measurement area
     private class PlatformMeasurementArea
@@ -77,8 +78,8 @@ public class DensityLogger : MonoBehaviour
         public string Name { get; private set; }
         public float MinX { get; private set; }
         public float MaxX { get; private set; }
-        public float MinZ { get; private set; } 
-        public float MaxZ { get; private set; } 
+        public float MinZ { get; private set; }
+        public float MaxZ { get; private set; }
         public float AreaSqMeters { get; set; } // Changed to public set to allow adjustment
         public int CurrentPassengerCount { get; set; }
 
@@ -129,14 +130,29 @@ public class DensityLogger : MonoBehaviour
 
     void Awake()
     {
+        StringBuilder sb = new StringBuilder();
+        sb.Append(trainController.platformType.ToString());
+        sb.Append(trainController.flow.ToString());
+        sb.Append(trainController.nAgents.ToString());
+
+        if(trainController.alightBeforeBoarding)
+        {
+            sb.Append("AB");
+        }
+
+        fileName = fileName + sb.ToString() + ".csv";
         // Construct the full file path
         filePath = Path.Combine(Application.persistentDataPath, fileName);
         Debug.Log($"Logging data to: {filePath}");
 
-        // Write header only if the file doesn't exist or is empty
-        if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
+        try
         {
-            WriteHeader();
+            writer = new StreamWriter(filePath, false); // Overwrite the file
+            WriteHeader(); // Write column names once
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Failed to open log file: {e.Message}");
         }
 
         // Initialize platform areas based on the current platform type
@@ -156,21 +172,13 @@ public class DensityLogger : MonoBehaviour
 
     private void WriteHeader()
     {
-        try
+        if (writer == null)
         {
-            // Use 'false' in StreamWriter to overwrite the file and write a new header
-            using (StreamWriter sw = new StreamWriter(filePath, false))
-            {
-                // The header will now only contain the common columns for all entries
-                StringBuilder header = new StringBuilder("Timestamp,AreaName,PassengerCount,Density,LOSGrade");
-                sw.WriteLine(header.ToString());
-            }
-            Debug.Log("CSV Header written successfully.");
+            Debug.LogError("Writer is not initialized. Cannot write header.");
+            return;
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Error writing CSV header: {e.Message}");
-        }
+
+        writer.WriteLine("Timestamp,AreaName,PassengerCount,Density,LOSGrade");
     }
 
     private void InitializePlatformAreas()
@@ -552,47 +560,51 @@ public class DensityLogger : MonoBehaviour
         // Write the collected data for the current interval to the CSV file
         try
         {
-            using (StreamWriter sw = new StreamWriter(filePath, true)) // 'true' to append
+            if (writer == null)
             {
-                string timestamp = Time.time.ToString("F2", CultureInfo.InvariantCulture); // Current simulation time, formatted
-
-                // Log only individual non-TrainDoor areas, treating them as regular entries
-                // This now specifically filters out the raw TrainDoor_ areas and ensures StairAccess areas are included
-                foreach (var area in currentAreas)
-                {
-                    if (!area.Name.Contains("TrainDoor_")) // Only log if not a specific train door area (individual door)
-                    {
-                        StringBuilder line = new StringBuilder();
-                        line.Append(timestamp).Append(",");
-                        line.Append(area.Name).Append(",");
-                        line.Append(area.CurrentPassengerCount).Append(",");
-                        line.Append(area.GetDensity().ToString("F3", CultureInfo.InvariantCulture)).Append(","); // Density, formatted to 3 decimal places with invariant culture
-                        line.Append(area.GetLOSGrade());
-
-                        sw.WriteLine(line.ToString());
-                    }
-                }
-
-                // Log aggregated train door data as regular area entries
-                // They will now use the general "PassengerCount", "Density", "LOSGrade" columns
-                StringBuilder aggregateLine1 = new StringBuilder();
-                aggregateLine1.Append(timestamp).Append(",");
-                aggregateLine1.Append("TrainDoors_Line1_Total").Append(","); // AreaName
-                aggregateLine1.Append(totalPassengersLine1Doors).Append(","); // PassengerCount
-                aggregateLine1.Append(densityLine1Doors.ToString("F3", CultureInfo.InvariantCulture)).Append(","); // Density
-                aggregateLine1.Append(losGradeLine1Doors); // LOSGrade
-
-                sw.WriteLine(aggregateLine1.ToString());
-
-                StringBuilder aggregateLine2 = new StringBuilder();
-                aggregateLine2.Append(timestamp).Append(",");
-                aggregateLine2.Append("TrainDoors_Line2_Total").Append(","); // AreaName
-                aggregateLine2.Append(totalPassengersLine2Doors).Append(","); // PassengerCount
-                aggregateLine2.Append(densityLine2Doors.ToString("F3", CultureInfo.InvariantCulture)).Append(","); // Density
-                aggregateLine2.Append(losGradeLine2Doors); // LOSGrade
-
-                sw.WriteLine(aggregateLine2.ToString());
+                Debug.LogError("Writer is not initialized. Cannot log platform densities.");
+                return;
             }
+
+            string timestamp = Time.time.ToString("F2", CultureInfo.InvariantCulture); // Current simulation time, formatted
+
+            // Log only individual non-TrainDoor areas, treating them as regular entries
+            // This now specifically filters out the raw TrainDoor_ areas and ensures StairAccess areas are included
+            foreach (var area in currentAreas)
+            {
+                if (!area.Name.Contains("TrainDoor_")) // Only log if not a specific train door area (individual door)
+                {
+                    StringBuilder line = new StringBuilder();
+                    line.Append(timestamp).Append(",");
+                    line.Append(area.Name).Append(",");
+                    line.Append(area.CurrentPassengerCount).Append(",");
+                    line.Append(area.GetDensity().ToString("F3", CultureInfo.InvariantCulture)).Append(","); // Density, formatted to 3 decimal places with invariant culture
+                    line.Append(area.GetLOSGrade());
+
+                    writer.WriteLine(line.ToString());
+                }
+            }
+
+            // Log aggregated train door data as regular area entries
+            // They will now use the general "PassengerCount", "Density", "LOSGrade" columns
+            StringBuilder aggregateLine1 = new StringBuilder();
+            aggregateLine1.Append(timestamp).Append(",");
+            aggregateLine1.Append("TrainDoors_Line1_Total").Append(","); // AreaName
+            aggregateLine1.Append(totalPassengersLine1Doors).Append(","); // PassengerCount
+            aggregateLine1.Append(densityLine1Doors.ToString("F3", CultureInfo.InvariantCulture)).Append(","); // Density
+            aggregateLine1.Append(losGradeLine1Doors); // LOSGrade
+
+            writer.WriteLine(aggregateLine1.ToString());
+
+            StringBuilder aggregateLine2 = new StringBuilder();
+            aggregateLine2.Append(timestamp).Append(",");
+            aggregateLine2.Append("TrainDoors_Line2_Total").Append(","); // AreaName
+            aggregateLine2.Append(totalPassengersLine2Doors).Append(","); // PassengerCount
+            aggregateLine2.Append(densityLine2Doors.ToString("F3", CultureInfo.InvariantCulture)).Append(","); // Density
+            aggregateLine2.Append(losGradeLine2Doors); // LOSGrade
+
+            writer.WriteLine(aggregateLine2.ToString());
+            
         }
         catch (System.Exception e)
         {
@@ -604,7 +616,12 @@ public class DensityLogger : MonoBehaviour
     // It's good practice to ensure all file operations are completed.
     void OnApplicationQuit()
     {
-        Debug.Log("Application quitting. Data logging complete and file flushed.");
+        if (writer != null)
+        {
+            writer.Flush();
+            writer.Close();
+            Debug.Log("Density log file flushed and closed.");
+        }
     }
 
     // --- Editor Visualization ---

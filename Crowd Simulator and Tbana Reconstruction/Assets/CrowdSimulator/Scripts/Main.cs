@@ -209,7 +209,6 @@ public class Main : MonoBehaviour {
 					else
 					{
 						waitingAreaController.putAgentInWaitingArea(agent);
-						//agentList.RemoveAt(i);
 					}
 				}
 				else
@@ -217,21 +216,25 @@ public class Main : MonoBehaviour {
 					if (agent.boarding)
 					{
 						trainController.nBoardingAgents[agent.trainLine]--;
-						logger.LogTravelTime(agent.travelTime, true);
+						logger.LogTravelTime(agent.travelTime, true, agent.startTime);
+						agentList.RemoveAt(i);
+						Destroy(agent.gameObject);
 					}
 					else if (agent.isAlighting)
 					{
-						logger.LogTravelTime(agent.travelTime, false);
+						logger.LogTravelTime(agent.travelTime, false, agent.startTime);
 						nExitingAgents--;
+						agentList.RemoveAt(i);
+						Destroy(agent.gameObject);
 						if (nExitingAgents <= 0)
 						{
 							// All exiting agents have exited the platform, end simulation
 							logger.LogEvent("All exiting agents have exited the platform");
+							Debug.Log("All exiting agents have exited the platform");
 							//UnityEditor.EditorApplication.isPlaying = false;
 						}
 					}
-					agentList.RemoveAt(i);
-					Destroy(agent.gameObject);
+					
 				}
 				continue;
 			}

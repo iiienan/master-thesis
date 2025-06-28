@@ -45,6 +45,7 @@ public class Agent : MonoBehaviour {
 
 	// Travel time
 	internal float travelTime = 0f;
+	internal float startTime;
 
 
 	internal void Start()
@@ -85,6 +86,7 @@ public class Agent : MonoBehaviour {
 		{
 			walkingSpeed = Random.Range(mainScript.agentMinSpeed, mainScript.agentMaxSpeed);
 		}
+		startTime = mainScript.simulationTime;
 
 	}
 
@@ -362,7 +364,7 @@ public class Agent : MonoBehaviour {
 			case TrainController.PlatformType.Central:
 				if (positionX > 8f && !crossingYellowLine)
 				{
-					Debug.Log($"Agent crossed the yellow line");
+					trainController.mainScript.logger.LogYellowLineViolation(transform.position);
 					Debug.DrawLine(transform.position, transform.position + Vector3.up * 10f, Color.red, 10f);
 					crossingYellowLine = true;
 				}
@@ -377,7 +379,7 @@ public class Agent : MonoBehaviour {
 					 (positionX > 2f && positionX < 5f)) 
 					 && !crossingYellowLine)
 				{
-					Debug.Log($"Agent crossed the yellow line");
+					trainController.mainScript.logger.LogYellowLineViolation(transform.position);
 					Debug.DrawLine(transform.position, transform.position + Vector3.up * 10f, Color.red, 10f);
 					crossingYellowLine = true;
 				}
@@ -391,7 +393,7 @@ public class Agent : MonoBehaviour {
 			case TrainController.PlatformType.Side:
 				if (positionX < 4f && !crossingYellowLine)
 				{
-					Debug.Log($"Agent crossed the yellow line");
+					trainController.mainScript.logger.LogYellowLineViolation(transform.position);
 					Debug.DrawLine(transform.position, transform.position + Vector3.up * 10f, Color.red, 10f);
 					crossingYellowLine = true;
 				}
