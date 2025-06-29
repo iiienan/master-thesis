@@ -9,20 +9,41 @@ public class CentralSpawner : NewSpawner
     internal override int SetSubwayData(Agent agent, Vector3 startPosition)
     {
         int agentGoal = goal;
-	    agent.trainLine = trainLine;
+        agent.trainLine = trainLine;
 
         // Find a waiting area goal for the agent. If there are no free waiting area spots their goal will be the ordinary goal for this spawner.
         CustomNode startNode = transform.GetChild(0).GetComponent<CustomNode>();
-        (int waitingArea,int waitingSpot) waitingAreaSpot = waitingAreaController.GetWaitingAreaSpotNew(ref startNode, trainLine, true);
-        if(waitingAreaSpot.waitingArea != -1)
+        (int waitingArea, int waitingSpot) waitingAreaSpot = waitingAreaController.GetWaitingAreaSpotNew(ref startNode, trainLine, true);
+        if (waitingAreaSpot.waitingArea != -1)
         {
             agent.setWaitingAgent(true);
             agentGoal = waitingAreaSpot.waitingArea;
             agent.waitingSpot = waitingAreaSpot.waitingSpot;
             agent.waitingArea = map.allNodes[waitingAreaSpot.waitingArea].GetComponent<WaitingArea>();
         }
-		return agentGoal;
+        return agentGoal;
 
+    }
+
+    internal override void SetSpawnRate()
+    {
+        if (mainScript.trainController.flow == TrainController.Flow.Symmetric)
+        {
+            spawnRate = mainScript.trainController.nAgents / 8f / mainScript.trainController.arriveInterval;
+        }
+        else
+        {
+            float totalSpawnRate = mainScript.trainController.nAgents / mainScript.trainController.arriveInterval;
+            if (trainLine == 1)
+            {
+                spawnRate = totalSpawnRate / 5f;
+            }
+            else
+            {
+                spawnRate = totalSpawnRate / 20f;
+            }
+        }
+		
     }
 
 

@@ -61,12 +61,20 @@ public class NewSpawner : MonoBehaviour {
 		mainScript = FindObjectOfType<Main>();
 		waitingAreaController = FindObjectOfType<WaitingAreaController>();
 
+		SetSpawnRate();
+
 		continousSpawn(); 
 	}
 
+	internal virtual void SetSpawnRate()
+	{
+		spawnRate = mainScript.trainController.nAgents / 4f / mainScript.trainController.arriveInterval;
+	}
+
 	// CONTINUOUS SPAWN
-	public void continousSpawn() {
-		StartCoroutine (spawnContinously(spawnRate));
+	public void continousSpawn()
+	{
+		StartCoroutine(spawnContinously(spawnRate));
 	}
 
 	internal IEnumerator spawnContinously(float continousSpawnRate) {
@@ -135,10 +143,10 @@ public class NewSpawner : MonoBehaviour {
 
 			if (rand < 0.20f) 
 			{
-				trainLine = 1;  // Reduced flow
+				trainLine = 2;  // Reduced flow
 			} else 
 			{
-				trainLine = 2;  // Increased flow
+				trainLine = 1;  // Increased flow
 			}
 		}
 		agent.trainLine = trainLine;
