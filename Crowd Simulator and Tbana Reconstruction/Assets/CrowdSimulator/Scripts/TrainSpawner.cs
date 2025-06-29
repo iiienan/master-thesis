@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TrainSpawner : MonoBehaviour
 {
-    private int[] goals = new int[2];
+    private int goal;
     private float burstRate;
     private GameObject agentContainer;
     private Main mainScript;
@@ -16,15 +16,14 @@ public class TrainSpawner : MonoBehaviour
     private Train train;
 
     // Start is called before the first frame update
-    public void Initialize(Train train, int goal1, int goal2, float burstRate, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, bool alightBeforeBoarding,
+    public void Initialize(Train train, int goal, float burstRate, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, bool alightBeforeBoarding,
     TrainController.PlatformType platformType)
     {
         this.agentPrefab = agentPrefab;
         this.burstRate = burstRate;
         this.agentContainer = agentContainer;
         this.train = train;
-        goals[0] = goal1;
-        goals[1] = goal2;
+        this.goal = goal;
         this.alightingAgentMaterial = alightingAgentMaterial;
         this.alightBeforeBoarding = alightBeforeBoarding;
         this.platformType = platformType;
@@ -51,19 +50,6 @@ public class TrainSpawner : MonoBehaviour
 
         int node = transform.GetComponent<CustomNode>().index;
 
-        int goal = goals[0];
-        /**
-        if (goals[1] == -1)
-        {
-            goal = goals[0];
-        }
-        else
-        {
-            // Choose goals[0] 70% of the time, goals[1] 30% of the time
-            goal = (Random.value < 0.7f) ? goals[0] : goals[1];
-        }
-        **/
-
 		agent.InitializeAgent (startPosition, node, goal, ref mainScript.roadmap);
         agent.trainLine = train.trainLine;
 
@@ -79,6 +65,7 @@ public class TrainSpawner : MonoBehaviour
                 {
                     agent.noMapGoal = new Vector3(transform.position.x + 4f, 0f, startPosition.z);
                 }
+                agent.noMap = true;
             }
 
             if (platformType == TrainController.PlatformType.Side)
@@ -91,8 +78,8 @@ public class TrainSpawner : MonoBehaviour
                 {
                     agent.noMapGoal = new Vector3(transform.position.x - 4f, 0f, startPosition.z);
                 }
+                agent.noMap = true;
             }
-            agent.noMap = true;
         }
 		
         agent.isAlighting = true;
