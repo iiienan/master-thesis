@@ -5191,11 +5191,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: arriveInterval
-      value: 240
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: alightBeforeBoarding
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: trains.Array.data[1]
@@ -13118,7 +13118,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 2137984116}
-  spawnRate: 0.08928572
+  spawnRate: 4
   usePoisson: 1
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 2
@@ -16978,7 +16978,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 1628851886}
-  spawnRate: 0.08928572
+  spawnRate: 4
   usePoisson: 1
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 1
@@ -17737,7 +17737,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 473700918}
-  spawnRate: 0.08928572
+  spawnRate: 4
   usePoisson: 1
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 1
@@ -19782,7 +19782,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 1307125999}
-  spawnRate: 0.08928572
+  spawnRate: 4
   usePoisson: 1
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 2
@@ -19987,7 +19987,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 643186428}
-  spawnRate: 0.08928572
+  spawnRate: 4
   usePoisson: 1
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 2
@@ -21131,7 +21131,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 522502796}
-  spawnRate: 0.08928572
+  spawnRate: 4
   usePoisson: 1
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 2
@@ -21440,7 +21440,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 1267584788}
-  spawnRate: 0.08928572
+  spawnRate: 4
   usePoisson: 1
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 1
@@ -27429,7 +27429,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 1932665674}
-  spawnRate: 0.08928572
+  spawnRate: 4
   usePoisson: 1
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 1
