@@ -216,13 +216,13 @@ public class Main : MonoBehaviour {
 					if (agent.boarding)
 					{
 						trainController.nBoardingAgents[agent.trainLine]--;
-						logger.LogTravelTime(agent.travelTime, true, agent.startTime);
+						logger.LogTravelTime(agent.travelTime, true, agent.trainLine, agent.startTime);
 						agentList.RemoveAt(i);
 						Destroy(agent.gameObject);
 					}
 					else if (agent.isAlighting)
 					{
-						logger.LogTravelTime(agent.travelTime, false, agent.startTime);
+						logger.LogTravelTime(agent.travelTime, false, agent.trainLine, agent.startTime);
 						nExitingAgents--;
 						agentList.RemoveAt(i);
 						Destroy(agent.gameObject);

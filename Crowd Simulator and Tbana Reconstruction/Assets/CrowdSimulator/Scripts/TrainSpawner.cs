@@ -65,26 +65,29 @@ public class TrainSpawner : MonoBehaviour
         **/
 
 		agent.InitializeAgent (startPosition, node, goal, ref mainScript.roadmap);
+        agent.trainLine = train.trainLine;
 
-        if(alightBeforeBoarding)
+        if (alightBeforeBoarding)
         {
-            if(platformType == TrainController.PlatformType.Central)
+            if (platformType == TrainController.PlatformType.Central)
             {
-                if(startPosition.x > 0)
+                if (startPosition.x > 0)
                 {
                     agent.noMapGoal = new Vector3(transform.position.x - 4f, 0f, startPosition.z);
-                }else
+                }
+                else
                 {
                     agent.noMapGoal = new Vector3(transform.position.x + 4f, 0f, startPosition.z);
                 }
             }
 
-            if(platformType == TrainController.PlatformType.Side)
+            if (platformType == TrainController.PlatformType.Side)
             {
-                if(startPosition.x > 0)
+                if (startPosition.x > 0)
                 {
                     agent.noMapGoal = new Vector3(transform.position.x + 4f, 0f, startPosition.z);
-                }else
+                }
+                else
                 {
                     agent.noMapGoal = new Vector3(transform.position.x - 4f, 0f, startPosition.z);
                 }

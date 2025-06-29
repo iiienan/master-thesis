@@ -120,12 +120,12 @@ public class Logger : MonoBehaviour
             return;
         }
 
-        StringBuilder header = new StringBuilder("PassengerType,TravelTime,Start,End");
+        StringBuilder header = new StringBuilder("PassengerType,TrainLine,TravelTime,Start,End");
         travelTimeWriter.WriteLine(header.ToString());
     }
 
     // true boarding, false alighting
-    public void LogTravelTime(float travelTime, bool passengerTypeBoarding, float start)
+    public void LogTravelTime(float travelTime, bool passengerTypeBoarding, int trainLine, float start)
     {
         if (travelTimeWriter == null)
         {
@@ -143,6 +143,8 @@ public class Logger : MonoBehaviour
         {
             line.Append("Alighting,");
         }
+        line.Append(trainLine.ToString());
+        line.Append(",");
         line.Append(travelTime.ToString("F2", CultureInfo.InvariantCulture));
         line.Append(",");
         line.Append(start.ToString("F2", CultureInfo.InvariantCulture));
