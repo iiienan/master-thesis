@@ -231,7 +231,11 @@ public class Main : MonoBehaviour {
 							// All exiting agents have exited the platform, end simulation
 							logger.LogEvent("All exiting agents have exited the platform");
 							Debug.Log("All exiting agents have exited the platform");
-							UnityEditor.EditorApplication.isPlaying = false;
+							if(nBoardingAgents[1] <= 0 && nBoardingAgents[2] <= 0)
+							{
+								UnityEditor.EditorApplication.isPlaying = false;
+							}
+							
 						}
 					}
 					
