@@ -9,11 +9,12 @@ public class Logger : MonoBehaviour
     // --- Configuration ---
     [Header("Logging Settings")]
     [Tooltip("Name of the CSV file. Will be stored in Application.persistentDataPath.")]
-    public string fileNameTravelTime = "TravelTimeLog";
-    public string fileNameSimulation = "SimulationLog";
-    public string fileNameYellowLine = "YellowLineLog";
+    internal string fileNameTravelTime = "TravelTimeLog";
+    internal string fileNameSimulation = "SimulationLog";
+    internal string fileNameYellowLine = "YellowLineLog";
     private Main main;
     private TrainController trainController;
+    private TestController testController;
 
     // Internal state
     private string filePathTravelTime;
@@ -23,7 +24,7 @@ public class Logger : MonoBehaviour
     private StreamWriter travelTimeWriter;
     private StreamWriter yellowLineWriter;
 
-    void Awake()
+    void Start()
     {
         main = FindObjectOfType<Main>();
         if (main == null)
@@ -37,19 +38,14 @@ public class Logger : MonoBehaviour
             Debug.LogError("Logger did not find TrainController script.");
         }
 
-        StringBuilder sb = new StringBuilder();
-        sb.Append(trainController.platformType.ToString());
-        sb.Append(trainController.flow.ToString());
-        sb.Append(trainController.nAgents.ToString());
-        
-        if(trainController.alightBeforeBoarding)
+        testController = FindObjectOfType<TestController>();
+        if (testController == null)
         {
-            sb.Append("AB");
+            Debug.LogError("Logger did not find TestController script.");
         }
-        
 
-        fileNameTravelTime = fileNameTravelTime + sb.ToString() + ".csv";
-        // Construct the full file path
+        fileNameTravelTime = testController.SetTravelTimeLogFileName();
+        Debug.Log($"Travel time log file name: {fileNameTravelTime}");
         filePathTravelTime = Path.Combine(Application.persistentDataPath, fileNameTravelTime);
 
         try
@@ -62,12 +58,14 @@ public class Logger : MonoBehaviour
             Debug.LogError($"Failed to open travel time log file: {e.Message}");
         }
 
-        fileNameSimulation = fileNameSimulation + sb.ToString() + ".csv";
+        fileNameSimulation = testController.SetSimulationLogFileName();
+        Debug.Log($"Simulation log file name: {fileNameSimulation}");
         filePathSimulation = Path.Combine(Application.persistentDataPath, fileNameSimulation);
 
         WriteHeaderSimulation();
 
-        fileNameYellowLine = fileNameYellowLine + sb.ToString() + ".csv";
+        fileNameYellowLine = testController.SetYellowLineLogFileName();
+        Debug.Log($"Yellow line log file name: {fileNameYellowLine}");
         filePathYellowLine = Path.Combine(Application.persistentDataPath, fileNameYellowLine);
 
         try

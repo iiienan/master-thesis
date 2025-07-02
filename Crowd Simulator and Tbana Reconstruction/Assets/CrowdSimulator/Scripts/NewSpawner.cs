@@ -23,6 +23,7 @@ public class NewSpawner : MonoBehaviour {
 	public bool usePoisson = false;
     public Agent agentPrefab;
 	internal bool spawn = true;
+	internal TestController testController;
 
 	// Set the node index for this spawner's node
 	public void SetNode(int node)
@@ -60,6 +61,23 @@ public class NewSpawner : MonoBehaviour {
 	{
 		mainScript = FindObjectOfType<Main>();
 		waitingAreaController = FindObjectOfType<WaitingAreaController>();
+		testController = FindObjectOfType<TestController>();
+
+		if(mainScript == null)
+		{
+			Debug.LogError("Main script not found in the scene.");
+			return;
+		}
+		if(waitingAreaController == null)
+		{
+			Debug.LogError("WaitingAreaController not found in the scene.");
+			return;
+		}
+		if(testController == null)
+		{
+			Debug.LogError("TestController not found in the scene.");
+			return;
+		}
 
 		SetSpawnRate();
 
@@ -68,7 +86,7 @@ public class NewSpawner : MonoBehaviour {
 
 	internal virtual void SetSpawnRate()
 	{
-		spawnRate = mainScript.trainController.nAgents / 4f / mainScript.trainController.arriveInterval;
+		spawnRate = testController.entryFlow / 4f / testController.arriveInterval;
 	}
 
 	// CONTINUOUS SPAWN

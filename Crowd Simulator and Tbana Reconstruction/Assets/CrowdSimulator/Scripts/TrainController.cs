@@ -7,20 +7,20 @@ public class TrainController : MonoBehaviour
     public bool spawnTrains = true;
     public GameObject[] trains = new GameObject[3];
     private float arrivalTimer = 0f;
-    public float arriveInterval = 10f;
+    internal float arriveInterval = 10f;
     internal bool[] dwelling = new bool[3];
-    public float dwellTime = 5f;
-    private float[] dwellTimer = new float[3];
+    //public float dwellTime = 5f;
+    //private float[] dwellTimer = new float[3];
     private WaitingAreaController waitingAreaController;
     internal Main mainScript;
-    public int trainCapacity = 500;
+    //public int trainCapacity = 500;
     internal int[] nBoardedAgents = new int[3];
-    public int nAgents = 100;
+    internal int nAgents = 100;
     public bool waitForMinimumAgents = false;
-    public bool boardWithCapacity = false;
+    //public bool boardWithCapacity = false;
     internal bool[] isPreparingToBoard = new bool[3];
     internal bool[] boarding = new bool[3];
-    public bool alightBeforeBoarding = true;
+    internal bool alightBeforeBoarding = true;
     public enum PlatformType
     {
         Central,
@@ -36,10 +36,11 @@ public class TrainController : MonoBehaviour
         Asymmetric
     }
 
-    public Flow flow;
+    internal Flow flow;
     internal int[] nBoardingAgents = new int[3];
-    public bool useDwellTimer = true;
+    //public bool useDwellTimer = true;
     private Logger logger;
+    private TestController testController;
 
 
    
@@ -56,11 +57,27 @@ public class TrainController : MonoBehaviour
         {
             Debug.LogError("Main not found");
         }
-        logger = FindObjectOfType<Logger>();
-        if(logger == null)
+        testController = FindObjectOfType<TestController>();
+        if(testController == null)
+        {
+            Debug.LogError("TestController not found");
+        }
+        if (testController.log) logger = FindObjectOfType<Logger>();
+        if(logger == null && testController.log)
         {
             Debug.LogError("Logger not found");
         }
+        
+
+        testController.SetTrainControllerParameters();
+
+        Debug.Log("Test Case: " + platformType + " " + testController.scenario + " " + flow + " AB: "  + alightBeforeBoarding.ToString());
+
+        Debug.Log("Number of entering agents: " + nAgents);
+
+        Debug.Log("Number of exiting agents: Train 1: " + trains[1].GetComponent<Train>().numberOfAgents + " Train 2: " + trains[2].GetComponent<Train>().numberOfAgents);
+
+
         ToggleTrain(1);
         ToggleTrain(2);
     }
@@ -88,8 +105,8 @@ public class TrainController : MonoBehaviour
 
             ToggleTrain(1);
             ToggleTrain(2);
-            logger.LogEvent("Train 1 arrived");
-            logger.LogEvent("Train 2 arrived");
+            if(logger != null) logger.LogEvent("Train 1 arrived");
+            if(logger != null) logger.LogEvent("Train 2 arrived");
 
             PrepareBoarding(1);
             PrepareBoarding(2);
@@ -117,7 +134,7 @@ public class TrainController : MonoBehaviour
         }
         yield return new WaitForSeconds(15f);
         Train trainScript = trains[trainLine].GetComponent<Train>();
-        logger.LogEvent("Train " + trainLine + " started alighting");
+        if(logger != null) logger.LogEvent("Train " + trainLine + " started alighting");
         trainScript.Alight();
         Train train = trains[trainLine].GetComponent<Train>();
 
@@ -142,7 +159,7 @@ public class TrainController : MonoBehaviour
             }
             yield return new WaitForSeconds(0.1f);
         }
-        logger.LogEvent("Train " + trainLine + " finished alighting");
+        if(logger != null) logger.LogEvent("Train " + trainLine + " finished alighting");
         trains[trainLine].GetComponent<Train>().nSpawnedAgents = 0;
 
         if (alightBeforeBoarding)
@@ -164,6 +181,7 @@ public class TrainController : MonoBehaviour
 
     private void Dwell(int trainLine)
     {
+        /**
         if (dwelling[trainLine] && useDwellTimer)
         {
             dwellTimer[trainLine] += Time.deltaTime;
@@ -176,13 +194,14 @@ public class TrainController : MonoBehaviour
                 boarding[trainLine] = false;
             }
         }
-        else if (dwelling[trainLine] && nBoardingAgents[trainLine] <= 0 && boarding[trainLine])
+        **/
+        if (dwelling[trainLine] && nBoardingAgents[trainLine] <= 0 && boarding[trainLine])
         {
             dwelling[trainLine] = false;
             ToggleTrain(trainLine);
-            dwellTimer[trainLine] = 0f;
+            //dwellTimer[trainLine] = 0f;
             boarding[trainLine] = false;
-            logger.LogEvent("Train " + trainLine + " finished boarding");
+            if(logger != null) logger.LogEvent("Train " + trainLine + " finished boarding");
         }
         
     }
@@ -206,10 +225,12 @@ public class TrainController : MonoBehaviour
                 StartCoroutine(WaitOutsideTrain(agent));
 
                 nBoardedAgents[trainLine]++;
-                if(nBoardedAgents[trainLine] >= trainCapacity && boardWithCapacity)
+                /**
+                if (nBoardedAgents[trainLine] >= trainCapacity && boardWithCapacity)
                 {
                     break;
                 }
+                **/
             }
         }
     }
@@ -219,14 +240,16 @@ public class TrainController : MonoBehaviour
         for(int i = 0; i < mainScript.agentList.Count; i++)
 		{
 			Agent agent = mainScript.agentList[i];
-			if(agent.trainLine == trainLine && !agent.boarding && !agent.isWaiting)
-			{
+            if (agent.trainLine == trainLine && !agent.boarding && !agent.isWaiting)
+            {
                 PrepareWalkingAgent(agent);
                 nBoardedAgents[trainLine]++;
-                if(nBoardedAgents[trainLine] >= trainCapacity && boardWithCapacity)
+                /**
+                if (nBoardedAgents[trainLine] >= trainCapacity && boardWithCapacity)
                 {
                     break;
                 }
+                **/
 			}
             
 		}
@@ -296,7 +319,7 @@ public class TrainController : MonoBehaviour
 
     public void Board(int trainLine)
     {
-        logger.LogEvent("Train " + trainLine + " started boarding");
+        if(logger != null) logger.LogEvent("Train " + trainLine + " started boarding");
         boarding[trainLine] = true;
         for (int i = mainScript.agentList.Count - 1; i >= 0; i--)
         {

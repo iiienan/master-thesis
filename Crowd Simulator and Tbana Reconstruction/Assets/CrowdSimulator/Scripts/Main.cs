@@ -61,6 +61,7 @@ public class Main : MonoBehaviour {
 	internal WaitingAreaController waitingAreaController;
 	internal TrainController trainController;
 	internal Logger logger;
+	internal TestController testController;
 	internal float simulationTime = 0f;
 	internal int nExitingAgents = 0;
 
@@ -97,8 +98,13 @@ public class Main : MonoBehaviour {
 		{
 			Debug.LogError("TrainController not found in scene");
 		}
-		logger = FindObjectOfType<Logger>();
-		if (logger == null)
+		testController = FindObjectOfType<TestController>();
+		if (testController == null)
+		{
+			Debug.LogError("TestController not found in scene");
+		}
+		if(testController.log) logger = FindObjectOfType<Logger>();
+		if (logger == null && testController.log)
 		{
 			Debug.LogError("Logger not found in scene");
 		}
@@ -216,20 +222,20 @@ public class Main : MonoBehaviour {
 					if (agent.boarding)
 					{
 						trainController.nBoardingAgents[agent.trainLine]--;
-						logger.LogTravelTime(agent.travelTime, true, agent.trainLine, agent.startTime);
+						if(logger != null) logger.LogTravelTime(agent.travelTime, true, agent.trainLine, agent.startTime);
 						agentList.RemoveAt(i);
 						Destroy(agent.gameObject);
 					}
 					else if (agent.isAlighting)
 					{
-						logger.LogTravelTime(agent.travelTime, false, agent.trainLine, agent.startTime);
+						if(logger != null) logger.LogTravelTime(agent.travelTime, false, agent.trainLine, agent.startTime);
 						nExitingAgents--;
 						agentList.RemoveAt(i);
 						Destroy(agent.gameObject);
 						if (nExitingAgents <= 0)
 						{
 							// All exiting agents have exited the platform, end simulation
-							logger.LogEvent("All exiting agents have exited the platform");
+							if(logger != null) logger.LogEvent("All exiting agents have exited the platform");
 							Debug.Log("All exiting agents have exited the platform");
 							if(trainController.nBoardingAgents[1] <= 0 && trainController.nBoardingAgents[2] <= 0)
 							{

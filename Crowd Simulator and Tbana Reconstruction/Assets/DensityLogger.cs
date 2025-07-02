@@ -37,11 +37,12 @@ public class DensityLogger : MonoBehaviour
     // --- Configuration ---
     [Header("Logging Settings")]
     [Tooltip("Name of the CSV file. Will be stored in Application.persistentDataPath.")]
-    public string fileName = "PlatformDensityLog";
+    internal string fileName = "PlatformDensityLog";
     [Tooltip("How often to log data (in seconds).")]
     public float logInterval = 1.0f; // Log data every 1 second
     public TrainController trainController; // Reference to the TrainController to get platform type
-    public Main main; // Reference to the Main class to access agent list
+    internal Main main; // Reference to the Main class to access agent list
+    internal TestController testController;
 
     // Platform dimensions (fixed as per user request)
     private const float PlatformLength = 150f;
@@ -128,19 +129,29 @@ public class DensityLogger : MonoBehaviour
 
     private List<PlatformMeasurementArea> currentAreas;
 
-    void Awake()
+    void Start()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.Append(trainController.platformType.ToString());
-        sb.Append(trainController.flow.ToString());
-        sb.Append(trainController.nAgents.ToString());
+        trainController = FindObjectOfType<TrainController>();
+        main = FindObjectOfType<Main>();
+        testController = FindObjectOfType<TestController>();
 
-        if(trainController.alightBeforeBoarding)
+        if (trainController == null)
         {
-            sb.Append("AB");
+            Debug.LogError("TrainController reference is not set in DensityLogger. Cannot initialize areas.");
+            return;
         }
-
-        fileName = fileName + sb.ToString() + ".csv";
+        if (main == null)
+        {
+            Debug.LogError("Main reference is not set in DensityLogger. Cannot access agent list.");
+            return;
+        }
+        if (testController == null)
+        {
+            Debug.LogError("TestController reference is not set in DensityLogger. Cannot set log file name.");
+            return;
+        }
+        fileName = testController.SetDensityLogFileName();
+        Debug.Log("Logging density to file: " + fileName);
         // Construct the full file path
         filePath = Path.Combine(Application.persistentDataPath, fileName);
 
