@@ -289,9 +289,9 @@ public class Agent : MonoBehaviour {
 		preferredVelocity.y = 0f;
 	}
 
-    private void Update()
-    {
-        travelTime += Time.deltaTime;
+	private void Update()
+	{
+		travelTime += Time.deltaTime;
     }
 
     internal virtual void calculatePreferredVelocity(ref MapGen.map map) {
@@ -333,7 +333,7 @@ public class Agent : MonoBehaviour {
 
 	internal void PassiveMove()
 	{
-		if(!trainController.dwelling[1] && !trainController.dwelling[2])
+		if(!trainController.dwelling[trainLine])
 		{
 			ApplyYellowLineForce();
 		}

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TrainController : MonoBehaviour
 {
@@ -43,32 +44,32 @@ public class TrainController : MonoBehaviour
     private TestController testController;
     private bool[] allSpawnersDone = new bool[3];
 
-   
- 
+
+
     void Start()
     {
         waitingAreaController = FindObjectOfType<WaitingAreaController>();
-        if(waitingAreaController == null)
+        if (waitingAreaController == null)
         {
             Debug.LogError("WaitingAreaController not found");
         }
         mainScript = FindObjectOfType<Main>();
-        if(mainScript == null)
+        if (mainScript == null)
         {
             Debug.LogError("Main not found");
         }
         testController = FindObjectOfType<TestController>();
-        if(testController == null)
+        if (testController == null)
         {
             Debug.LogError("TestController not found");
         }
         if (testController.log) logger = FindObjectOfType<Logger>();
-        if(logger == null && testController.log)
+        if (logger == null && testController.log)
         {
             Debug.LogError("Logger not found");
         }
 
-        Debug.Log("Test Case: " + platformType + " " + testController.scenario + " " + flow + " AB: "  + alightBeforeBoarding.ToString());
+        Debug.Log("Test Case: " + platformType + " " + testController.scenario + " " + flow + " AB: " + alightBeforeBoarding.ToString());
 
         Debug.Log("Number of entering agents: " + nAgents);
 
@@ -125,13 +126,13 @@ public class TrainController : MonoBehaviour
 
     private IEnumerator Alight(int trainLine)
     {
-        foreach(MapGen.spawnNode node in mainScript.roadmap.spawns)
+        foreach (MapGen.spawnNode node in mainScript.roadmap.spawns)
         {
-            //node.spawner.spawn = false;
+            node.spawner.spawn = false;
         }
-        yield return new WaitForSeconds(15f);
+        yield return new WaitForSeconds(10f);
         Train trainScript = trains[trainLine].GetComponent<Train>();
-        if(logger != null) logger.LogEvent("Train " + trainLine + " started alighting");
+        if (logger != null) logger.LogEvent("Train " + trainLine + " started alighting");
         trainScript.Alight();
         Train train = trains[trainLine].GetComponent<Train>();
 
@@ -141,7 +142,7 @@ public class TrainController : MonoBehaviour
             isPreparingToBoard[trainLine] = false;
             Board(trainLine);
         }
-        
+
         allSpawnersDone[trainLine] = false;
         while (!allSpawnersDone[trainLine])
         {
@@ -156,7 +157,7 @@ public class TrainController : MonoBehaviour
             }
             yield return new WaitForSeconds(0.1f);
         }
-        if(logger != null) logger.LogEvent("Train " + trainLine + " finished alighting");
+        if (logger != null) logger.LogEvent("Train " + trainLine + " finished alighting");
         trains[trainLine].GetComponent<Train>().nSpawnedAgents = 0;
 
         if (alightBeforeBoarding)
@@ -164,7 +165,7 @@ public class TrainController : MonoBehaviour
             isPreparingToBoard[trainLine] = false;
             Board(trainLine);
         }
-            
+
     }
 
     public void PrepareBoarding(int trainLine)
@@ -282,17 +283,12 @@ public class TrainController : MonoBehaviour
 
     private IEnumerator WaitOutsideTrain(Agent agent)
     {
-        // Wait for a bit so all start moving
-        // at exactly the same time
-        float delay = Random.Range(0.1f, 3f);
-        yield return new WaitForSeconds(delay);
-
         if (!agent) yield break;
-
+        
         // Wait outside the train close to the door
         Vector3 targetPoint = mainScript.roadmap.allNodes[agent.path[agent.pathIndex]].transform.position;
         Vector3 waitPosition;
-        if(agent.transform.position.z < targetPoint.z)
+        if (agent.transform.position.z < targetPoint.z)
         {
             waitPosition = new Vector3(targetPoint.x, 0, targetPoint.z - Random.Range(1.5f, 2.5f));
         }
@@ -300,13 +296,41 @@ public class TrainController : MonoBehaviour
         {
             waitPosition = new Vector3(targetPoint.x, 0, targetPoint.z + Random.Range(1.5f, 2.5f));
         }
-        if(agent.transform.position.x < targetPoint.x)
+
+        if (agent.transform.position.x < targetPoint.x)
         {
             waitPosition.x = targetPoint.x + Random.Range(-5f, 0.4f);
         }
         else
         {
             waitPosition.x = targetPoint.x + Random.Range(-0.4f, 5f);
+        }
+
+        if (platformType == PlatformType.Central)
+        {
+            waitPosition.x = Mathf.Clamp(waitPosition.x, -8.5f, 8.5f);
+        }
+        else if (platformType == PlatformType.Mixed)
+        {
+            if (agent.transform.position.x < targetPoint.x)
+            {
+                waitPosition.x = Mathf.Clamp(waitPosition.x, -9.5f, -6.5f);
+            }
+            else
+            {
+                waitPosition.x = Mathf.Clamp(waitPosition.x, 6.5f, 9.5f);
+            }
+        }
+        else if (platformType == PlatformType.Side)
+        {
+            if (agent.transform.position.x < targetPoint.x)
+            {
+                waitPosition.x = Mathf.Clamp(waitPosition.x, -8.5f, -3.5f);
+            }
+            else
+            {
+                waitPosition.x = Mathf.Clamp(waitPosition.x, 3.5f, 8.5f);
+            }
         }
 
         agent.noMapGoal = waitPosition;
@@ -323,6 +347,11 @@ public class TrainController : MonoBehaviour
         agent.done = false;
         agent.isWaiting = false;
         agent.isPreparingToBoard = true;
+        
+        // Wait for a bit so all start moving
+        // at exactly the same time
+        float delay = Random.Range(0.1f, 3f);
+        yield return new WaitForSeconds(delay);
     }
 
     public void Board(int trainLine)
