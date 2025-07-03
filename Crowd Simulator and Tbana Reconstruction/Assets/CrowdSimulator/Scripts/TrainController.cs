@@ -41,7 +41,7 @@ public class TrainController : MonoBehaviour
     //public bool useDwellTimer = true;
     private Logger logger;
     private TestController testController;
-
+    private bool[] allSpawnersDone = new bool[3];
 
    
  
@@ -67,9 +67,6 @@ public class TrainController : MonoBehaviour
         {
             Debug.LogError("Logger not found");
         }
-        
-
-        testController.SetTrainControllerParameters();
 
         Debug.Log("Test Case: " + platformType + " " + testController.scenario + " " + flow + " AB: "  + alightBeforeBoarding.ToString());
 
@@ -145,15 +142,15 @@ public class TrainController : MonoBehaviour
             Board(trainLine);
         }
         
-        bool allSpawnersDone = false;
-        while (!allSpawnersDone)
+        allSpawnersDone[trainLine] = false;
+        while (!allSpawnersDone[trainLine])
         {
-            allSpawnersDone = true;
+            allSpawnersDone[trainLine] = true;
             foreach (var spawner in trainScript.trainSpawners)
             {
                 if (!spawner.done)
                 {
-                    allSpawnersDone = false;
+                    allSpawnersDone[trainLine] = false;
                     break;
                 }
             }
@@ -195,15 +192,26 @@ public class TrainController : MonoBehaviour
             }
         }
         **/
-        if (dwelling[trainLine] && nBoardingAgents[trainLine] <= 0 && boarding[trainLine])
+        if (dwelling[trainLine] && nBoardingAgents[trainLine] <= 0 && boarding[trainLine]
+        && allSpawnersDone[trainLine])
         {
-            dwelling[trainLine] = false;
-            ToggleTrain(trainLine);
             //dwellTimer[trainLine] = 0f;
             boarding[trainLine] = false;
-            if(logger != null) logger.LogEvent("Train " + trainLine + " finished boarding");
+            if (logger != null) logger.LogEvent("Train " + trainLine + " finished boarding");
+            StartCoroutine(TrainExit(trainLine));
         }
         
+    }
+
+    private IEnumerator TrainExit(int trainLine)
+    {
+        yield return new WaitForSeconds(5f);
+        dwelling[trainLine] = false;
+        ToggleTrain(trainLine);
+        if (mainScript.nExitingAgents <= 0)
+        {
+            UnityEditor.EditorApplication.isPlaying = false;
+        }
     }
 
     public void PrepareWaitingAgents(int trainLine)

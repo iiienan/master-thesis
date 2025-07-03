@@ -83,8 +83,9 @@ public class TrainSpawner : MonoBehaviour
         }
 		
         agent.isAlighting = true;
+        agent.crossingYellowLine = true;
 		if (agentContainer != null)
-			agent.transform.parent = agentContainer.transform;
+            agent.transform.parent = agentContainer.transform;
 
 		mainScript.agentList.Add (agent);
 	}

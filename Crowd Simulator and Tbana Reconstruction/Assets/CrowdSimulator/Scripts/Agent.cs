@@ -40,7 +40,7 @@ public class Agent : MonoBehaviour {
 	public bool isPreparingToBoard = false;
 	public bool boarding = false;
 	public bool isAlighting = false;
-	private bool crossingYellowLine = false;
+	internal bool crossingYellowLine = false;
 	private TrainController trainController;
 
 	// Travel time
@@ -149,7 +149,8 @@ public class Agent : MonoBehaviour {
 		preferredVelocity = (targetPoint - transform.position).normalized;
 	}
 
-	public void InitializeAgent(Vector3 pos, int start, int goal, ref MapGen.map map) {
+	public void InitializeAgent(Vector3 pos, int start, int goal, ref MapGen.map map)
+	{
 		transform.position = pos;
 		transform.right = transform.right;
 		this.goal = goal;
@@ -159,6 +160,7 @@ public class Agent : MonoBehaviour {
 		targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(transform.position);
 		preferredVelocity = (targetPoint - transform.position).normalized;
 		//transform.localScale = new Vector3(1.0f, 1.0f, 1.0f); // Modify this to change the size of characters new Vector3(2.0f, 2.0f, 2.0f) is normal size
+		
 	}
 
 	public void ApplyMaterials(Material materialColor, ref Dictionary<string, int> skins, Material argMat = null)
@@ -355,7 +357,7 @@ public class Agent : MonoBehaviour {
 
 	private void CheckYellowLine()
 	{
-		if(trainController.dwelling[1] || trainController.dwelling[2]){ return; }
+		if(trainController.dwelling[trainLine] && !isAlighting){ return; }
 
 		float positionX = Mathf.Abs(transform.position.x);
 
@@ -379,7 +381,7 @@ public class Agent : MonoBehaviour {
 					 (positionX > 2f && positionX < 5f)) 
 					 && !crossingYellowLine)
 				{
-					trainController.mainScript.logger.LogYellowLineViolation(transform.position);
+					if(trainController.mainScript.logger != null) trainController.mainScript.logger.LogYellowLineViolation(transform.position);
 					Debug.DrawLine(transform.position, transform.position + Vector3.up * 10f, Color.red, 10f);
 					crossingYellowLine = true;
 				}
