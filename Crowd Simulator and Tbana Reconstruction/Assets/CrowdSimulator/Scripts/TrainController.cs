@@ -209,7 +209,7 @@ public class TrainController : MonoBehaviour
         yield return new WaitForSeconds(5f);
         dwelling[trainLine] = false;
         ToggleTrain(trainLine);
-        if (mainScript.nExitingAgents <= 0)
+        if (mainScript.nExitingAgents <= 0 && !dwelling[1] && !dwelling[2])
         {
             UnityEditor.EditorApplication.isPlaying = false;
         }
