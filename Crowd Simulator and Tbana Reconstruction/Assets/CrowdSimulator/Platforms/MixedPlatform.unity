@@ -20656,6 +20656,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 549176582642817000, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 642005351336497151, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 869621698728415093, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1445779240250199639, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4599637430095001711, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5410846902613704895, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
       propertyPath: agentPrefab
       value: 
@@ -20699,6 +20719,14 @@ PrefabInstance:
     - target: {fileID: 7206227459967177567, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
       propertyPath: m_LocalPosition.x
       value: 10.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8000095532786983911, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8538360155687992581, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -27150,6 +27178,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 549176582642817000, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 642005351336497151, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 869621698728415093, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1445779240250199639, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4599637430095001711, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5410846902613704895, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
       propertyPath: trainLine
       value: 2
@@ -27197,6 +27245,14 @@ PrefabInstance:
     - target: {fileID: 6088621342034585089, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
       propertyPath: m_Name
       value: Train2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8000095532786983911, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8538360155687992581, guid: e1355b5944ab17e46b1a074a861b9934, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -29737,6 +29793,18 @@ PrefabInstance:
     - target: {fileID: 1469167498923680814, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
+      propertyPath: exitFlow
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
+      propertyPath: entryFlow
+      value: 3000
+      objectReference: {fileID: 0}
+    - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
+      propertyPath: arriveInterval
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 5233626816181377110, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: m_Name
