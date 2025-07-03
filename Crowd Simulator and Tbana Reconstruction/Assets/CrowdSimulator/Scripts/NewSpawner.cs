@@ -150,12 +150,8 @@ public class NewSpawner : MonoBehaviour {
 	internal virtual int SetSubwayData(Agent agent, Vector3 startPosition)
 	{
 		int agentGoal = goal;
-		int trainLine = 0;
-		if(mainScript.trainController.flow == TrainController.Flow.Symmetric)
-		{
-			trainLine = Random.Range(1,3);
-		}
-		else if(mainScript.trainController.flow == TrainController.Flow.Asymmetric)
+		int trainLine;
+		if(testController.flowType == TrainController.Flow.Asymmetric && testController.scenario == TestController.Scenario.Entry)
 		{
 			float rand = Random.value;
 
@@ -166,6 +162,10 @@ public class NewSpawner : MonoBehaviour {
 			{
 				trainLine = 1;  // Increased flow
 			}
+		}
+		else
+		{
+			trainLine = Random.Range(1,3);
 		}
 		agent.trainLine = trainLine;
 

@@ -27,23 +27,26 @@ public class CentralSpawner : NewSpawner
 
     internal override void SetSpawnRate()
     {
-        if (mainScript.trainController.flow == TrainController.Flow.Symmetric)
+        if (testController.flowType == TrainController.Flow.Asymmetric && testController.scenario == TestController.Scenario.Entry)
         {
-            spawnRate = mainScript.trainController.nAgents / 8f / mainScript.trainController.arriveInterval;
-        }
-        else
-        {
-            float totalSpawnRate = mainScript.trainController.nAgents / mainScript.trainController.arriveInterval;
+            float totalSpawnRate = testController.entryFlow / testController.arriveInterval;
             if (trainLine == 1)
             {
                 spawnRate = totalSpawnRate / 5f;
             }
-            else
+            else if (trainLine == 2)
             {
                 spawnRate = totalSpawnRate / 20f;
             }
+            else
+            {
+                Debug.LogError("Invalid train line specified for spawner");
+            }
         }
-		
+        else
+        {
+            spawnRate = testController.entryFlow / 8f / testController.arriveInterval;
+        }
     }
 
 

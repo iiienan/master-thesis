@@ -80,6 +80,15 @@ public class TestController : MonoBehaviour
 
     }
 
+    private void OnValidate()
+    {
+        trainController = FindObjectOfType<TrainController>();
+        if (trainController != null)
+        {
+            SetTrainControllerParameters();
+        }
+    }
+
     internal void SetTrainControllerParameters()
     {
         trainController.flow = flowType;
@@ -87,19 +96,15 @@ public class TestController : MonoBehaviour
         trainController.arriveInterval = arriveInterval;
         trainController.alightBeforeBoarding = alightBeforeBoarding;
 
-        if (flowType == TrainController.Flow.Asymmetric)
+        if (flowType == TrainController.Flow.Asymmetric && scenario == Scenario.Exit)
         {
             trainController.trains[1].GetComponent<Train>().numberOfAgents = (int)(exitFlow * (4f / 5f));
             trainController.trains[2].GetComponent<Train>().numberOfAgents = (int)(exitFlow * (1f / 5f));
         }
-        else if (flowType == TrainController.Flow.Symmetric)
+        else
         {
             trainController.trains[1].GetComponent<Train>().numberOfAgents = exitFlow / 2;
             trainController.trains[2].GetComponent<Train>().numberOfAgents = exitFlow / 2;
-        }
-        else
-        {
-            Debug.LogError("Unsupported flow type: " + flowType);
         }
     }
 
