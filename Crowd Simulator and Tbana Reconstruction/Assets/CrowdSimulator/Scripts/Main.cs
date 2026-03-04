@@ -224,6 +224,13 @@ public class Main : MonoBehaviour {
 						trainController.nBoardingAgents[agent.trainLine]--;
 						if(logger != null) logger.LogTravelTime(agent.travelTime, true, agent.trainLine, agent.startTime);
 						agentList.RemoveAt(i);
+
+						for(int j = 1; j < agent.pathPoints.Count; j++)
+						{
+							agent.preferredDistance += Vector3.Distance(agent.pathPoints[j-1], agent.pathPoints[j]);
+						}
+						if(logger != null) logger.LogTravelDistance(agent.travelDistance, agent.preferredDistance, true, agent.trainLine);
+
 						Destroy(agent.gameObject);
 					}
 					else if (agent.isAlighting)
@@ -231,6 +238,14 @@ public class Main : MonoBehaviour {
 						if(logger != null) logger.LogTravelTime(agent.travelTime, false, agent.trainLine, agent.startTime);
 						nExitingAgents--;
 						agentList.RemoveAt(i);
+
+						for(int j = 1; j < agent.pathPoints.Count; j++)
+						{
+							agent.preferredDistance += Vector3.Distance(agent.pathPoints[j-1], agent.pathPoints[j]);
+						}
+						if(logger != null) logger.LogTravelDistance(agent.travelDistance, agent.preferredDistance, false, agent.trainLine);
+
+
 						Destroy(agent.gameObject);
 						if (nExitingAgents <= 0)
 						{

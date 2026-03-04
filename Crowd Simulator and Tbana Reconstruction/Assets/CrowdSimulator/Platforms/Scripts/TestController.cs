@@ -140,4 +140,12 @@ public class TestController : MonoBehaviour
         return sb.ToString();
     }
 
+    internal String SetTravelDistanceLogFileName()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.Append("TravelDistance");
+        sb.Append(logFileNames);
+        return sb.ToString();
+    }
+
 }

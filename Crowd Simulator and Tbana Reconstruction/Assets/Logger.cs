@@ -12,6 +12,7 @@ public class Logger : MonoBehaviour
     internal string fileNameTravelTime = "TravelTimeLog";
     internal string fileNameSimulation = "SimulationLog";
     internal string fileNameYellowLine = "YellowLineLog";
+    internal string fileNameTravelDistance = "TravelDistanceLog";
     private Main main;
     private TrainController trainController;
     private TestController testController;
@@ -20,12 +21,15 @@ public class Logger : MonoBehaviour
     private string filePathTravelTime;
     private string filePathSimulation;
     private string filePathYellowLine;
+    private string filePathTravelDistance;
 
     private StreamWriter travelTimeWriter;
     private StreamWriter yellowLineWriter;
+    private StreamWriter travelDistanceWriter;
 
     void Start()
     {
+        Debug.Log(Application.persistentDataPath);
         main = FindObjectOfType<Main>();
         if (main == null)
         {
@@ -78,7 +82,20 @@ public class Logger : MonoBehaviour
             Debug.LogError($"Failed to open travel time log file: {e.Message}");
         }
 
-        
+        fileNameTravelDistance = testController.SetTravelDistanceLogFileName();
+        Debug.Log($"Travel distance log file name: {fileNameTravelDistance}");
+        filePathTravelDistance = Path.Combine(Application.persistentDataPath, fileNameTravelDistance);
+
+        try
+        {
+            travelDistanceWriter = new StreamWriter(filePathTravelDistance, false); // Overwrite the file
+            WriteHeaderTravelDistance(); // Write column names once
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Failed to open travel distance log file: {e.Message}");
+        }
+
     }
 
     private void WriteHeaderYellowLine()
@@ -108,6 +125,18 @@ public class Logger : MonoBehaviour
         {
             Debug.LogError($"Error writing CSV header for simulation: {e.Message}");
         }
+    }
+
+    private void WriteHeaderTravelDistance()
+    {
+        if (travelDistanceWriter == null)
+        {
+            Debug.LogError("Travel distance writer is not initialized.");
+            return;
+        }
+
+        StringBuilder header = new StringBuilder("PassengerType,TrainLine,TravelDistance,PreferredDistance,DistanceDifference");
+        travelDistanceWriter.WriteLine(header.ToString());
     }
 
     private void WriteHeaderTravelTime()
@@ -149,6 +178,34 @@ public class Logger : MonoBehaviour
         line.Append(",");
         line.Append(main.simulationTime.ToString("F2", CultureInfo.InvariantCulture));
         travelTimeWriter.WriteLine(line.ToString());
+    }
+
+    public void LogTravelDistance(float travelDistance, float preferredDistance, bool passengerTypeBoarding, int trainLine)
+    {
+        if (travelDistanceWriter == null)
+        {
+            Debug.LogError("Travel distance writer is not initialized.");
+            return;
+        }
+
+        StringBuilder line = new StringBuilder();
+
+        if (passengerTypeBoarding)
+        {
+            line.Append("Boarding,");
+        }
+        else
+        {
+            line.Append("Alighting,");
+        }
+        line.Append(trainLine.ToString());
+        line.Append(",");
+        line.Append(travelDistance.ToString("F2", CultureInfo.InvariantCulture));
+        line.Append(",");
+        line.Append(preferredDistance.ToString("F2", CultureInfo.InvariantCulture));
+        line.Append(",");
+        line.Append((travelDistance - preferredDistance).ToString("F2", CultureInfo.InvariantCulture));
+        travelDistanceWriter.WriteLine(line.ToString());
     }
 
     public void LogEvent(string eventDescription)
@@ -200,6 +257,12 @@ public class Logger : MonoBehaviour
             yellowLineWriter.Flush();
             yellowLineWriter.Close();
             Debug.Log("Yellow line log file flushed and closed.");
+        }
+        if (travelDistanceWriter != null)
+        {
+            travelDistanceWriter.Flush();
+            travelDistanceWriter.Close();
+            Debug.Log("Travel distance log file flushed and closed.");
         }
     }
 

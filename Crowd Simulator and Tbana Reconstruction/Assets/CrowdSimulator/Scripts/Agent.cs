@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using System.Linq;
 
 
 public class Agent : MonoBehaviour {
@@ -46,6 +47,12 @@ public class Agent : MonoBehaviour {
 	// Travel time
 	internal float travelTime = 0f;
 	internal float startTime;
+
+	// Travel distance
+	internal Vector3 previousPosition;
+	internal float travelDistance = 0f;
+	internal float preferredDistance = 0f;
+	internal List<Vector3> pathPoints = new List<Vector3>();
 
 
 	internal void Start()
@@ -147,11 +154,13 @@ public class Agent : MonoBehaviour {
 		
 		//targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(transform.position);
 		preferredVelocity = (targetPoint - transform.position).normalized;
+		
 	}
 
 	public void InitializeAgent(Vector3 pos, int start, int goal, ref MapGen.map map)
 	{
 		transform.position = pos;
+		previousPosition = pos;
 		transform.right = transform.right;
 		this.goal = goal;
 		path = map.shortestPaths[start][goal];
@@ -160,6 +169,8 @@ public class Agent : MonoBehaviour {
 		targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(transform.position);
 		preferredVelocity = (targetPoint - transform.position).normalized;
 		//transform.localScale = new Vector3(1.0f, 1.0f, 1.0f); // Modify this to change the size of characters new Vector3(2.0f, 2.0f, 2.0f) is normal size
+
+		pathPoints.Add(transform.position);
 		
 	}
 
@@ -246,8 +257,10 @@ public class Agent : MonoBehaviour {
 			{
 				//Done
 				done = true;
+				pathPoints.Add(transform.position);
 			} else 
 			{
+				pathPoints.Add(transform.position);
 				targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(transform.position);
 				Vector3 nextDirection = (targetPoint - transform.position).normalized;
 				if (Vector3.Angle (previousDirection, nextDirection) > 20.0f && Grid.instance.smoothTurns) {
@@ -282,6 +295,7 @@ public class Agent : MonoBehaviour {
 			//New node reached
 			//Done
 			done = true;
+			pathPoints.Add(transform.position);
 		} else {
 			preferredVelocity = (noMapGoal - transform.position).normalized;
 		}
@@ -292,6 +306,8 @@ public class Agent : MonoBehaviour {
 	private void Update()
 	{
 		travelTime += Time.deltaTime;
+		travelDistance += Vector3.Distance(transform.position, previousPosition);
+		previousPosition = transform.position;
     }
 
     internal virtual void calculatePreferredVelocity(ref MapGen.map map) {
@@ -544,6 +560,7 @@ public class Agent : MonoBehaviour {
 	{
 		newPosition.y = 0.0f;
 		transform.position = newPosition;
+		pathPoints.Add(transform.position);
 	}
 
 	public void setAnimatorStanding(bool isStanding)
