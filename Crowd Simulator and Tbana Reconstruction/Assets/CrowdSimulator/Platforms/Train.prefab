@@ -3957,7 +3957,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  burstRate: 0.5
+  burstRate: 0.3
   agentContainer: {fileID: 0}
   agentPrefab: {fileID: 114000012423741106, guid: 62fcfdbb183bc094c9e69e041b60eaaf, type: 3}
   alightingAgentMaterial: {fileID: 0}
