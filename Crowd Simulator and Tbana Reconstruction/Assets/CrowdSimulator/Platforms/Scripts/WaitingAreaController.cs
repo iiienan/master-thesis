@@ -180,7 +180,7 @@ public class WaitingAreaController : MonoBehaviour
     {
         agent.setAnimatorStanding(true);
         waitingAgents.Add(agent);
-        agent.transform.SetParent(waitingAgentsContainer.transform);
+        agent.tr.SetParent(waitingAgentsContainer.transform);
 
         // Add random offset to the waiting spot position
         // to make the agents look more natural and less aligned
@@ -210,7 +210,7 @@ public class WaitingAreaController : MonoBehaviour
         GameObject trainDoors = train.transform.Find("NodesInsideTrain").gameObject;
 
         float closestDistance = Mathf.Infinity;
-        Vector3 currentPosition = agent.transform.position;
+        Vector3 currentPosition = agent.tr.position;
         Vector3 closestNode = Vector3.zero;
 
         foreach (Transform node in trainDoors.transform)

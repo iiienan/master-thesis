@@ -60,7 +60,7 @@ void UpdateLOS()
 
         foreach (Agent agent in mainScript.agentList)
         {
-            Vector3 pos = agent.transform.position;
+            Vector3 pos = agent.tr.position;
             int x = Mathf.FloorToInt((pos.x + areaSize.x / 2f) / cellSize);
             int y = Mathf.FloorToInt((pos.z + areaSize.y / 2f) / cellSize);
 

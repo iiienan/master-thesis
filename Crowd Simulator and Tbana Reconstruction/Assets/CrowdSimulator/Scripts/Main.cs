@@ -159,16 +159,16 @@ public class Main : MonoBehaviour {
 		{
 			Agent agent = agentList[i];
 
-			if (agent.transform.position.y > 0.1f ||
-			agent.transform.position.y < -0.1f ||
-			agent.transform.rotation.x < -0.1 ||
-			agent.transform.rotation.x > 0.1 ||
-			agent.transform.rotation.z > 0.1 ||
-			agent.transform.rotation.z < -0.1)
+			if (agent.tr.position.y > 0.1f ||
+			agent.tr.position.y < -0.1f ||
+			agent.tr.rotation.x < -0.1 ||
+			agent.tr.rotation.x > 0.1 ||
+			agent.tr.rotation.z > 0.1 ||
+			agent.tr.rotation.z < -0.1)
 			{
-				//Debug.Log(transform.position.y + " " + transform.rotation.x + " " + transform.rotation.z);
+				//Debug.Log(tr.position.y + " " + tr.rotation.x + " " + tr.rotation.z);
 				agent.Reset();
-				//Debug.DrawLine(agent.transform.position, agent.transform.position + Vector3.up * 5f, Color.red, 2f);
+				//Debug.DrawLine(agent.tr.position, agent.tr.position + Vector3.up * 5f, Color.red, 2f);
 			}
 
 			if (agent.isWaiting)
@@ -188,7 +188,7 @@ public class Main : MonoBehaviour {
 			}
 
 			// remove agent if it is outside the bounds of the plane
-			if (Mathf.Abs(agent.transform.position.x) > planeSizeX * 5f || Mathf.Abs(agent.transform.position.z) > planeSizeZ * 5f || agent.transform.position.y > 0.5f)
+			if (Mathf.Abs(agent.tr.position.x) > planeSizeX * 5f || Mathf.Abs(agent.tr.position.z) > planeSizeZ * 5f || agent.tr.position.y > 0.5f)
 			{
 				if (agent.isWaitingAgent)
 				{
@@ -224,12 +224,7 @@ public class Main : MonoBehaviour {
 						trainController.nBoardingAgents[agent.trainLine]--;
 						if(logger != null) logger.LogTravelTime(agent.travelTime, true, agent.trainLine, agent.startTime);
 						agentList.RemoveAt(i);
-
-						for(int j = 1; j < agent.pathPoints.Count; j++)
-						{
-							agent.preferredDistance += Vector3.Distance(agent.pathPoints[j-1], agent.pathPoints[j]);
-						}
-						if(logger != null) logger.LogTravelDistance(agent.travelDistance, agent.preferredDistance, true, agent.trainLine);
+						if(logger != null) logger.LogTravelDistance(agent.travelDistance, true, agent.trainLine);
 
 						Destroy(agent.gameObject);
 					}
@@ -239,12 +234,7 @@ public class Main : MonoBehaviour {
 						nExitingAgents--;
 						agentList.RemoveAt(i);
 
-						for(int j = 1; j < agent.pathPoints.Count; j++)
-						{
-							agent.preferredDistance += Vector3.Distance(agent.pathPoints[j-1], agent.pathPoints[j]);
-						}
-						if(logger != null) logger.LogTravelDistance(agent.travelDistance, agent.preferredDistance, false, agent.trainLine);
-
+						if(logger != null) logger.LogTravelDistance(agent.travelDistance, false, agent.trainLine);
 
 						Destroy(agent.gameObject);
 						if (nExitingAgents <= 0)

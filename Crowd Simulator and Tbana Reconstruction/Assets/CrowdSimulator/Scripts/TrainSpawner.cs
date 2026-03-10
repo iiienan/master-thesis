@@ -36,7 +36,7 @@ public class TrainSpawner : MonoBehaviour
         {
             train.nSpawnedAgents++;
             spawnOneAgent();
-            yield return new WaitForSeconds(burstRate + Random.Range(-0.1f, 0.2f));
+            yield return new WaitForSeconds(burstRate + Random.Range(-0.1f, 0.1f));
         }
         done = true;
     }
@@ -85,7 +85,7 @@ public class TrainSpawner : MonoBehaviour
         agent.isAlighting = true;
         agent.crossingYellowLine = true;
 		if (agentContainer != null)
-            agent.transform.parent = agentContainer.transform;
+            agent.tr.parent = agentContainer.transform;
 
 		mainScript.agentList.Add (agent);
 	}

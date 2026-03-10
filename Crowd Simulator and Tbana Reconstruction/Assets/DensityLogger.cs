@@ -498,12 +498,12 @@ public class DensityLogger : MonoBehaviour
         // Iterate through all agents
         foreach (var agent in main.agentList)
         {
-            if (agent == null || agent.transform == null)
+            if (agent == null || agent.tr == null)
             {
                 continue;
             }
 
-            Vector3 agentPos = agent.transform.position;
+            Vector3 agentPos = agent.tr.position;
             bool isAgentInStairArea = false;
 
             // First, count agent in any stair access areas

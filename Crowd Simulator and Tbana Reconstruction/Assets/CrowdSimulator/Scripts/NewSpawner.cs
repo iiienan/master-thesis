@@ -138,7 +138,7 @@ public class NewSpawner : MonoBehaviour {
 		agent.InitializeAgent (startPosition, node, agentGoal, ref map);
 
 		if (agentEditorContainer != null)
-			agent.transform.parent = agentEditorContainer.transform;
+			agent.tr.parent = agentEditorContainer.transform;
 
 		agentList.Add (agent);
 		if(mainScript.trainController.isPreparingToBoard[agent.trainLine])

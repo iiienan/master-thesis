@@ -51,14 +51,19 @@ public class Agent : MonoBehaviour {
 	// Travel distance
 	internal Vector3 previousPosition;
 	internal float travelDistance = 0f;
-	internal float preferredDistance = 0f;
-	internal List<Vector3> pathPoints = new List<Vector3>();
 
+	internal Transform tr;
+
+
+	void Awake() 
+	{
+		tr = transform;
+	}
 
 	internal void Start()
 	{
-		animator = transform.gameObject.GetComponent<Animator>();
-		rbody = transform.gameObject.GetComponent<Rigidbody>();
+		animator = tr.gameObject.GetComponent<Animator>();
+		rbody = tr.gameObject.GetComponent<Rigidbody>();
 		trainController = FindObjectOfType<TrainController>();
 
 		if (rbody != null)
@@ -103,27 +108,27 @@ public class Agent : MonoBehaviour {
 		UnityEditor.Handles.color = Color.red;
 		if(isProblem)
 		{
-			UnityEditor.Handles.Label(transform.position + Vector3.up * 0.5f, "Problem!!!");
-			Debug.DrawLine(transform.position, transform.position + Vector3.up * 5f, Color.red, 10f);
+			UnityEditor.Handles.Label(tr.position + Vector3.up * 0.5f, "Problem!!!");
+			Debug.DrawLine(tr.position, tr.position + Vector3.up * 5f, Color.red, 10f);
 		}
 
 		if(!noMap && pathIndex < path.Count)
 		{
-			UnityEditor.Handles.Label(transform.position + Vector3.up * 0.5f, path[pathIndex].ToString());
+			UnityEditor.Handles.Label(tr.position + Vector3.up * 0.5f, path[pathIndex].ToString());
 		}else if(pathIndex < path.Count)
 		{
-			//UnityEditor.Handles.Label(transform.position + Vector3.up * 0.5f, "noMap");
+			//UnityEditor.Handles.Label(tr.position + Vector3.up * 0.5f, "noMap");
 		}
 
-		if(transform.position.y > 0.1f || 
-			transform.position.y < -0.1f || 
-			transform.rotation.x < -0.1 || 
-			transform.rotation.x > 0.1 ||
-			transform.rotation.z > 0.1 ||
-			transform.rotation.z < -0.1)
+		if(tr.position.y > 0.1f || 
+			tr.position.y < -0.1f || 
+			tr.rotation.x < -0.1 || 
+			tr.rotation.x > 0.1 ||
+			tr.rotation.z > 0.1 ||
+			tr.rotation.z < -0.1)
 		{
-			Debug.Log("Problem: " + transform.position.y + " " + transform.rotation.x + " " + transform.rotation.z);
-			Debug.DrawLine(transform.position, transform.position + Vector3.up * 5f, Color.red, 10f);
+			Debug.Log("Problem: " + tr.position.y + " " + tr.rotation.x + " " + tr.rotation.z);
+			Debug.DrawLine(tr.position, tr.position + Vector3.up * 5f, Color.red, 10f);
 		}
 		
 	}
@@ -150,42 +155,43 @@ public class Agent : MonoBehaviour {
 			pathIndex = 0;
 		}
 
-		targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(transform.position);
+		Vector3 pos = tr.position;
+
+		targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(pos);
 		
-		//targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(transform.position);
-		preferredVelocity = (targetPoint - transform.position).normalized;
+		//targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(tr.position);
+		preferredVelocity = (targetPoint - pos).normalized;
 		
 	}
 
 	public void InitializeAgent(Vector3 pos, int start, int goal, ref MapGen.map map)
 	{
-		transform.position = pos;
+		tr.position = pos;
 		previousPosition = pos;
-		transform.right = transform.right;
+		tr.right = tr.right;
 		this.goal = goal;
 		path = map.shortestPaths[start][goal];
 
 		pathIndex = 1;
-		targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(transform.position);
-		preferredVelocity = (targetPoint - transform.position).normalized;
-		//transform.localScale = new Vector3(1.0f, 1.0f, 1.0f); // Modify this to change the size of characters new Vector3(2.0f, 2.0f, 2.0f) is normal size
+		targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(pos);
+		preferredVelocity = (targetPoint - pos).normalized;
+		//tr.localScale = new Vector3(1.0f, 1.0f, 1.0f); // Modify this to change the size of characters new Vector3(2.0f, 2.0f, 2.0f) is normal size
 
-		pathPoints.Add(transform.position);
 		
 	}
 
 	public void ApplyMaterials(Material materialColor, ref Dictionary<string, int> skins, Material argMat = null)
 	{
 		if (tag == "original") {
-			if (transform.childCount > 1) {
-				//transform.GetChild(1).GetComponent<SkinnedMeshRenderer> ().sharedMaterial = materialColor;
+			if (tr.childCount > 1) {
+				//tr.GetChild(1).GetComponent<SkinnedMeshRenderer> ().sharedMaterial = materialColor;
 			}
-		} else if (transform.childCount > 0) {
-			Renderer ss = transform.GetChild (0).GetComponent<Renderer> ();
+		} else if (tr.childCount > 0) {
+			Renderer ss = tr.GetChild (0).GetComponent<Renderer> ();
 			if (ss != null)
 				ss.material.mainTexture = (Texture)Resources.Load (tag + "-" + Random.Range (1, skins [tag]+1));
 			else {
-				Renderer ss2 = transform.GetChild (1).GetComponent<Renderer> ();
+				Renderer ss2 = tr.GetChild (1).GetComponent<Renderer> ();
 				if (ss2 != null)
 					ss2.material.mainTexture = (Texture)Resources.Load (tag + "-" + Random.Range (1, skins [tag]+1));
 			}
@@ -193,8 +199,9 @@ public class Agent : MonoBehaviour {
 	}
 
 	internal void calculateRowAndColumn() {
-		row = (int)((transform.position.z - Main.zMinMax.x)/Grid.instance.cellLength); 
-		column = (int)((transform.position.x - Main.xMinMax.x)/Grid.instance.cellLength); 
+		Vector3 pos = tr.position;
+		row = (int)((pos.z - Main.zMinMax.x)/Grid.instance.cellLength); 
+		column = (int)((pos.x - Main.xMinMax.x)/Grid.instance.cellLength); 
 		if (row < 0)
 			row = 0; 
 		if (column < 0)
@@ -205,8 +212,8 @@ public class Agent : MonoBehaviour {
 		if (column > Grid.instance.cellsPerRow - 1) {
 			column = Grid.instance.cellsPerRow - 1;
 		}
-		agentRelXPos = transform.position.x - Grid.instance.cellMatrix [row, column].transform.position.x;
-		agentRelZPos = transform.position.z - Grid.instance.cellMatrix [row, column].transform.position.z;
+		agentRelXPos = pos.x - Grid.instance.cellMatrix [row, column].transform.position.x;
+		agentRelZPos = pos.z - Grid.instance.cellMatrix [row, column].transform.position.z;
 	}
 
 	/**
@@ -222,7 +229,7 @@ public class Agent : MonoBehaviour {
 		velocity.y = 0f;
 		if(velocity != Vector3.zero)
 		{
-			transform.forward = velocity.normalized;
+			tr.forward = velocity.normalized;
 		}
 		velocity = velocity + collisionAvoidanceVelocity;
 	}
@@ -230,10 +237,11 @@ public class Agent : MonoBehaviour {
 	internal bool canSeeNext(ref MapGen.map map, int modifier) {
 		if (pathIndex + modifier < path.Count && pathIndex + modifier >= 0 && pathIndex + modifier < map.allNodes.Count) {
 			//Can we see next goal?
-			Vector3 next = map.allNodes[path[pathIndex+modifier]].getTargetPoint(transform.position);
+			Vector3 pos = tr.position;
+			Vector3 next = map.allNodes[path[pathIndex+modifier]].getTargetPoint(pos);
 			int layersToIgnore = LayerMask.GetMask("WaitingAgent", "Agent");
 			int layerMask = ~layersToIgnore;
-			Vector3 targetPosition = transform.position - transform.forward;
+			Vector3 targetPosition = pos - tr.forward;
 			Vector3 dir = next - targetPosition;
 			if (!Physics.Raycast(targetPosition, dir.normalized, dir.magnitude, layerMask)) {
 				return true;
@@ -247,8 +255,9 @@ public class Agent : MonoBehaviour {
 	bool change = false;
 	internal void calculatePreferredVelocityMap(ref MapGen.map map) {
 		previousDirection = preferredVelocity.normalized;
+		Vector3 pos = tr.position;
 
-		if (map.allNodes[path[pathIndex]].IsAgentInsideArea(transform.position) || (Grid.instance.skipNodeIfSeeNext && canSeeNext(ref map, 1))) 
+		if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (Grid.instance.skipNodeIfSeeNext && canSeeNext(ref map, 1))) 
 		{
 			//New node reached
 			collision = false;
@@ -257,12 +266,10 @@ public class Agent : MonoBehaviour {
 			{
 				//Done
 				done = true;
-				pathPoints.Add(transform.position);
 			} else 
 			{
-				pathPoints.Add(transform.position);
-				targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(transform.position);
-				Vector3 nextDirection = (targetPoint - transform.position).normalized;
+				targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(pos);
+				Vector3 nextDirection = (targetPoint - pos).normalized;
 				if (Vector3.Angle (previousDirection, nextDirection) > 20.0f && Grid.instance.smoothTurns) {
 					preferredVelocity = Vector3.RotateTowards (velocity.normalized, nextDirection, Grid.instance.dt*((35.0f - 400*Grid.instance.dt) * Mathf.PI / 180.0f), 15.0f).normalized;
 					change = true;
@@ -270,16 +277,16 @@ public class Agent : MonoBehaviour {
 			}
 		} else if(pathIndex > 0 && Grid.instance.walkBack && !canSeeNext(ref map, 0)) { //Can we see current heading? Are we trapped?
 			//No. We want to go back
-			preferredVelocity = (map.allNodes[path[pathIndex-1]].getTargetPoint(transform.position) - transform.position).normalized;
+			preferredVelocity = (map.allNodes[path[pathIndex-1]].getTargetPoint(pos) - pos).normalized;
 			change = false;
 		} else {
 			collision = false;
-			Vector3 nextDirection = (targetPoint - transform.position).normalized;
+			Vector3 nextDirection = (targetPoint - pos).normalized;
 			if (change && Vector3.Angle (previousDirection, nextDirection) > 20.0f && Grid.instance.smoothTurns) {
 				preferredVelocity = Vector3.RotateTowards(velocity.normalized, nextDirection, Grid.instance.dt*((35.0f - 400*Grid.instance.dt) * Mathf.PI / 180.0f),  15.0f).normalized;
 			} else {
 				change = false;
-				preferredVelocity = (targetPoint - transform.position).normalized;
+				preferredVelocity = (targetPoint - pos).normalized;
 			}
 		}
 		//collision = false;
@@ -291,13 +298,13 @@ public class Agent : MonoBehaviour {
 	 * Calculate the preferred velocity of a single uncharted point as a goal 
 	 **/
 	internal void calculatePreferredVelocityNoMap() {
-		if ((transform.position - noMapGoal).magnitude < MapGen.DEFAULT_THRESHOLD) {
+		Vector3 pos = tr.position;
+		if ((pos - noMapGoal).magnitude < MapGen.DEFAULT_THRESHOLD) {
 			//New node reached
 			//Done
 			done = true;
-			pathPoints.Add(transform.position);
 		} else {
-			preferredVelocity = (noMapGoal - transform.position).normalized;
+			preferredVelocity = (noMapGoal - pos).normalized;
 		}
 		preferredVelocity = preferredVelocity * walkingSpeed;
 		preferredVelocity.y = 0f;
@@ -306,8 +313,9 @@ public class Agent : MonoBehaviour {
 	private void Update()
 	{
 		travelTime += Time.deltaTime;
-		travelDistance += Vector3.Distance(transform.position, previousPosition);
-		previousPosition = transform.position;
+		Vector3 pos = tr.position;
+		travelDistance += Vector3.Distance(pos, previousPosition);
+		previousPosition = pos;
     }
 
     internal virtual void calculatePreferredVelocity(ref MapGen.map map) {
@@ -333,11 +341,11 @@ public class Agent : MonoBehaviour {
 		}
 		setCorrectedVelocity ();
 	
-		prevPos = transform.position;
+		prevPos = tr.position;
 
-		Vector3 newPosition = transform.position + velocity * Grid.instance.dt;
+		Vector3 newPosition = prevPos + velocity * Grid.instance.dt;
 		newPosition.y = 0.0f;	// Lock Y position
-		transform.position = newPosition;
+		tr.position = newPosition;
 
 		CheckYellowLine();
 
@@ -358,10 +366,10 @@ public class Agent : MonoBehaviour {
 
 		if (force.magnitude > 0.01f)
 		{
-			Vector3 newPosition = transform.position + force * Grid.instance.dt;
+			Vector3 newPosition = tr.position + force * Grid.instance.dt;
 			newPosition.y = 0f;
-			transform.position = newPosition;
-			transform.forward = force.normalized;
+			tr.position = newPosition;
+			tr.forward = force.normalized;
 
 			CheckYellowLine();
 
@@ -373,17 +381,18 @@ public class Agent : MonoBehaviour {
 
 	private void CheckYellowLine()
 	{
+		Vector3 pos = tr.position;
 		if(trainController.dwelling[trainLine] && !isAlighting){ return; }
 
-		float positionX = Mathf.Abs(transform.position.x);
+		float positionX = Mathf.Abs(pos.x);
 
 		switch (trainController.platformType)
 		{
 			case TrainController.PlatformType.Central:
 				if (positionX > 8f && !crossingYellowLine)
 				{
-					trainController.mainScript.logger.LogYellowLineViolation(transform.position);
-					Debug.DrawLine(transform.position, transform.position + Vector3.up * 10f, Color.red, 10f);
+					trainController.mainScript.logger.LogYellowLineViolation(pos);
+					Debug.DrawLine(pos, pos + Vector3.up * 10f, Color.red, 10f);
 					crossingYellowLine = true;
 				}
 				if(crossingYellowLine && positionX < 8f)
@@ -397,8 +406,8 @@ public class Agent : MonoBehaviour {
 					 (positionX > 2f && positionX < 5f)) 
 					 && !crossingYellowLine)
 				{
-					if(trainController.mainScript.logger != null) trainController.mainScript.logger.LogYellowLineViolation(transform.position);
-					Debug.DrawLine(transform.position, transform.position + Vector3.up * 10f, Color.red, 10f);
+					if(trainController.mainScript.logger != null) trainController.mainScript.logger.LogYellowLineViolation(pos);
+					Debug.DrawLine(pos, pos + Vector3.up * 10f, Color.red, 10f);
 					crossingYellowLine = true;
 				}
 				if(crossingYellowLine && 
@@ -411,8 +420,8 @@ public class Agent : MonoBehaviour {
 			case TrainController.PlatformType.Side:
 				if (positionX < 4f && !crossingYellowLine)
 				{
-					trainController.mainScript.logger.LogYellowLineViolation(transform.position);
-					Debug.DrawLine(transform.position, transform.position + Vector3.up * 10f, Color.red, 10f);
+					trainController.mainScript.logger.LogYellowLineViolation(pos);
+					Debug.DrawLine(pos, pos + Vector3.up * 10f, Color.red, 10f);
 					crossingYellowLine = true;
 				}
 				if(crossingYellowLine && positionX > 4f)
@@ -425,7 +434,7 @@ public class Agent : MonoBehaviour {
 
 	void Animate(Vector3 previousPosition)
 	{
-		float realSpeed = Vector3.Distance (transform.position, previousPosition) / Mathf.Max(Grid.instance.dt, Time.deltaTime);
+		float realSpeed = Vector3.Distance (tr.position, previousPosition) / Mathf.Max(Grid.instance.dt, Time.deltaTime);
 		if (animator != null) {
 	
 			if (realSpeed < 0.05f) {
@@ -559,8 +568,7 @@ public class Agent : MonoBehaviour {
 	public void teleportAgent(Vector3 newPosition)
 	{
 		newPosition.y = 0.0f;
-		transform.position = newPosition;
-		pathPoints.Add(transform.position);
+		tr.position = newPosition;
 	}
 
 	public void setAnimatorStanding(bool isStanding)
@@ -573,8 +581,8 @@ public class Agent : MonoBehaviour {
 
 	public void rotateAgent(Vector3 target)
 	{
-		Vector3 direction = target - transform.position;
-		transform.rotation = Quaternion.LookRotation(direction);
+		Vector3 direction = target - tr.position;
+		tr.rotation = Quaternion.LookRotation(direction);
 		rbody.velocity = Vector3.zero;
 		rbody.angularVelocity = Vector3.zero;
 	}
@@ -587,8 +595,9 @@ public class Agent : MonoBehaviour {
         preferredVelocity = Vector3.zero;
         continuumVelocity = Vector3.zero;
         collisionAvoidanceVelocity = Vector3.zero;
-		transform.position = new Vector3(transform.position.x, 0f, transform.position.z);
-		transform.rotation = Quaternion.identity;
+		Vector3 pos = tr.position;
+		tr.position = new Vector3(pos.x, 0f, pos.z);
+		tr.rotation = Quaternion.identity;
 	}
 
 	private void ApplyYellowLineForce()
@@ -609,7 +618,7 @@ public class Agent : MonoBehaviour {
 
 	private void ApplyYellowLineForceMixed()
 	{
-		float agentX = transform.position.x;
+		float agentX = tr.position.x;
 
 		// Side Platforms
 		{
@@ -662,7 +671,7 @@ public class Agent : MonoBehaviour {
 
 	private void ApplyYellowLineForceCentral()
 	{
-		float agentX = transform.position.x;
+		float agentX = tr.position.x;
 		float platformEdge = 9f;
 		float yellowLineStart = 7.76f;
 		float zoneWidth = platformEdge - yellowLineStart;
@@ -686,7 +695,7 @@ public class Agent : MonoBehaviour {
 
 	private void ApplyYellowLineForceSide()
 	{
-		float agentX = transform.position.x;
+		float agentX = tr.position.x;
 
 		float platformEdge = 3f;
 		float yellowLineStart = 4.24f;
