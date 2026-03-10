@@ -347,7 +347,7 @@ public class TrainController : MonoBehaviour
         agent.collisionAvoidanceVelocity = Vector3.zero;
 
         // Start moving towards the train door
-        agent.walkingSpeed = Random.Range(0.5f, 1f);
+        //agent.walkingSpeed = Random.Range(0.5f, 1f);
         agent.done = false;
         agent.isWaiting = false;
         agent.isPreparingToBoard = true;

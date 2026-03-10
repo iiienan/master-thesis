@@ -224,7 +224,8 @@ public class Main : MonoBehaviour {
 						trainController.nBoardingAgents[agent.trainLine]--;
 						if(logger != null) logger.LogTravelTime(agent.travelTime, true, agent.trainLine, agent.startTime);
 						agentList.RemoveAt(i);
-						if(logger != null) logger.LogTravelDistance(agent.travelDistance, true, agent.trainLine);
+						float averageSpeed = agent.travelDistance / agent.movingTime;
+						if(logger != null) logger.LogTravelDistance(agent.travelDistance, true, agent.trainLine, averageSpeed);
 
 						Destroy(agent.gameObject);
 					}
@@ -233,8 +234,8 @@ public class Main : MonoBehaviour {
 						if(logger != null) logger.LogTravelTime(agent.travelTime, false, agent.trainLine, agent.startTime);
 						nExitingAgents--;
 						agentList.RemoveAt(i);
-
-						if(logger != null) logger.LogTravelDistance(agent.travelDistance, false, agent.trainLine);
+						float averageSpeed = agent.travelDistance / agent.movingTime;
+						if(logger != null) logger.LogTravelDistance(agent.travelDistance, false, agent.trainLine, averageSpeed);
 
 						Destroy(agent.gameObject);
 						if (nExitingAgents <= 0)

@@ -51,6 +51,8 @@ public class Agent : MonoBehaviour {
 	// Travel distance
 	internal Vector3 previousPosition;
 	internal float travelDistance = 0f;
+	// Speed
+	internal float movingTime = 0f;
 
 	internal Transform tr;
 
@@ -312,9 +314,17 @@ public class Agent : MonoBehaviour {
 
 	private void Update()
 	{
-		travelTime += Time.deltaTime;
 		Vector3 pos = tr.position;
-		travelDistance += Vector3.Distance(pos, previousPosition);
+		Vector3 delta = pos - previousPosition;
+
+		float distance = delta.magnitude;
+
+		if (distance > 0.001f)
+		{
+			travelDistance += distance;
+			movingTime += Time.deltaTime;
+		}
+
 		previousPosition = pos;
     }
 
