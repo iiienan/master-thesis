@@ -180,7 +180,7 @@ public class Logger : MonoBehaviour
         travelTimeWriter.WriteLine(line.ToString());
     }
 
-    public void LogTravelDistance(float travelDistance, float preferredDistance, bool passengerTypeBoarding, int trainLine)
+    public void LogTravelDistance(float travelDistance, bool passengerTypeBoarding, int trainLine)
     {
         if (travelDistanceWriter == null)
         {
@@ -201,10 +201,6 @@ public class Logger : MonoBehaviour
         line.Append(trainLine.ToString());
         line.Append(",");
         line.Append(travelDistance.ToString("F2", CultureInfo.InvariantCulture));
-        line.Append(",");
-        line.Append(preferredDistance.ToString("F2", CultureInfo.InvariantCulture));
-        line.Append(",");
-        line.Append((travelDistance - preferredDistance).ToString("F2", CultureInfo.InvariantCulture));
         travelDistanceWriter.WriteLine(line.ToString());
     }
 
