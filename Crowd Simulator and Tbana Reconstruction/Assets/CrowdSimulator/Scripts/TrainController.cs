@@ -158,6 +158,7 @@ public class TrainController : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
         }
         if (logger != null) logger.LogEvent("Train " + trainLine + " finished alighting");
+        Debug.Log("Train " + trainLine + " finished alighting");
         trains[trainLine].GetComponent<Train>().nSpawnedAgents = 0;
 
         if (alightBeforeBoarding)
@@ -193,12 +194,15 @@ public class TrainController : MonoBehaviour
             }
         }
         **/
-        if (dwelling[trainLine] && nBoardingAgents[trainLine] <= 0 && boarding[trainLine]
-        && allSpawnersDone[trainLine])
+        if (dwelling[trainLine] && nBoardingAgents[trainLine] <= 0 && boarding[trainLine])
         {
             //dwellTimer[trainLine] = 0f;
             boarding[trainLine] = false;
             if (logger != null) logger.LogEvent("Train " + trainLine + " finished boarding");
+            Debug.Log("Train " + trainLine + " finished boarding");
+        }
+        if(dwelling[trainLine] && !boarding[trainLine] && allSpawnersDone[trainLine])
+        {
             StartCoroutine(TrainExit(trainLine));
         }
         
@@ -269,7 +273,7 @@ public class TrainController : MonoBehaviour
         agent.GetComponentInChildren<Renderer>().material = waitingAreaController.boardingAgentMaterial;
 
         int closestTrainDoor = waitingAreaController.FindClosestTrainDoor(ref agent);
-        int closestNode = FindClosestNode(agent.transform.position);
+        int closestNode = FindClosestNode(agent.tr.position);
         agent.setNewPath(closestNode, closestTrainDoor, ref mainScript.roadmap);
 
         if(agent.isWaitingAgent)
@@ -288,7 +292,7 @@ public class TrainController : MonoBehaviour
         // Wait outside the train close to the door
         Vector3 targetPoint = mainScript.roadmap.allNodes[agent.path[agent.pathIndex]].transform.position;
         Vector3 waitPosition;
-        if (agent.transform.position.z < targetPoint.z)
+        if (agent.tr.position.z < targetPoint.z)
         {
             waitPosition = new Vector3(targetPoint.x, 0, targetPoint.z - Random.Range(1.5f, 2.5f));
         }
@@ -297,7 +301,7 @@ public class TrainController : MonoBehaviour
             waitPosition = new Vector3(targetPoint.x, 0, targetPoint.z + Random.Range(1.5f, 2.5f));
         }
 
-        if (agent.transform.position.x < targetPoint.x)
+        if (agent.tr.position.x < targetPoint.x)
         {
             waitPosition.x = targetPoint.x + Random.Range(-5f, 0.4f);
         }
@@ -312,7 +316,7 @@ public class TrainController : MonoBehaviour
         }
         else if (platformType == PlatformType.Mixed)
         {
-            if (agent.transform.position.x < targetPoint.x)
+            if (agent.tr.position.x < targetPoint.x)
             {
                 waitPosition.x = Mathf.Clamp(waitPosition.x, -9.5f, -6.5f);
             }
@@ -323,7 +327,7 @@ public class TrainController : MonoBehaviour
         }
         else if (platformType == PlatformType.Side)
         {
-            if (agent.transform.position.x < targetPoint.x)
+            if (agent.tr.position.x < targetPoint.x)
             {
                 waitPosition.x = Mathf.Clamp(waitPosition.x, -8.5f, -3.5f);
             }
@@ -390,11 +394,11 @@ public class TrainController : MonoBehaviour
 
         if (waitingAreaController.agentContainer != null)
         {
-            agent.transform.SetParent(waitingAreaController.agentContainer.transform);
+            agent.tr.SetParent(waitingAreaController.agentContainer.transform);
         }
         else
         {
-            agent.transform.SetParent(null);
+            agent.tr.SetParent(null);
         }
 
 
@@ -440,7 +444,7 @@ public class TrainController : MonoBehaviour
                 agent.boarding = false;
                 agent.pathIndex = 1;
                 agent.Reset();
-                agent.transform.position = new Vector3(Mathf.Clamp(agent.transform.position.x, -7.5f, 7.5f), 0f, agent.transform.position.z);
+                agent.tr.position = new Vector3(Mathf.Clamp(agent.tr.position.x, -7.5f, 7.5f), 0f, agent.tr.position.z);
                 agent.isWaiting = true;
                 waitingAreaController.waitingAgents.Add(agent);
                 */
