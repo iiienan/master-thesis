@@ -202,17 +202,17 @@ public class Agent : MonoBehaviour {
 
 	internal void calculateRowAndColumn() {
 		Vector3 pos = tr.position;
-		row = (int)((pos.z - Main.zMinMax.x)/Grid.instance.cellLength); 
-		column = (int)((pos.x - Main.xMinMax.x)/Grid.instance.cellLength); 
-		if (row < 0)
-			row = 0; 
-		if (column < 0)
-			column = 0;
-		if (row > Grid.instance.cellsPerRow - 1) {
-			row = Grid.instance.cellsPerRow - 1;
+		row = (int)((pos.z - Main.zMinMax.x) / Grid.instance.cellSize); 
+		column = (int)((pos.x - Main.xMinMax.x) / Grid.instance.cellSize); 
+
+		if (row < 0) row = 0; 
+		if (column < 0) column = 0;
+
+		if (row > Grid.instance.nCellsZ - 1) {
+			row = Grid.instance.nCellsZ - 1;
 		}
-		if (column > Grid.instance.cellsPerRow - 1) {
-			column = Grid.instance.cellsPerRow - 1;
+		if (column > Grid.instance.nCellsX - 1) {
+			column = Grid.instance.nCellsX - 1;
 		}
 		agentRelXPos = pos.x - Grid.instance.cellMatrix [row, column].transform.position.x;
 		agentRelZPos = pos.z - Grid.instance.cellMatrix [row, column].transform.position.z;
@@ -226,7 +226,7 @@ public class Agent : MonoBehaviour {
 		calculateContinuumVelocity ();
 		//-1 since we subtract this agents density at position
 
-		velocity = preferredVelocity + (densityAtAgentPosition - 1 / Mathf.Pow (Grid.instance.cellLength, 2)) / Grid.maxDensity
+		velocity = preferredVelocity + (densityAtAgentPosition - 1 / Mathf.Pow (Grid.instance.cellSize, 2)) / Grid.maxDensity
 		* (continuumVelocity - preferredVelocity);
 		velocity.y = 0f;
 		if(velocity != Vector3.zero)
@@ -468,15 +468,15 @@ public class Agent : MonoBehaviour {
 
 		densityAtAgentPosition += Mathf.Abs(selfWeight)*Grid.instance.density[row, column];
 
-		if (!((xNeighbour) < 0) & !((xNeighbour) > Grid.instance.cellsPerRow - 1)){	//As long as the cell exists
+		if (xNeighbour >= 0 && xNeighbour < Grid.instance.nCellsX){	//As long as the cell exists
 			densityAtAgentPosition += Mathf.Abs(neighbourXWeight)*Grid.instance.density[row, xNeighbour];
 		}
 
-		if (!((zNeighbour) < 0) & !((zNeighbour) > Grid.instance.cellsPerRow - 1)){			//As long as the cell exists
+		if (zNeighbour >= 0 && zNeighbour < Grid.instance.nCellsZ){			//As long as the cell exists
 			densityAtAgentPosition += Mathf.Abs(neighbourZWeight)*Grid.instance.density[zNeighbour, column];
 		}
 
-		if (!((zNeighbour) < 0) & !((zNeighbour) > Grid.instance.cellsPerRow - 1) & !((xNeighbour) < 0) & !((xNeighbour) > Grid.instance.cellsPerRow - 1)){	//As long as the cell exists
+		if (zNeighbour >= 0 && zNeighbour < Grid.instance.nCellsZ && xNeighbour >= 0 && xNeighbour < Grid.instance.nCellsX){	//As long as the cell exists
 			densityAtAgentPosition += Mathf.Abs(neighbourXZWeight)*Grid.instance.density[zNeighbour, xNeighbour];
 		}
 		return densityAtAgentPosition;
@@ -486,37 +486,30 @@ public class Agent : MonoBehaviour {
 	 * Calculate the continuum velocity caused by pressure from the grid
 	 **/
 	internal void calculateContinuumVelocity() {
-		Vector3 tempContinuumVelocity = new Vector3(0,0,0);
+		Vector3 tempContinuumVelocity = Vector3.zero;
 
 		int xNeighbour = (int)(column + neighbourXWeight/Mathf.Abs(neighbourXWeight));	//Column for the neighbour which the agent contributes to
 		int zNeighbour = (int)(row + neighbourZWeight/Mathf.Abs(neighbourZWeight));		//Row for the neighbour which the agent contributes to
 
 		// Sides in current cell
 		tempContinuumVelocity.x += selfLeftVelocityWeight*Grid.instance.cellMatrix[row, column].leftVelocityNode.velocity;
-
 		tempContinuumVelocity.x += selfRightVelocityWeight*Grid.instance.cellMatrix[row, column].rightVelocityNode.velocity;
-
 		tempContinuumVelocity.z += selfUpperVelocityWeight*Grid.instance.cellMatrix[row, column].upperVelocityNode.velocity;
-
 		tempContinuumVelocity.z += selfLowerVelocityWeight*Grid.instance.cellMatrix[row, column].lowerVelocityNode.velocity;
 
-		if (!((zNeighbour) < 0) & !((zNeighbour) > Grid.instance.cellsPerRow - 1)){	//As long as the cell exists
+		if (zNeighbour >= 0 && zNeighbour < Grid.instance.nCellsZ){	//As long as the cell exists
 			tempContinuumVelocity.x += neighbourLeftVelocityWeight*Grid.instance.cellMatrix[zNeighbour, column].leftVelocityNode.velocity;
 			tempContinuumVelocity.x += neighbourRightVelocityWeight*Grid.instance.cellMatrix[zNeighbour, column].rightVelocityNode.velocity;
 		}
 
-		if (!((xNeighbour) < 0) & !((xNeighbour) > Grid.instance.cellsPerRow - 1)){			//As long as the cell exists
+		if (xNeighbour >= 0 && xNeighbour < Grid.instance.nCellsX){			//As long as the cell exists
 			tempContinuumVelocity.z += neighbourUpperVelocityWeight*Grid.instance.cellMatrix[row, xNeighbour].upperVelocityNode.velocity;
 			tempContinuumVelocity.z += neighbourLowerVelocityWeight*Grid.instance.cellMatrix[row, xNeighbour].lowerVelocityNode.velocity;
 		}
 
-		if (float.IsNaN(tempContinuumVelocity.x)){
-			tempContinuumVelocity.Set (0, tempContinuumVelocity.y, tempContinuumVelocity.z);
-		}
-
-		if(float.IsNaN(continuumVelocity.z)){
-			tempContinuumVelocity.Set (tempContinuumVelocity.x, tempContinuumVelocity.y, 0);
-		}
+		if (float.IsNaN(tempContinuumVelocity.x)) tempContinuumVelocity.x = 0;
+		if (float.IsNaN(tempContinuumVelocity.z)) tempContinuumVelocity.z = 0;
+		
 		continuumVelocity = tempContinuumVelocity;
 	}
 
@@ -537,31 +530,29 @@ public class Agent : MonoBehaviour {
 	 * Set weight contributions to current cell radius. (Inverse bilinear interpolation)
 	 **/
 	public void setWeights(){
-		float cellLength = Grid.instance.cellLength;
-		float clSquared = Mathf.Pow (cellLength, 2);
+		float cellSize = Grid.instance.cellSize;
+		float clSquared = Mathf.Pow (cellSize, 2);
 
 		//An area the size of a cell is surrounded by each point.
 		//AgentRelXPos: Side length of supposed area, outside current cell of agent - x direction
 		//AgentRelZPos: Side length of supposed area, outside current cell of agent - z direction
-		float sideOne = cellLength - Mathf.Abs(agentRelXPos); //Side length of supposed area of this agents position, x - direction
-		float sideTwo = cellLength - Mathf.Abs(agentRelZPos); //Side length of supposed area of this agents position, z - direction
+		float sideOne = cellSize - Mathf.Abs(agentRelXPos); //Side length of supposed area of this agents position, x - direction
+		float sideTwo = cellSize - Mathf.Abs(agentRelZPos); //Side length of supposed area of this agents position, z - direction
 
 		// Weights on smaller areas inside and outside current cell
 		//Area weight of neighboring cell in..
 		neighbourXWeight = sideTwo*agentRelXPos/clSquared; // x direction
 		neighbourZWeight = sideOne*agentRelZPos/clSquared; //z direction
 		neighbourXZWeight = agentRelXPos*agentRelZPos/clSquared; //both x and z direction (diagonal from this agent's cell)
-
 		//Own cell weight
 		selfWeight = sideOne*sideTwo/clSquared; 
 
-
 		//Now checking velocityNodes contribution
 		//Offsets from each velocity node's center (also seen as a cell on each node)
-		float rightShiftedRelXPos = cellLength / 2 + agentRelXPos;
-		float leftShiftedRelXPos  = cellLength / 2 - agentRelXPos;
-		float upperShiftedRelZPos = cellLength / 2 + agentRelZPos;
-		float lowerShiftedRelZPos = cellLength / 2 - agentRelZPos;
+		float rightShiftedRelXPos = cellSize / 2 + agentRelXPos;
+		float leftShiftedRelXPos  = cellSize / 2 - agentRelXPos;
+		float upperShiftedRelZPos = cellSize / 2 + agentRelZPos;
+		float lowerShiftedRelZPos = cellSize / 2 - agentRelZPos;
 
 		//Weight contributions to different velocityNodes (area / totalCellArea)
 		selfRightVelocityWeight = rightShiftedRelXPos * sideTwo / clSquared;

@@ -14,7 +14,7 @@ public class Cell : MonoBehaviour {
 	internal VelocityNode upperVelocityNode;
 	internal VelocityNode lowerVelocityNode;
 	internal float availableArea = 1.0f;
-	internal Renderer renderer;
+	internal new Renderer renderer;
 
 	/**
 	 * Initialize this cell
@@ -30,25 +30,27 @@ public class Cell : MonoBehaviour {
 	internal void calculateAvailableArea() {
 		int counter = 0;
 		Vector3 start = transform.position;
-		start.x -= Grid.instance.cellLength / 2;
-		start.z -= Grid.instance.cellLength / 2;
+		float gridCellSize = Grid.instance.cellSize;
+		
+		start.x -= gridCellSize / 2;
+		start.z -= gridCellSize / 2;
 		start.y = 0f;
-		for (int i = 0; i < Grid.instance.cellLength; ++i) {
-			for (int j = 0; j < Grid.instance.cellLength; ++j) {
+
+		for (int i = 0; i < gridCellSize; ++i) {
+			for (int j = 0; j < gridCellSize; ++j) {
 				if (Physics.Raycast (new Vector3 (start.x, 100, start.z), new Vector3 (0, -10, 0), 150f)) {
 					counter += 1;
 				}
 				start.x += 1;
 			}
-			start.x = transform.position.x - Grid.instance.cellLength / 2;
+			start.x = transform.position.x - gridCellSize / 2;
 			start.z += 1;
 		}
 
-		availableArea =  1 - counter/Mathf.Pow(Grid.instance.cellLength, 2);
+		availableArea =  1 - counter/Mathf.Pow(gridCellSize, 2);
 		if (availableArea < 0.03f) {
 			availableArea = 0.001f;
 		}
-
 	}
 
 	/**
@@ -121,13 +123,13 @@ public class Cell : MonoBehaviour {
 
 		currentDensity += Mathf.Abs(agent.selfWeight);
 
-		if (xNeighbour >= 0 && xNeighbour < Grid.instance.cellsPerRow) {
+		if (xNeighbour >= 0 && xNeighbour < Grid.instance.nCellsX) {
 			Grid.instance.cellMatrix[row, xNeighbour].currentDensity += Mathf.Abs(agent.neighbourXWeight);
 		}
-		if (zNeighbour >= 0 && zNeighbour < Grid.instance.cellsPerRow) {
+		if (zNeighbour >= 0 && zNeighbour < Grid.instance.nCellsZ) {
 			Grid.instance.cellMatrix[zNeighbour, column].currentDensity += Mathf.Abs(agent.neighbourZWeight);
 		}
-		if (xNeighbour >= 0 && xNeighbour < Grid.instance.cellsPerRow && zNeighbour >= 0 && zNeighbour < Grid.instance.cellsPerRow) {
+		if (xNeighbour >= 0 && xNeighbour < Grid.instance.nCellsX && zNeighbour >= 0 && zNeighbour < Grid.instance.nCellsZ) {
 			Grid.instance.cellMatrix[zNeighbour, xNeighbour].currentDensity += Mathf.Abs(agent.neighbourXZWeight);
 		}
 	}
@@ -152,16 +154,16 @@ public class Cell : MonoBehaviour {
 		lowerVelocityNode.tempVelocity += vel*agent.selfLowerVelocityWeight;
 		lowerVelocityNode.weights += agent.selfLowerVelocityWeight;
 
-		if (!((zNeighbour) < 0) & !((zNeighbour) > Grid.instance.cellsPerRow - 1)){	//As long as the cell exists
-			Grid.instance.cellMatrix[zNeighbour, column].leftVelocityNode.tempVelocity += vel*agent.neighbourLeftVelocityWeight;
+		if (zNeighbour >= 0 && zNeighbour < Grid.instance.nCellsZ){	//As long as the cell exists
+			Grid.instance.cellMatrix[zNeighbour, column].leftVelocityNode.tempVelocity += vel * agent.neighbourLeftVelocityWeight;
 			Grid.instance.cellMatrix[zNeighbour, column].leftVelocityNode.weights += agent.neighbourLeftVelocityWeight;
 
 			Grid.instance.cellMatrix[zNeighbour, column].rightVelocityNode.tempVelocity += vel*agent.neighbourRightVelocityWeight;
 			Grid.instance.cellMatrix[zNeighbour, column].rightVelocityNode.weights += agent.neighbourRightVelocityWeight;
 		}
 
-		if (!((xNeighbour) < 0) & !((xNeighbour) > Grid.instance.cellsPerRow - 1)){	//As long as the cell exists
-			Grid.instance.cellMatrix[row, xNeighbour].upperVelocityNode.tempVelocity += vel*agent.neighbourUpperVelocityWeight;
+		if (xNeighbour >= 0 && xNeighbour < Grid.instance.nCellsX){	//As long as the cell exists
+			Grid.instance.cellMatrix[row, xNeighbour].upperVelocityNode.tempVelocity += vel * agent.neighbourUpperVelocityWeight;
 			Grid.instance.cellMatrix[row, xNeighbour].upperVelocityNode.weights += agent.neighbourUpperVelocityWeight;
 
 			Grid.instance.cellMatrix[row, xNeighbour].lowerVelocityNode.tempVelocity += vel*agent.neighbourLowerVelocityWeight;
@@ -173,24 +175,19 @@ public class Cell : MonoBehaviour {
 	 * Illustrate velocity on this cell
 	 **/ 
 	internal void drawVelocityField() {
-		Vector3 v1;
-		Vector3 v2;
-		Vector3 u1;
-		Vector3 u2;
 		float vleft = Grid.instance.xEdgeVelocity [leftVelocityNode.cellRow, leftVelocityNode.cellCol],
 			 vRight = Grid.instance.xEdgeVelocity [rightVelocityNode.cellRow, rightVelocityNode.cellCol],
 		        vUp = Grid.instance.zEdgeVelocity [upperVelocityNode.cellRow, upperVelocityNode.cellCol],
 		      vDown = Grid.instance.zEdgeVelocity [lowerVelocityNode.cellRow, lowerVelocityNode.cellCol];
 
 		Vector3 velocity = new Vector3 ((vleft + vRight) / 2, 0f, (vUp + vDown) / 2);
-
 		velocity = velocity.normalized*4f;
 
 		Vector3 position = new Vector3(transform.position.x, transform.position.y + 0.05f, transform.position.z);
-		v1 = position+velocity;
-		v2 = position-velocity;
-		u1 = Quaternion.Euler(0, 45, 0) * (-velocity.normalized) + v1;
-		u2 = Quaternion.Euler(0, -45, 0) * (-velocity.normalized) + v1;
+		Vector3 v1 = position+velocity;
+		Vector3 v2 = position-velocity;
+		Vector3 u1 = Quaternion.Euler(0, 45, 0) * (-velocity.normalized) + v1;
+		Vector3 u2 = Quaternion.Euler(0, -45, 0) * (-velocity.normalized) + v1;
 
 		//Draws
 		Debug.DrawLine (position, v1, Color.grey);
@@ -204,11 +201,9 @@ public class Cell : MonoBehaviour {
 	 **/
 	public void setColor() {
 		float n = Grid.instance.density [row, column] / (availableArea*Grid.maxDensity);
-		if (n > 1) {
-			n = 1; //Constrain to maxdensity.
-		}
+		if (n > 1) n = 1;  //Constrain to maxdensity.
 
 		byte m = (byte)(25 + Mathf.Abs(n) * (255 - 25)); //Todo: Make better
-		this.GetComponent<Renderer>().material.color = new Color32 (m, m, m, 1);
+		renderer.material.color = new Color32 (m, m, m, 1);
 	}
 }

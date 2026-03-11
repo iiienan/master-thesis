@@ -37,7 +37,7 @@ public class Main : MonoBehaviour {
 	internal static Vector2 zMinMax;
 	internal MapGen.map roadmap;
 
-	public int cellsPerRow;
+	public int cellSize;
 	public int neighbourBins;
 	public int roadNodeAmount; // Number of nodes that are placed automatically
 	public bool visibleMap; // Show or hide the nodes in the world
@@ -112,7 +112,7 @@ public class Main : MonoBehaviour {
 		Grid grid = Instantiate(gridPrefab) as Grid;
 		grid.showSplattedDensity = showSplattedDensity;
 		grid.showSplattedVelocity = showSplattedVelocity;
-		grid.cellsPerRow = cellsPerRow;
+		grid.cellSize = cellSize;
 		grid.agentMaxSpeed = agentMaxSpeed;
 		grid.ringDiameter = ringDiameter;
 		grid.usePresetGroupDistances = usePresetGroupDistances;

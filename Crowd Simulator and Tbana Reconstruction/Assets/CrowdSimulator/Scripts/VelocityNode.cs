@@ -28,26 +28,26 @@ public class VelocityNode : MonoBehaviour {
 	 * Approximate the derivative of the pressure for this node as a central difference between the two closest cells.
 	 **/ 
 	internal void calculatePressureGradient(){
-		int index = cellRow*Grid.instance.cellsPerRow+cellCol;
+		int index = cellRow*Grid.instance.nCellsX+cellCol;
 		if (typeX){
 			if (cellCol == 0){
-				pressureGradient = (float)(Grid.instance.xArray[index] -  0)/Grid.instance.cellLength; //Boundary condition
+				pressureGradient = (float)(Grid.instance.xArray[index] -  0)/Grid.instance.cellSize; //Boundary condition
 			}
-			else if(cellCol == Grid.instance.cellsPerRow){
-				pressureGradient = (float)(0 -  Grid.instance.xArray[index-1])/Grid.instance.cellLength; //Boundary condition
+			else if(cellCol == Grid.instance.nCellsX){
+				pressureGradient = (float)(0 - Grid.instance.xArray[index-1])/Grid.instance.cellSize; //Boundary condition
 			}
 			else {
-				pressureGradient = (float)(Grid.instance.xArray[index] -  Grid.instance.xArray[index-1])/Grid.instance.cellLength;
+				pressureGradient = (float)(Grid.instance.xArray[index] - Grid.instance.xArray[index-1])/Grid.instance.cellSize;
 			}
 		} else {
 			if (cellRow == 0){
-				pressureGradient = (float)(Grid.instance.xArray[index] -  0)/Grid.instance.cellLength; //Boundary condition
+				pressureGradient = (float)(Grid.instance.xArray[index] - 0)/Grid.instance.cellSize;
 			}
-			else if(cellRow == Grid.instance.cellsPerRow){
-				pressureGradient = (float)(0 -  Grid.instance.xArray[index-Grid.instance.cellsPerRow])/Grid.instance.cellLength; //Boundary condition
+			else if(cellRow == Grid.instance.nCellsZ){
+				pressureGradient = (float)(0 - Grid.instance.xArray[index-Grid.instance.nCellsX])/Grid.instance.cellSize; //Boundary condition
 			}
 			else {
-				pressureGradient = (float)(Grid.instance.xArray[index] -  Grid.instance.xArray[index-Grid.instance.cellsPerRow])/Grid.instance.cellLength;
+				pressureGradient = (float)(Grid.instance.xArray[index] - Grid.instance.xArray[index-Grid.instance.nCellsX])/Grid.instance.cellSize;
 			}
 		}
 	}
@@ -92,11 +92,12 @@ public class VelocityNode : MonoBehaviour {
 	 **/ 
 	internal void updateValues() {
 		if (weights > 0) {
-			velocityVector = tempVelocity / (Grid.instance.cellLength * Grid.instance.cellLength * weights); //Splat (Change) *Mathf.Pow(Grid.instance.cellLength, 2)
+			velocityVector = tempVelocity / (Grid.instance.cellSize * Grid.instance.cellSize * weights); //Splat (Change) *Mathf.Pow(Grid.instance.cellLength, 2)
 		} else {
+			velocityVector = Vector3.zero;
 			velocity = 0;
 		}
-		density = weights / Mathf.Pow(Grid.instance.cellLength, 2); //Splat
+		density = weights / Mathf.Pow(Grid.instance.cellSize, 2); //Splat
 		updateStoredValues (); //Save total values of current vel and dens in larger grid
 		tempVelocity = Vector3.zero;
 		weights = 0;
