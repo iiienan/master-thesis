@@ -24,6 +24,7 @@ public class WaitingAreaController : MonoBehaviour
     public Material walkingAgentMaterial;
     public Material boardingAgentMaterial;
     private Main mainScript;
+    public Train[] trains;
 
     public void Initialize()
     {
@@ -206,7 +207,11 @@ public class WaitingAreaController : MonoBehaviour
 
     internal int FindClosestTrainDoor(ref Agent agent)
     {   
-        GameObject train = GameObject.Find("Train"+agent.trainLine);
+        GameObject train = trains[agent.trainLine - 1].gameObject;
+        if(train == null)
+        {
+            Debug.LogError("Train not found for train line: " + agent.trainLine);
+        }
         GameObject trainDoors = train.transform.Find("NodesInsideTrain").gameObject;
 
         float closestDistance = Mathf.Infinity;
