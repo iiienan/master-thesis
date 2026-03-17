@@ -98,13 +98,13 @@ public class TestController : MonoBehaviour
 
         if (flowType == TrainController.Flow.Asymmetric && scenario == Scenario.Exit)
         {
-            trainController.trains[1].GetComponent<Train>().numberOfAgents = (int)(exitFlow * (4f / 5f));
-            trainController.trains[2].GetComponent<Train>().numberOfAgents = (int)(exitFlow * (1f / 5f));
+            trainController.trains[0].GetComponent<Train>().numberOfAgents = (int)(exitFlow * (4f / 5f));
+            trainController.trains[1].GetComponent<Train>().numberOfAgents = (int)(exitFlow * (1f / 5f));
         }
         else
         {
+            trainController.trains[0].GetComponent<Train>().numberOfAgents = exitFlow / 2;
             trainController.trains[1].GetComponent<Train>().numberOfAgents = exitFlow / 2;
-            trainController.trains[2].GetComponent<Train>().numberOfAgents = exitFlow / 2;
         }
     }
 

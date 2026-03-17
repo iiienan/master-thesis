@@ -136,7 +136,7 @@ public class Main : MonoBehaviour {
 											 ref agentList, xMinMax, zMinMax, agentAvoidanceRadius);
 		}
 
-		nExitingAgents = trainController.trains[1].GetComponent<Train>().numberOfAgents + trainController.trains[2].GetComponent<Train>().numberOfAgents;
+		nExitingAgents = trainController.trains[0].GetComponent<Train>().numberOfAgents + trainController.trains[1].GetComponent<Train>().numberOfAgents;
 	}
 
 
@@ -144,7 +144,7 @@ public class Main : MonoBehaviour {
 	 * Main simulation loop which is called every frame
 	**/
     void Update () {
-		simulationTime += Time.deltaTime;
+		simulationTime += Grid.instance.dt;
 		Grid.instance.solver = solver;
 		Grid.instance.solverEpsilon = epsilon;
 		Grid.instance.solverMaxIterations = solverMaxIterations;
@@ -154,10 +154,27 @@ public class Main : MonoBehaviour {
 		Grid.instance.updateVelocityNodes ();
 		//Solve linear constraint problem
 		Grid.instance.PsolveRenormPsolve ();
+
+		
+
 		//Move agents
 		for (int i = agentList.Count - 1; i >= 0; i--)
 		{
 			Agent agent = agentList[i];
+
+			if(agent.isWaitingForDelay)
+			{
+				agent.delayTimer -= Grid.instance.dt;
+				if(agent.delayTimer <= 0f)
+				{
+					agent.isWaitingForDelay = false;
+					agent.Reset();
+				}
+				else
+				{
+					continue;
+				}
+			}
 
 			if (agent.tr.position.y > 0.1f ||
 			agent.tr.position.y < -0.1f ||
@@ -170,6 +187,7 @@ public class Main : MonoBehaviour {
 				agent.Reset();
 				//Debug.DrawLine(agent.tr.position, agent.tr.position + Vector3.up * 5f, Color.red, 2f);
 			}
+
 
 			if (agent.isWaiting)
 			{
@@ -221,7 +239,7 @@ public class Main : MonoBehaviour {
 				{
 					if (agent.boarding)
 					{
-						trainController.nBoardingAgents[agent.trainLine]--;
+						trainController.nBoardingAgents[agent.trainLine-1]--;
 						if(logger != null) logger.LogTravelTime(agent.travelTime, true, agent.trainLine, agent.startTime);
 						agentList.RemoveAt(i);
 						float averageSpeed = agent.travelDistance / agent.movingTime;
@@ -243,7 +261,7 @@ public class Main : MonoBehaviour {
 							// All exiting agents have exited the platform, end simulation
 							if (logger != null) { logger.LogEvent("All exiting agents have exited the platform"); }
 							Debug.Log("All exiting agents have exited the platform");
-							if (trainController.nBoardingAgents[1] <= 0 && trainController.nBoardingAgents[2] <= 0)
+							if (trainController.nBoardingAgents[0] <= 0 && trainController.nBoardingAgents[1] <= 0)
 							{
 								UnityEditor.EditorApplication.isPlaying = false;
 							}
@@ -257,10 +275,11 @@ public class Main : MonoBehaviour {
 			agent.move(ref roadmap);
 			agent.rbody.velocity = Vector3.zero;
 			agent.rbody.angularVelocity = Vector3.zero;
-			
 		}
 		//Pair-wise collision handling between agents
 		Grid.instance.collisionHandling(ref agentList);
+
+		trainController.TrainControllerUpdate();
 
 		//flags
 		Grid.instance.showSplattedDensity = showSplattedDensity;
@@ -270,6 +289,8 @@ public class Main : MonoBehaviour {
 		Grid.instance.smoothTurns = smoothTurns;
 
 		Grid.instance.dt = customTimeStep ? timeStep : Time.deltaTime;
+	
+		
 
 	}
 	public void AddToAgentList(Agent agent)

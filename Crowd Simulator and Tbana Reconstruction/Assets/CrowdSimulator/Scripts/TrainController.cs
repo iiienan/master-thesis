@@ -2,48 +2,39 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR;
 
 public class TrainController : MonoBehaviour
 {
     public bool spawnTrains = true;
-    public GameObject[] trains = new GameObject[3];
+    public GameObject[] trains = new GameObject[2];
     private float arrivalTimer = 0f;
     internal float arriveInterval = 10f;
-    internal bool[] dwelling = new bool[3];
-    //public float dwellTime = 5f;
-    //private float[] dwellTimer = new float[3];
+    public enum TrainState { Incoming, Arrived, BoardingAlighting, Exiting}
+    private TrainState[] trainStates = new TrainState[2];
+    private float[] stateTimer = new float[2];
+
     private WaitingAreaController waitingAreaController;
     internal Main mainScript;
-    //public int trainCapacity = 500;
-    internal int[] nBoardedAgents = new int[3];
+    internal int[] nBoardedAgents = new int[2];
     internal int nAgents = 100;
     public bool waitForMinimumAgents = false;
-    //public bool boardWithCapacity = false;
-    internal bool[] isPreparingToBoard = new bool[3];
-    internal bool[] boarding = new bool[3];
+    internal bool[] isPreparingToBoard = new bool[2];
+    internal bool[] boarding = new bool[2];
     internal bool alightBeforeBoarding = true;
-    public enum PlatformType
-    {
-        Central,
-        Mixed,
-        Side
-    }
 
+    public enum PlatformType {Central, Mixed, Side}
     public PlatformType platformType;
 
-    public enum Flow
-    {
-        Symmetric,
-        Asymmetric
-    }
-
+    public enum Flow{Symmetric, Asymmetric}
     internal Flow flow;
-    internal int[] nBoardingAgents = new int[3];
+    internal int[] nBoardingAgents = new int[2];
     //public bool useDwellTimer = true;
     private Logger logger;
     private TestController testController;
-    private bool[] allSpawnersDone = new bool[3];
-
+    private bool[] allSpawnersDone = new bool[2];
+    private Train[] trainScripts = new Train[2];
+    internal bool[] dwelling = new bool[2];
 
 
     void Start()
@@ -73,100 +64,137 @@ public class TrainController : MonoBehaviour
 
         Debug.Log("Number of entering agents: " + nAgents);
 
-        Debug.Log("Number of exiting agents: Train 1: " + trains[1].GetComponent<Train>().numberOfAgents + " Train 2: " + trains[2].GetComponent<Train>().numberOfAgents);
+        Debug.Log("Number of exiting agents: Train 1: " + trains[0].GetComponent<Train>().numberOfAgents + " Train 2: " + trains[1].GetComponent<Train>().numberOfAgents);
 
-
-        ToggleTrain(1);
-        ToggleTrain(2);
+        for(int i = 0; i <= 1; i++)
+        {
+            if(trains[i] != null) trainScripts[i] = trains[i].GetComponent<Train>();
+            trainStates[i] = TrainState.Incoming;
+            ToggleTrain(i, false);
+            dwelling[i] = false;
+        }
     }
 
-    void Update()
+    public void TrainControllerUpdate()
     {
-        if (!spawnTrains)
+        if (!spawnTrains) return;
+
+        if(trainStates[0] == TrainState.Incoming && trainStates[1] == TrainState.Incoming)
         {
-            return;
-        }
-        if(!(dwelling[1] || dwelling[2]))
-        {
-            arrivalTimer += Time.deltaTime;
-        }
-        if (arrivalTimer >= arriveInterval)
-        {
-            if (waitForMinimumAgents && mainScript.agentList.Count < nAgents)
+            arrivalTimer += Grid.instance.dt;
+            if(arrivalTimer >= arriveInterval)
             {
-                return;
+                if(waitForMinimumAgents && mainScript.agentList.Count < nAgents)
+                {
+                    return;
+                }
+                arrivalTimer = 0f;
+                TriggerArrival(0);
+                TriggerArrival(1);
             }
-            arrivalTimer = 0f;
-            //UnityEditor.EditorApplication.isPaused = true;
-            dwelling[1] = true;
-            dwelling[2] = true;
-
-            ToggleTrain(1);
-            ToggleTrain(2);
-            if(logger != null) logger.LogEvent("Train 1 arrived");
-            if(logger != null) logger.LogEvent("Train 2 arrived");
-
-            PrepareBoarding(1);
-            PrepareBoarding(2);
-
-            StartCoroutine(Alight(1));
-            StartCoroutine(Alight(2));
         }
-        Dwell(1);
-        Dwell(2);
+
+        HandleTrain(0);
+        HandleTrain(1);
         
     }
 
-    private void ToggleTrain(int trainLine)
+    private void TriggerArrival(int trainLine)
     {
-        trains[trainLine].transform.GetChild(0).gameObject.SetActive(dwelling[trainLine]);
-        trains[trainLine].transform.GetChild(1).gameObject.SetActive(dwelling[trainLine]);
-        trains[trainLine].transform.GetChild(2).gameObject.SetActive(dwelling[trainLine]);
-    }
-
-    private IEnumerator Alight(int trainLine)
-    {
+        trainStates[trainLine] = TrainState.Arrived;
+        ToggleTrain(trainLine, true);
+        dwelling[trainLine] = true;
+        stateTimer[trainLine] = 10f;
+        PrepareBoarding(trainLine);
+        if(logger != null) logger.LogEvent("Train " + trainLine + " arrived");
         foreach (MapGen.spawnNode node in mainScript.roadmap.spawns)
         {
             node.spawner.spawn = false;
         }
-        yield return new WaitForSeconds(10f);
-        Train trainScript = trains[trainLine].GetComponent<Train>();
-        if (logger != null) logger.LogEvent("Train " + trainLine + " started alighting");
-        trainScript.Alight();
-        Train train = trains[trainLine].GetComponent<Train>();
+    }
 
+    private void ToggleTrain(int trainLine, bool active)
+    {
+        trains[trainLine].transform.GetChild(0).gameObject.SetActive(active);
+        trains[trainLine].transform.GetChild(1).gameObject.SetActive(active);
+        trains[trainLine].transform.GetChild(2).gameObject.SetActive(active);
+    }
 
-        if (!alightBeforeBoarding)
+    private void HandleTrain(int trainLine)
+    {
+        switch (trainStates[trainLine])
         {
-            isPreparingToBoard[trainLine] = false;
-            Board(trainLine);
-        }
-
-        allSpawnersDone[trainLine] = false;
-        while (!allSpawnersDone[trainLine])
-        {
-            allSpawnersDone[trainLine] = true;
-            foreach (var spawner in trainScript.trainSpawners)
-            {
-                if (!spawner.done)
+            case TrainState.Arrived:
+                stateTimer[trainLine] -= Grid.instance.dt;
+                if (stateTimer[trainLine] <= 0f)
                 {
-                    allSpawnersDone[trainLine] = false;
-                    break;
+                    foreach (var spawner in trainScripts[trainLine].trainSpawners)
+                    {
+                        spawner.isSpawning = true;
+                    }
+                    if (logger != null) logger.LogEvent("Train " + trainLine + " started alighting");
+
+                    trainStates[trainLine] = TrainState.BoardingAlighting;
+
+                    if(!alightBeforeBoarding)
+                    {
+                        Board(trainLine);
+                    }
                 }
-            }
-            yield return new WaitForSeconds(0.1f);
-        }
-        if (logger != null) logger.LogEvent("Train " + trainLine + " finished alighting");
-        Debug.Log("Train " + trainLine + " finished alighting");
-        trains[trainLine].GetComponent<Train>().nSpawnedAgents = 0;
+                break;
 
-        if (alightBeforeBoarding)
-        {
-            isPreparingToBoard[trainLine] = false;
-            Board(trainLine);
-        }
+            case TrainState.BoardingAlighting:
 
+                bool spawnersDone = true;
+                foreach (var spawner in trainScripts[trainLine].trainSpawners)
+                {
+                    spawner.UpdateSpawner();
+                    if (!spawner.done)
+                    {
+                        spawnersDone = false;
+                    }
+                }
+
+                if(spawnersDone && !allSpawnersDone[trainLine])
+                {
+                    allSpawnersDone[trainLine] = true;
+                    if (logger != null) logger.LogEvent("Train " + trainLine + " finished alighting");
+                    Debug.Log("Train " + trainLine + " finished alighting");
+
+                }
+
+                if(alightBeforeBoarding && spawnersDone && !boarding[trainLine])
+                {
+                    isPreparingToBoard[trainLine] = false;
+                    Board(trainLine);
+                }
+
+                bool boardingComplete = nBoardingAgents[trainLine] <= 0;
+
+                if(spawnersDone && boardingComplete && boarding[trainLine])
+                {
+                    if (logger != null) logger.LogEvent("Train " + trainLine + " finished boarding");
+                    Debug.Log("Train " + trainLine + " finished boarding");
+                    boarding[trainLine] = false;
+                    trainStates[trainLine] = TrainState.Exiting;
+                    stateTimer[trainLine] = 5f;
+                }
+                break;
+
+            case TrainState.Exiting:
+                stateTimer[trainLine] -= Grid.instance.dt;
+                if(stateTimer[trainLine] <= 0f)
+                {
+                    ToggleTrain(trainLine,false);
+                    dwelling[trainLine] = false;
+
+                    if (mainScript.nExitingAgents <= 0 && trainStates[0] == TrainState.Exiting && trainStates[1] == TrainState.Exiting)
+                    {
+                        UnityEditor.EditorApplication.isPlaying = false;
+                    }
+                }
+                break;
+        }
     }
 
     public void PrepareBoarding(int trainLine)
@@ -177,54 +205,12 @@ public class TrainController : MonoBehaviour
         nBoardedAgents[trainLine] = 0;
     }
 
-
-    private void Dwell(int trainLine)
-    {
-        /**
-        if (dwelling[trainLine] && useDwellTimer)
-        {
-            dwellTimer[trainLine] += Time.deltaTime;
-            if (dwellTimer[trainLine] >= dwellTime)
-            {
-                dwelling[trainLine] = false;
-                ToggleTrain(trainLine);
-                dwellTimer[trainLine] = 0f;
-                ResetLostAgents();
-                boarding[trainLine] = false;
-            }
-        }
-        **/
-        if (dwelling[trainLine] && nBoardingAgents[trainLine] <= 0 && boarding[trainLine])
-        {
-            //dwellTimer[trainLine] = 0f;
-            boarding[trainLine] = false;
-            if (logger != null) logger.LogEvent("Train " + trainLine + " finished boarding");
-            Debug.Log("Train " + trainLine + " finished boarding");
-        }
-        if(dwelling[trainLine] && !boarding[trainLine] && allSpawnersDone[trainLine])
-        {
-            StartCoroutine(TrainExit(trainLine));
-        }
-        
-    }
-
-    private IEnumerator TrainExit(int trainLine)
-    {
-        yield return new WaitForSeconds(5f);
-        dwelling[trainLine] = false;
-        ToggleTrain(trainLine);
-        if (mainScript.nExitingAgents <= 0 && !dwelling[1] && !dwelling[2])
-        {
-            UnityEditor.EditorApplication.isPlaying = false;
-        }
-    }
-
     public void PrepareWaitingAgents(int trainLine)
     {
         for (int i = 0; i < waitingAreaController.waitingAgents.Count; i++)
         {
             Agent agent = waitingAreaController.waitingAgents[i];
-            if (agent.trainLine == trainLine)
+            if (agent.trainLine == trainLine+1)
             {
                 agent.GetComponentInChildren<Renderer>().material = waitingAreaController.boardingAgentMaterial;
 
@@ -235,7 +221,7 @@ public class TrainController : MonoBehaviour
                 Rigidbody rb = agent.GetComponent<Rigidbody>();
                 rb.constraints = RigidbodyConstraints.None;
 
-                StartCoroutine(WaitOutsideTrain(agent));
+                WaitOutsideTrain(agent);
 
                 nBoardedAgents[trainLine]++;
                 /**
@@ -253,7 +239,7 @@ public class TrainController : MonoBehaviour
         for(int i = 0; i < mainScript.agentList.Count; i++)
 		{
 			Agent agent = mainScript.agentList[i];
-            if (agent.trainLine == trainLine && !agent.boarding && !agent.isWaiting)
+            if (agent.trainLine == trainLine+1 && !agent.boarding && !agent.isWaiting)
             {
                 PrepareWalkingAgent(agent);
                 nBoardedAgents[trainLine]++;
@@ -282,12 +268,12 @@ public class TrainController : MonoBehaviour
             agent.waitingArea.freeWaitingSpots.Add(agent.waitingSpot);
             agent.isWaitingAgent = false;
         }
-        StartCoroutine(WaitOutsideTrain(agent));
+        WaitOutsideTrain(agent);
     }
 
-    private IEnumerator WaitOutsideTrain(Agent agent)
+    internal void WaitOutsideTrain(Agent agent)
     {
-        if (!agent) yield break;
+        if (!agent) return;
         
         // Wait outside the train close to the door
         Vector3 targetPoint = mainScript.roadmap.allNodes[agent.path[agent.pathIndex]].transform.position;
@@ -345,17 +331,15 @@ public class TrainController : MonoBehaviour
         agent.preferredVelocity = Vector3.zero;
         agent.continuumVelocity = Vector3.zero;
         agent.collisionAvoidanceVelocity = Vector3.zero;
+        
+        // Wait for a bit
+        agent.setDelay(Random.Range(0.1f, 3f));
 
         // Start moving towards the train door
         //agent.walkingSpeed = Random.Range(0.5f, 1f);
         agent.done = false;
         agent.isWaiting = false;
         agent.isPreparingToBoard = true;
-        
-        // Wait for a bit so all start moving
-        // at exactly the same time
-        float delay = Random.Range(0.1f, 3f);
-        yield return new WaitForSeconds(delay);
     }
 
     public void Board(int trainLine)
@@ -365,32 +349,24 @@ public class TrainController : MonoBehaviour
         for (int i = mainScript.agentList.Count - 1; i >= 0; i--)
         {
             Agent agent = mainScript.agentList[i];
-            if (agent.trainLine == trainLine)
+            if (agent.trainLine == trainLine+1)
             {
                 if (!agent.isPreparingToBoard)
                 {
                     continue;
                 }
-                StartCoroutine(BoardAgent(agent));
-                nBoardingAgents[agent.trainLine]++;
+                BoardAgent(agent);
+                nBoardingAgents[agent.trainLine-1]++;
             }
         }
     }
 
-    internal IEnumerator BoardAgent(Agent agent)
+    private void BoardAgent(Agent agent)
     {
-        agent.Reset();
-        float delay = Random.Range(0.1f, 1f);
-        yield return new WaitForSeconds(delay);
-
-        if (!agent) yield break;
-
         waitingAreaController.waitingAgents.Remove(agent);
-
-        agent.velocity = Vector3.zero;
-        agent.preferredVelocity = Vector3.zero;
-        agent.continuumVelocity = Vector3.zero;
-        agent.collisionAvoidanceVelocity = Vector3.zero;
+        agent.Reset();
+        agent.isWaitingForDelay = true;
+        agent.delayTimer = Random.Range(0.1f, 1f);
 
         if (waitingAreaController.agentContainer != null)
         {
@@ -401,13 +377,11 @@ public class TrainController : MonoBehaviour
             agent.tr.SetParent(null);
         }
 
-
         agent.noMap = false;
         agent.done = false;
         agent.isWaiting = false;
         agent.isPreparingToBoard = false;
         agent.boarding = true;
-        
     }
 
     int FindClosestNode(Vector3 position)

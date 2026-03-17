@@ -59,13 +59,4 @@ public class Train : MonoBehaviour
         
     }
 
-    [ContextMenu("Alight")]
-    public void Alight()
-    {
-        foreach (TrainSpawner spawner in trainSpawners)
-        {   
-            spawner.done = false;
-            StartCoroutine (spawner.SpawnAgents());
-        }
-    }
 }

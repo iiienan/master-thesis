@@ -56,6 +56,18 @@ public class Agent : MonoBehaviour {
 
 	internal Transform tr;
 
+	// Delay
+	internal float delayTimer = 0f;
+	internal bool isWaitingForDelay = false;
+
+	internal void setDelay(float delay)
+	{
+		delayTimer = delay;
+		isWaitingForDelay = true;
+	}
+
+	private Main mainScript;
+
 
 	void Awake() 
 	{
@@ -91,7 +103,7 @@ public class Agent : MonoBehaviour {
 			Destroy(rbody);
 		}
 
-		Main mainScript = FindObjectOfType<Main>();
+		mainScript = FindObjectOfType<Main>();
 		if (this is SubgroupAgent)
 		{
 			walkingSpeed = mainScript.agentMaxSpeed;
@@ -312,7 +324,7 @@ public class Agent : MonoBehaviour {
 		preferredVelocity.y = 0f;
 	}
 
-	private void Update()
+	public void UpdateMetrics()
 	{
 		Vector3 pos = tr.position;
 		Vector3 delta = pos - previousPosition;
@@ -322,7 +334,7 @@ public class Agent : MonoBehaviour {
 		if (distance > 0.001f)
 		{
 			travelDistance += distance;
-			movingTime += Time.deltaTime;
+			movingTime += Grid.instance.dt;
 		}
 
 		previousPosition = pos;
@@ -345,7 +357,7 @@ public class Agent : MonoBehaviour {
 		} 
 
 		calculatePreferredVelocity(ref map);
-		if((!trainController.dwelling[1] && !trainController.dwelling[2]) || isAlighting)
+		if((!trainController.dwelling[0] && !trainController.dwelling[1]) || isAlighting)
 		{
 			ApplyYellowLineForce();
 		}
@@ -367,7 +379,7 @@ public class Agent : MonoBehaviour {
 
 	internal void PassiveMove()
 	{
-		if(!trainController.dwelling[trainLine])
+		if(!trainController.dwelling[trainLine-1])
 		{
 			ApplyYellowLineForce();
 		}
@@ -392,7 +404,7 @@ public class Agent : MonoBehaviour {
 	private void CheckYellowLine()
 	{
 		Vector3 pos = tr.position;
-		if(trainController.dwelling[trainLine] && !isAlighting){ return; }
+		if(trainController.dwelling[trainLine-1] && !isAlighting){ return; }
 
 		float positionX = Mathf.Abs(pos.x);
 

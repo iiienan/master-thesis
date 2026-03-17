@@ -15,6 +15,9 @@ public class TrainSpawner : MonoBehaviour
     private TrainController.PlatformType platformType;
     private Train train;
 
+    private float nextSpawnTimer = 0f;
+    internal bool isSpawning = false;
+
     // Start is called before the first frame update
     public void Initialize(Train train, int goal, float burstRate, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, bool alightBeforeBoarding,
     TrainController.PlatformType platformType)
@@ -28,17 +31,28 @@ public class TrainSpawner : MonoBehaviour
         this.alightBeforeBoarding = alightBeforeBoarding;
         this.platformType = platformType;
         mainScript = FindObjectOfType<Main>();
+        this.nextSpawnTimer = burstRate + Random.Range(-0.1f, 0.1f);
     }
 
-    public IEnumerator SpawnAgents()
+    public void UpdateSpawner()
     {
-        while (train.nSpawnedAgents < train.numberOfAgents)
+        if (!isSpawning || done) return;
+
+        if (train.nSpawnedAgents >= train.numberOfAgents)
         {
-            train.nSpawnedAgents++;
-            spawnOneAgent();
-            yield return new WaitForSeconds(burstRate + Random.Range(-0.1f, 0.1f));
+            isSpawning = false;
+            done = true;
+            return;
         }
-        done = true;
+
+        nextSpawnTimer -= Grid.instance.dt; 
+
+        if (nextSpawnTimer <= 0)
+        {
+            spawnOneAgent();
+            train.nSpawnedAgents++;
+            nextSpawnTimer = burstRate + Random.Range(-0.1f, 0.1f);
+        }
     }
 
     public void spawnOneAgent()

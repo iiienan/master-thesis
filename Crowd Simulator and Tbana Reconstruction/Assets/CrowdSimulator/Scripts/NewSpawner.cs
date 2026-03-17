@@ -141,7 +141,7 @@ public class NewSpawner : MonoBehaviour {
 			agent.tr.parent = agentEditorContainer.transform;
 
 		agentList.Add (agent);
-		if(mainScript.trainController.isPreparingToBoard[agent.trainLine])
+		if(mainScript.trainController.isPreparingToBoard[agent.trainLine-1])
 		{
 			//mainScript.trainController.PrepareWalkingAgent(agent);
 		}
