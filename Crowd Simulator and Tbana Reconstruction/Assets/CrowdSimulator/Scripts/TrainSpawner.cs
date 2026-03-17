@@ -31,7 +31,7 @@ public class TrainSpawner : MonoBehaviour
         this.alightBeforeBoarding = alightBeforeBoarding;
         this.platformType = platformType;
         mainScript = FindObjectOfType<Main>();
-        this.nextSpawnTimer = burstRate + Random.Range(-0.1f, 0.1f);
+        nextSpawnTimer = burstRate + Random.Range(-0.1f, 0.1f);
     }
 
     public void UpdateSpawner()

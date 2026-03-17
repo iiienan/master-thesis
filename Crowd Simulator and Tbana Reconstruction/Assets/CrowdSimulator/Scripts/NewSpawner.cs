@@ -24,6 +24,8 @@ public class NewSpawner : MonoBehaviour {
     public Agent agentPrefab;
 	internal bool spawn = true;
 	internal TestController testController;
+	private float nextSpawnTimer;
+	Transform spawnerNode;
 
 	// Set the node index for this spawner's node
 	public void SetNode(int node)
@@ -79,9 +81,10 @@ public class NewSpawner : MonoBehaviour {
 			return;
 		}
 
-		SetSpawnRate();
+		spawnerNode = transform.GetChild(0);
 
-		continousSpawn(); 
+		SetSpawnRate();
+		nextSpawnTimer = 0f;
 	}
 
 	internal virtual void SetSpawnRate()
@@ -90,32 +93,32 @@ public class NewSpawner : MonoBehaviour {
 	}
 
 	// CONTINUOUS SPAWN
-	public void continousSpawn()
+	public void UpdateSpawner()
 	{
-		StartCoroutine(spawnContinously(spawnRate));
-	}
+		if(agentList.Count >= mainScript.maxNumberOfAgents || !spawn)
+		{
+			return;
+		}
 
-	internal IEnumerator spawnContinously(float continousSpawnRate) {
-		Transform spawnerNode = transform.GetChild(0);
-		if(usePoisson)
+		nextSpawnTimer -= Grid.instance.dt;
+
+		if(nextSpawnTimer <= 0)
 		{
-			float timeBetweenSpawn = CalculateTimeBetweenSpawns();
-			yield return new WaitForSeconds (timeBetweenSpawn);
-			
-		}
-		else
-		{
-			yield return new WaitForSeconds (continousSpawnRate);
-		}
-		
-		if (agentList.Count < mainScript.maxNumberOfAgents && spawn) 
-        {
 			Vector3 startPos = new Vector3 (Random.Range (-0.5f, 0.5f), 0f, Random.Range (-0.5f, 0.5f)); 
 			startPos = spawnerNode.TransformPoint (startPos);
 			spawnOneAgent(startPos);
+
+			if(usePoisson)
+			{
+				nextSpawnTimer = CalculateTimeBetweenSpawns();
+			}
+			else
+			{
+				nextSpawnTimer = spawnRate;
+			}
 		}
+
 		
-		StartCoroutine (spawnContinously(continousSpawnRate));
 	}
 
 	// BURST SPAWN

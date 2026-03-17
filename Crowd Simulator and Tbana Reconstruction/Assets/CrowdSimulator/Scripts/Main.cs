@@ -279,6 +279,11 @@ public class Main : MonoBehaviour {
 		//Pair-wise collision handling between agents
 		Grid.instance.collisionHandling(ref agentList);
 
+		for (int i = 0; i < roadmap.spawns.Count; ++i)
+		{
+			roadmap.spawns[i].spawner.UpdateSpawner();
+		}
+
 		trainController.TrainControllerUpdate();
 
 		//flags
