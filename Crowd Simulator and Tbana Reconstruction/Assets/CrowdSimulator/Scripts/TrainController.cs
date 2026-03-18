@@ -160,13 +160,21 @@ public class TrainController : MonoBehaviour
                     allSpawnersDone[trainLine] = true;
                     if (logger != null) logger.LogEvent("Train " + trainLine + " finished alighting");
                     Debug.Log("Train " + trainLine + " finished alighting");
+                    if(alightBeforeBoarding)
+                    {
+                        stateTimer[trainLine] = 1f;
+                    }
 
                 }
 
                 if(alightBeforeBoarding && spawnersDone && !boarding[trainLine])
                 {
-                    isPreparingToBoard[trainLine] = false;
-                    Board(trainLine);
+                    stateTimer[trainLine] -= Grid.instance.dt;
+                    if(stateTimer[trainLine] <= 0f)
+                    {
+                        isPreparingToBoard[trainLine] = false;
+                        Board(trainLine);
+                    }
                 }
 
                 bool boardingComplete = nBoardingAgents[trainLine] <= 0;
