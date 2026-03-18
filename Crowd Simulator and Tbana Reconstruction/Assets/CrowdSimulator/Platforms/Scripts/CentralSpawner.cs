@@ -32,11 +32,11 @@ public class CentralSpawner : NewSpawner
             float totalSpawnRate = testController.entryFlow / testController.arriveInterval;
             if (trainLine == 1)
             {
-                spawnRate = totalSpawnRate / 5f;
+                timeBetweenSpawns = 1f / (totalSpawnRate / 5f);
             }
             else if (trainLine == 2)
             {
-                spawnRate = totalSpawnRate / 20f;
+                timeBetweenSpawns = 1f / (totalSpawnRate / 20f);
             }
             else
             {
@@ -45,7 +45,7 @@ public class CentralSpawner : NewSpawner
         }
         else
         {
-            spawnRate = testController.entryFlow / 8f / testController.arriveInterval;
+            timeBetweenSpawns = 8f * testController.arriveInterval / testController.entryFlow;
         }
     }
 

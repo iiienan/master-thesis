@@ -19,7 +19,7 @@ public class NewSpawner : MonoBehaviour {
 	public CustomNode customGoal = null;
 	internal int goal;
 
-	public float spawnRate;
+	public float timeBetweenSpawns;
 	public bool usePoisson = false;
     public Agent agentPrefab;
 	internal bool spawn = true;
@@ -89,7 +89,7 @@ public class NewSpawner : MonoBehaviour {
 
 	internal virtual void SetSpawnRate()
 	{
-		spawnRate = testController.entryFlow / 4f / testController.arriveInterval;
+		timeBetweenSpawns = 4f * testController.entryFlow  / testController.arriveInterval;
 	}
 
 	// CONTINUOUS SPAWN
@@ -114,7 +114,7 @@ public class NewSpawner : MonoBehaviour {
 			}
 			else
 			{
-				nextSpawnTimer = spawnRate;
+				nextSpawnTimer = timeBetweenSpawns;
 			}
 		}
 
@@ -189,6 +189,7 @@ public class NewSpawner : MonoBehaviour {
 
 	float CalculateTimeBetweenSpawns()
     {
+		float spawnRate = 1f / timeBetweenSpawns;
         float u = Random.value;
         // -ln(1-u)/λ
         return -Mathf.Log(1 - u) / spawnRate;
