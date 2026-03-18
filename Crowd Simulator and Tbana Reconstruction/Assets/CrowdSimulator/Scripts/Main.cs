@@ -64,6 +64,9 @@ public class Main : MonoBehaviour {
 	internal TestController testController;
 	internal float simulationTime = 0f;
 	internal int nExitingAgents = 0;
+	public ExperimentHUD experimentHUD;
+	private float simulationStartTimer = 3f;
+	private bool simulationStarted = false;
 
 	/**
 	 * Initialize simulation by taking the user's options into consideration and spawn agents.
@@ -137,6 +140,15 @@ public class Main : MonoBehaviour {
 		}
 
 		nExitingAgents = trainController.trains[0].GetComponent<Train>().numberOfAgents + trainController.trains[1].GetComponent<Train>().numberOfAgents;
+
+		if(customTimeStep)
+		{
+			Physics.simulationMode = SimulationMode.Script;
+			Debug.Log("Simulation mode set to Script");
+		}
+
+		experimentHUD = FindObjectOfType<ExperimentHUD>();
+
 	}
 
 
@@ -144,7 +156,25 @@ public class Main : MonoBehaviour {
 	 * Main simulation loop which is called every frame
 	**/
     void Update () {
+
+		if(!simulationStarted)
+		{
+			simulationStartTimer -= Time.deltaTime;
+			if(simulationStartTimer <= 0f)
+			{
+				simulationStarted = true;
+				experimentHUD.realTimeStart = Time.realtimeSinceStartup;
+				Debug.Log("Simulation started");
+			}
+			else
+			{
+				return;
+			}
+		}
+
+		Grid.instance.dt = customTimeStep ? timeStep : Time.deltaTime;
 		simulationTime += Grid.instance.dt;
+
 		Grid.instance.solver = solver;
 		Grid.instance.solverEpsilon = epsilon;
 		Grid.instance.solverMaxIterations = solverMaxIterations;
@@ -286,17 +316,19 @@ public class Main : MonoBehaviour {
 
 		trainController.TrainControllerUpdate();
 
+		if(customTimeStep)
+		{
+			Physics.Simulate(Grid.instance.dt);
+		}
+
+		experimentHUD.RegisterSimTick();
+
 		//flags
 		Grid.instance.showSplattedDensity = showSplattedDensity;
 		Grid.instance.showSplattedVelocity = showSplattedVelocity;
 		Grid.instance.walkBack = walkBack;
 		Grid.instance.skipNodeIfSeeNext = skipNodeIfSeeNext;
 		Grid.instance.smoothTurns = smoothTurns;
-
-		Grid.instance.dt = customTimeStep ? timeStep : Time.deltaTime;
-	
-		
-
 	}
 	public void AddToAgentList(Agent agent)
 	{
