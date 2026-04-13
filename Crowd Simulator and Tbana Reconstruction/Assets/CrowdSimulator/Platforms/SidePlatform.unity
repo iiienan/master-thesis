@@ -430,7 +430,7 @@ MonoBehaviour:
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 778270691}
   timeBetweenSpawns: 0
-  usePoisson: 1
+  usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 2
 --- !u!1001 &67883123
@@ -3559,7 +3559,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1930502029125082690, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3304403947648402872, guid: 5ed634edaf66c9040ab184dc81b71190, type: 3}
       propertyPath: m_LocalPosition.x
@@ -9602,7 +9602,7 @@ MonoBehaviour:
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 391652302}
   timeBetweenSpawns: 0
-  usePoisson: 1
+  usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 1
 --- !u!1001 &985386721
@@ -10868,7 +10868,7 @@ MonoBehaviour:
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 1116390633}
   timeBetweenSpawns: 0
-  usePoisson: 1
+  usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 1
 --- !u!1001 &1090143013
@@ -12266,7 +12266,7 @@ MonoBehaviour:
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 1299979488}
   timeBetweenSpawns: 0
-  usePoisson: 1
+  usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 1
 --- !u!1 &1208580640
@@ -12971,7 +12971,7 @@ MonoBehaviour:
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 471294171}
   timeBetweenSpawns: 0
-  usePoisson: 1
+  usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 2
 --- !u!1001 &1245793156
@@ -13810,7 +13810,7 @@ MonoBehaviour:
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 491737014}
   timeBetweenSpawns: 0
-  usePoisson: 1
+  usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 1
 --- !u!1 &1320450934
@@ -17799,7 +17799,7 @@ MonoBehaviour:
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 145633494}
   timeBetweenSpawns: 0
-  usePoisson: 1
+  usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 2
 --- !u!1 &1745048594
@@ -21207,7 +21207,7 @@ MonoBehaviour:
   agentEditorContainer: {fileID: 2038246482}
   customGoal: {fileID: 1228317601}
   timeBetweenSpawns: 0
-  usePoisson: 1
+  usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
   trainLine: 2
 --- !u!1001 &2075125477
@@ -22492,20 +22492,24 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
-      propertyPath: exitFlow
-      value: 1000
-      objectReference: {fileID: 0}
-    - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
-      propertyPath: flowType
+      propertyPath: log
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
+      propertyPath: exitFlow
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
+      propertyPath: flowType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: entryFlow
-      value: 1000
+      value: 6000
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: arriveInterval
-      value: 15
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: alightBeforeBoarding
