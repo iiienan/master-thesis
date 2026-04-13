@@ -305,6 +305,7 @@ public class Main : MonoBehaviour {
 			agent.move(ref roadmap);
 			agent.rbody.velocity = Vector3.zero;
 			agent.rbody.angularVelocity = Vector3.zero;
+			agent.UpdateMetrics();
 		}
 		//Pair-wise collision handling between agents
 		Grid.instance.collisionHandling(ref agentList);

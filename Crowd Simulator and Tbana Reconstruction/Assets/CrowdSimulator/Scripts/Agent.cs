@@ -326,6 +326,8 @@ public class Agent : MonoBehaviour {
 
 	public void UpdateMetrics()
 	{
+		travelTime = travelTime += Grid.instance.dt;
+
 		Vector3 pos = tr.position;
 		Vector3 delta = pos - previousPosition;
 
