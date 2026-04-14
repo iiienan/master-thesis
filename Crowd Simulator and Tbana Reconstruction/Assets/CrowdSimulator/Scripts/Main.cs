@@ -91,6 +91,11 @@ public class Main : MonoBehaviour {
 		MapGen m = Instantiate(mapGen) as MapGen;
 		roadmap = m.generateRoadMap(roadNodeAmount, xMinMax, zMinMax, visibleMap);
 
+		testController = FindObjectOfType<TestController>();
+		if (testController == null)
+		{
+			Debug.LogError("TestController not found in scene");
+		}
 		waitingAreaController = FindObjectOfType<WaitingAreaController>();
 		if (waitingAreaController != null)
 		{
@@ -101,11 +106,7 @@ public class Main : MonoBehaviour {
 		{
 			Debug.LogError("TrainController not found in scene");
 		}
-		testController = FindObjectOfType<TestController>();
-		if (testController == null)
-		{
-			Debug.LogError("TestController not found in scene");
-		}
+
 		if(testController.log) logger = FindObjectOfType<Logger>();
 		if (logger == null && testController.log)
 		{

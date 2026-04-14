@@ -122,7 +122,20 @@ public class WaitingArea : MonoBehaviour
                 }
             }
         }
-}
+    }
+
+    public int nWaitingSpots(float waitingSpotSize)
+    {
+        Renderer renderer = transform.Find("Area").GetComponent<Renderer>();
+        Bounds bounds = renderer.bounds;
+
+        Vector3 size = bounds.size;
+
+        int columns = Mathf.FloorToInt(size.x / waitingSpotSize);
+        int rows = Mathf.FloorToInt(size.z / waitingSpotSize);
+
+        return columns * rows;
+    }
 
     /*
     *   The waiting area is also a node used for the agents' pathfinding.

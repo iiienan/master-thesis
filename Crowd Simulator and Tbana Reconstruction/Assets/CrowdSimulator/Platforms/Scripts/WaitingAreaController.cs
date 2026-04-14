@@ -32,9 +32,33 @@ public class WaitingAreaController : MonoBehaviour
         waitingAgents = new List<Agent>();
         waitingAgentsContainer = GameObject.Find("Waiting Agents");
 
+        mainScript = FindObjectOfType<Main>();
+
+        int totalWaitingSpots = 0;
+
         foreach(WaitingArea waitingArea in FindObjectsOfType<WaitingArea>())
         {
             waitingAreas.Add(waitingArea);
+            totalWaitingSpots += waitingArea.nWaitingSpots(waitingSpotSize);
+        }
+
+        if(totalWaitingSpots < mainScript.testController.entryFlow)
+        {
+            Debug.Log("Warning: Total waiting spots (" + totalWaitingSpots + ") is less than the entry flow (" + mainScript.testController.entryFlow + "). Decreasing waiting spot size.");
+            float totalAvailableArea = 0;
+
+            foreach (WaitingArea area in waitingAreas)
+            {
+                Vector3 size = area.transform.Find("Area").GetComponent<Renderer>().bounds.size;
+                totalAvailableArea += size.x * size.z;
+            }
+
+            float idealWaitingSpotSize = Mathf.Sqrt(totalAvailableArea / mainScript.testController.entryFlow);
+            waitingSpotSize = idealWaitingSpotSize * 0.90f;
+        }
+
+        foreach(WaitingArea waitingArea in waitingAreas)
+        {
             waitingArea.Initialize(debug, waitingSpotSize, useRowColumns);
         }
 
@@ -47,7 +71,7 @@ public class WaitingAreaController : MonoBehaviour
         {
             Debug.LogError("TrainController not found in the scene.");
         }
-        mainScript = FindObjectOfType<Main>();
+        
     }
 
     public void addAgentToWaitingList(Agent agent)
