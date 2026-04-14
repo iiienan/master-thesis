@@ -44,9 +44,9 @@ public class LOSVisualizer : MonoBehaviour
                 Destroy(cell.GetComponent<Collider>());
                 gridCells[x, y] = cell;
                 cell.transform.SetParent(transform);
+                cell.GetComponent<Renderer>().enabled = false;
             }
         }
-        SetGridVisibility(false);   
     }
 
 public void UpdateLOS()
