@@ -89,7 +89,7 @@ public class NewSpawner : MonoBehaviour {
 
 	internal virtual void SetSpawnRate()
 	{
-		timeBetweenSpawns = 4f * testController.entryFlow  / testController.arriveInterval;
+		timeBetweenSpawns = 4f * testController.arriveInterval / testController.entryFlow;
 	}
 
 	// CONTINUOUS SPAWN
