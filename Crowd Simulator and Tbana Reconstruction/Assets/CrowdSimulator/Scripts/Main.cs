@@ -67,6 +67,8 @@ public class Main : MonoBehaviour {
 	public ExperimentHUD experimentHUD;
 	private float simulationStartTimer = 3f;
 	private bool simulationStarted = false;
+	internal LOSVisualizer losVisualizer;
+	private bool takeScreenshot = true;
 
 	/**
 	 * Initialize simulation by taking the user's options into consideration and spawn agents.
@@ -111,6 +113,11 @@ public class Main : MonoBehaviour {
 		if (logger == null && testController.log)
 		{
 			Debug.LogError("Logger not found in scene");
+		}
+
+		losVisualizer = FindObjectOfType<LOSVisualizer>();
+		if (losVisualizer == null)		{
+			Debug.LogError("LOSVisualizer not found in scene");
 		}
 
 		Grid grid = Instantiate(gridPrefab) as Grid;
@@ -317,6 +324,13 @@ public class Main : MonoBehaviour {
 		}
 
 		trainController.TrainControllerUpdate();
+
+		if(losVisualizer != null && simulationTime >= testController.arriveInterval && testController.log && takeScreenshot)
+		{
+			losVisualizer.UpdateLOS();
+			losVisualizer.takeScreenshot();
+			takeScreenshot = false;
+		}
 
 		if(customTimeStep)
 		{

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Globalization;
 
 public class LOSVisualizer : MonoBehaviour
 {
@@ -18,11 +19,6 @@ public class LOSVisualizer : MonoBehaviour
         mainScript = FindObjectOfType<Main>();
         areaSize = new Vector2(mainScript.planeSizeX*10, mainScript.planeSizeZ*10);
         CreateGrid();
-    }
-
-    void Update()
-    {
-        UpdateLOS();
     }
 
     void CreateGrid()
@@ -50,9 +46,10 @@ public class LOSVisualizer : MonoBehaviour
                 cell.transform.SetParent(transform);
             }
         }
+        SetGridVisibility(false);   
     }
 
-void UpdateLOS()
+public void UpdateLOS()
     {
         int cols = gridCells.GetLength(0);
         int rows = gridCells.GetLength(1);
@@ -83,6 +80,15 @@ void UpdateLOS()
         }
     }
 
+    public void takeScreenshot()
+    {
+        SetGridVisibility(true);
+        string fileName = mainScript.testController.logFileNames + "_" + mainScript.simulationTime.ToString("F2", CultureInfo.InvariantCulture) + ".png";
+        string fullPath = System.IO.Path.Combine(Application.persistentDataPath, fileName);
+        ScreenCapture.CaptureScreenshot(fullPath);
+        StartCoroutine(HideAfterFrame());
+    }
+
     float GetSmoothedDensity(int cx, int cy, int cols, int rows)
     {
         float total = 0;
@@ -104,6 +110,32 @@ void UpdateLOS()
 
         float averageDensity = total / count;
         return averageDensity / (cellSize * cellSize);
+    }
+
+    public void SetGridVisibility(bool isVisible)
+    {
+        
+        if (gridCells == null) return;
+
+        int cols = gridCells.GetLength(0);
+        int rows = gridCells.GetLength(1);
+
+        for (int x = 0; x < cols; x++)
+        {
+            for (int y = 0; y < rows; y++)
+            {
+                if (gridCells[x, y] != null)
+                {
+                    gridCells[x, y].GetComponent<Renderer>().enabled = isVisible;
+                }
+            }
+        }
+    }
+
+    private IEnumerator HideAfterFrame()
+    {
+        yield return new WaitForEndOfFrame();
+        SetGridVisibility(false);
     }
 
 }
