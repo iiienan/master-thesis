@@ -70,6 +70,7 @@ public class Main : MonoBehaviour {
 	internal LOSVisualizer losVisualizer;
 	private bool takeScreenshot = true;
 	internal DensityLog densityLog;
+	internal bool spawnAgents = true;
 
 	/**
 	 * Initialize simulation by taking the user's options into consideration and spawn agents.
@@ -323,12 +324,16 @@ public class Main : MonoBehaviour {
 		//Pair-wise collision handling between agents
 		Grid.instance.collisionHandling(ref agentList);
 
-		for (int i = 0; i < roadmap.spawns.Count; ++i)
-		{
-			roadmap.spawns[i].spawner.UpdateSpawner();
-		}
-
 		trainController.TrainControllerUpdate();
+
+		if(agentList.Count < testController.entryFlow && spawnAgents)
+		{
+			for (int i = 0; i < roadmap.spawns.Count; ++i)
+			{
+				roadmap.spawns[i].spawner.UpdateSpawner();
+			}
+		}
+		
 
 		if(losVisualizer != null && simulationTime >= testController.arriveInterval && testController.log && takeScreenshot)
 		{

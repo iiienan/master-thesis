@@ -22,7 +22,6 @@ public class NewSpawner : MonoBehaviour {
 	public float timeBetweenSpawns;
 	public bool usePoisson = false;
     public Agent agentPrefab;
-	internal bool spawn = true;
 	internal TestController testController;
 	private float nextSpawnTimer;
 	Transform spawnerNode;
@@ -95,7 +94,7 @@ public class NewSpawner : MonoBehaviour {
 	// CONTINUOUS SPAWN
 	public void UpdateSpawner()
 	{
-		if(agentList.Count >= mainScript.maxNumberOfAgents || !spawn)
+		if(agentList.Count >= mainScript.maxNumberOfAgents)
 		{
 			return;
 		}

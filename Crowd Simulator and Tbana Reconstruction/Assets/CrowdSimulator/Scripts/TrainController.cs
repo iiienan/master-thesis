@@ -82,6 +82,7 @@ public class TrainController : MonoBehaviour
         if(trainStates[0] == TrainState.Incoming && trainStates[1] == TrainState.Incoming)
         {
             arrivalTimer += Grid.instance.dt;
+            
             if(arrivalTimer >= arriveInterval)
             {
                 if(waitForMinimumAgents && mainScript.agentList.Count < nAgents)
@@ -107,10 +108,7 @@ public class TrainController : MonoBehaviour
         stateTimer[trainLine] = 10f;
         PrepareBoarding(trainLine);
         if(logger != null) logger.LogEvent("Train " + trainLine + " arrived");
-        foreach (MapGen.spawnNode node in mainScript.roadmap.spawns)
-        {
-            node.spawner.spawn = false;
-        }
+        mainScript.spawnAgents = false;
     }
 
     private void ToggleTrain(int trainLine, bool active)
