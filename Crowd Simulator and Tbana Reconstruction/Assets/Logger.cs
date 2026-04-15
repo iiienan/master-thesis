@@ -13,6 +13,7 @@ public class Logger : MonoBehaviour
     internal string fileNameSimulation = "SimulationLog";
     internal string fileNameYellowLine = "YellowLineLog";
     internal string fileNameTravelDistance = "TravelDistanceLog";
+    internal string fileNameDensity = "DensityLog";
     private Main main;
     private TrainController trainController;
     private TestController testController;
@@ -22,10 +23,12 @@ public class Logger : MonoBehaviour
     private string filePathSimulation;
     private string filePathYellowLine;
     private string filePathTravelDistance;
+    private string filePathDensity;
 
     private StreamWriter travelTimeWriter;
     private StreamWriter yellowLineWriter;
     private StreamWriter travelDistanceWriter;
+    private StreamWriter densityWriter;
 
     void Start()
     {
@@ -37,7 +40,7 @@ public class Logger : MonoBehaviour
         }
 
         trainController = FindObjectOfType<TrainController>();
-        if (trainController == null)    
+        if (trainController == null)
         {
             Debug.LogError("Logger did not find TrainController script.");
         }
@@ -96,6 +99,17 @@ public class Logger : MonoBehaviour
             Debug.LogError($"Failed to open travel distance log file: {e.Message}");
         }
 
+        fileNameDensity = testController.SetDensityLogFileName();
+        filePathDensity = Path.Combine(Application.persistentDataPath, fileNameDensity);
+        try
+        {
+            densityWriter = new StreamWriter(filePathDensity, false); // Overwrite the file
+            WriteHeaderDensity();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Failed to open density log file: {e.Message}");
+        }
     }
 
     private void WriteHeaderYellowLine()
@@ -151,6 +165,35 @@ public class Logger : MonoBehaviour
         travelTimeWriter.WriteLine(header.ToString());
     }
 
+    private void WriteHeaderDensity()
+    {
+        if (densityWriter == null)
+        {
+            Debug.LogError("Density writer is not initialized.");
+            return;
+        }
+
+        StringBuilder header;
+        switch (trainController.platformType)
+        {
+            case TrainController.PlatformType.Central:
+                header = new StringBuilder("TimeStamp,Platform1,Platform2");
+                densityWriter.WriteLine(header.ToString());
+                break;
+            case TrainController.PlatformType.Side:
+                header = new StringBuilder("TimeStamp,Platform1,Platform2");
+                densityWriter.WriteLine(header.ToString());
+                break;
+            case TrainController.PlatformType.Mixed:
+                header = new StringBuilder("TimeStamp,Platform1,Platform2,MiddlePlatform");
+                densityWriter.WriteLine(header.ToString());
+                break;
+            default:
+                Debug.LogError("Unknown platform type in Logger.");
+                break;
+        }
+    }
+
     // true boarding, false alighting
     public void LogTravelTime(float travelTime, bool passengerTypeBoarding, int trainLine, float start)
     {
@@ -159,7 +202,7 @@ public class Logger : MonoBehaviour
             Debug.LogError("Travel time writer is not initialized.");
             return;
         }
-           
+
         StringBuilder line = new StringBuilder();
 
         if (passengerTypeBoarding)
@@ -242,6 +285,21 @@ public class Logger : MonoBehaviour
         yellowLineWriter.WriteLine(line.ToString());
     }
 
+    public void LogDensity(string density)
+    {
+        if (densityWriter == null)
+        {
+            Debug.LogError("Density writer is not initialized.");
+            return;
+        }
+
+        StringBuilder line = new StringBuilder();
+        line.Append(main.simulationTime.ToString("F2", CultureInfo.InvariantCulture));
+        line.Append(",");
+        line.Append(density);
+        densityWriter.WriteLine(line.ToString());
+    }
+
     void OnApplicationQuit()
     {
         if (travelTimeWriter != null)
@@ -261,6 +319,12 @@ public class Logger : MonoBehaviour
             travelDistanceWriter.Flush();
             travelDistanceWriter.Close();
             Debug.Log("Travel distance log file flushed and closed.");
+        }
+        if (densityWriter != null)
+        {
+            densityWriter.Flush();
+            densityWriter.Close();
+            Debug.Log("Density log file flushed and closed.");  
         }
     }
 

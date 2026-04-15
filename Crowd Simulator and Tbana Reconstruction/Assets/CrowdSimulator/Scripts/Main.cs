@@ -69,6 +69,7 @@ public class Main : MonoBehaviour {
 	private bool simulationStarted = false;
 	internal LOSVisualizer losVisualizer;
 	private bool takeScreenshot = true;
+	internal DensityLog densityLog;
 
 	/**
 	 * Initialize simulation by taking the user's options into consideration and spawn agents.
@@ -118,6 +119,10 @@ public class Main : MonoBehaviour {
 		losVisualizer = FindObjectOfType<LOSVisualizer>();
 		if (losVisualizer == null)		{
 			Debug.LogError("LOSVisualizer not found in scene");
+		}
+		densityLog = FindObjectOfType<DensityLog>();
+		if (densityLog == null)		{
+			Debug.LogError("DensityLog not found in scene");
 		}
 
 		Grid grid = Instantiate(gridPrefab) as Grid;
@@ -181,7 +186,7 @@ public class Main : MonoBehaviour {
 		}
 
 		Grid.instance.dt = customTimeStep ? timeStep : Time.deltaTime;
-		simulationTime += Grid.instance.dt;
+		
 
 		Grid.instance.solver = solver;
 		Grid.instance.solverEpsilon = epsilon;
@@ -332,12 +337,20 @@ public class Main : MonoBehaviour {
 			takeScreenshot = false;
 		}
 
+		if(testController.log)
+		{
+			densityLog.UpdateDensityLog();
+		}
+
 		if(customTimeStep)
 		{
 			Physics.Simulate(Grid.instance.dt);
 		}
 
 		experimentHUD.RegisterSimTick();
+
+		simulationTime += Grid.instance.dt;
+
 
 		//flags
 		Grid.instance.showSplattedDensity = showSplattedDensity;
