@@ -24,14 +24,12 @@ public class TestController : MonoBehaviour
     public String logFileNames;
     private TrainController trainController;
     private Main main;
-    private DensityLogger densityLogger;
     private Logger logger;
 
     private void Awake()
     {
         trainController = FindObjectOfType<TrainController>();
         main = FindObjectOfType<Main>();
-        if(log) densityLogger = FindObjectOfType<DensityLogger>();
         if(log) logger = FindObjectOfType<Logger>();
         if (trainController == null)
         {
@@ -40,10 +38,6 @@ public class TestController : MonoBehaviour
         if (main == null)
         {
             Debug.LogError("Main not found in the scene.");
-        }
-        if (densityLogger == null && log)
-        {
-            Debug.LogError("DensityLogger not found in the scene.");
         }
         if (logger == null && log)
         {
