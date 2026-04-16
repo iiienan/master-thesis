@@ -3,7 +3,7 @@ using System.Collections;
 
 public class CustomNodeLined : CustomNode {
 
-	public override Vector3 getTargetPoint(Vector3 origin) {
+	public override Vector3 getTargetPoint(Vector3 origin, int agentID = 0) {
 
 		Vector3 A = transform.TransformPoint(new Vector3 (0.5f, 0, 0));
 		Vector3 B = transform.TransformPoint (new Vector3 (-0.5f, 0, 0));

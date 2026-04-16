@@ -12,7 +12,7 @@ public class CustomNodeEllipse : CustomNode
 		return (x * x) / (0.5f * 0.5f) + (z * z) / (0.5f * 0.5f) <= 1f;
 	}
     
-    public override Vector3 getTargetPoint(Vector3 origin)
+    public override Vector3 getTargetPoint(Vector3 origin, int agentID)
     {
         float scaleX = transform.lossyScale.x;
         float scaleZ = transform.lossyScale.z;
@@ -29,20 +29,9 @@ public class CustomNodeEllipse : CustomNode
             dir = new Vector3(0, 0, 1);
         }
 
-        float projection = Vector3.Dot(localOrigin, dir);
-        projection = Mathf.Clamp(projection, -0.5f, 0.5f);
-
-        float randomPoint = projection;
-        if(projection <= -0.5f)
-        {
-            randomPoint = Random.Range(-0.5f, 0f);
-        }
-        else if(projection >= 0.5f)
-        {
-            randomPoint = Random.Range(0f, 0.5f);
-        }
+        float offset = (Mathf.Abs(agentID * 31) % 1000) / 1000f - 0.5f;
         
-        Vector3 target = dir * randomPoint;
+        Vector3 target = dir * offset;
         return transform.TransformPoint(target);
     }
     

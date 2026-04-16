@@ -15,17 +15,17 @@ public class CustomNode : MonoBehaviour {
 		return Vector3.Distance(transform.position, agentPosition) < radius;
 	}
 
-	public virtual Vector3 getTargetPoint(Vector3 origin) {
+	public virtual Vector3 getTargetPoint(Vector3 origin, int agentID = 0) {
 		return transform.position;
 	}
 
-/**
-	private void OnDrawGizmos()
+
+/* 	private void OnDrawGizmos()
 	{
 		UnityEditor.Handles.color = Color.white;
 		UnityEditor.Handles.Label(transform.position + Vector3.up * 0.5f, index.ToString());
-	}
-	*/
+	} */
+
 
 
 }
