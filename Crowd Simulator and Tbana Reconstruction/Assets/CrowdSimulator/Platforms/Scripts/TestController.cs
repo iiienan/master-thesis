@@ -25,6 +25,7 @@ public class TestController : MonoBehaviour
     private TrainController trainController;
     private Main main;
     private Logger logger;
+    public bool waitOutsideTrain = false;
 
     private void Awake()
     {
@@ -100,6 +101,7 @@ public class TestController : MonoBehaviour
             trainController.trains[0].GetComponent<Train>().numberOfAgents = exitFlow / 2;
             trainController.trains[1].GetComponent<Train>().numberOfAgents = exitFlow / 2;
         }
+        trainController.waitOutsideTrain = waitOutsideTrain;
     }
 
     internal String SetDensityLogFileName()

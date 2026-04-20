@@ -35,6 +35,7 @@ public class TrainController : MonoBehaviour
     private bool[] allSpawnersDone = new bool[2];
     private Train[] trainScripts = new Train[2];
     internal bool[] dwelling = new bool[2];
+    internal bool waitOutsideTrain = false;
 
 
     void Start()
@@ -227,7 +228,17 @@ public class TrainController : MonoBehaviour
                 Rigidbody rb = agent.GetComponent<Rigidbody>();
                 rb.constraints = RigidbodyConstraints.None;
 
-                WaitOutsideTrain(agent);
+                if(waitOutsideTrain)
+                {
+                    WaitOutsideTrain(agent);
+                }
+                else
+                {
+                    agent.done = true;
+                    agent.isPreparingToBoard = true;
+                    agent.isWaiting = false;
+                }
+             
 
                 nBoardedAgents[trainLine]++;
                 /**
@@ -274,7 +285,17 @@ public class TrainController : MonoBehaviour
             agent.waitingArea.freeWaitingSpots.Add(agent.waitingSpot);
             agent.isWaitingAgent = false;
         }
-        WaitOutsideTrain(agent);
+        if(waitOutsideTrain)
+        {
+            WaitOutsideTrain(agent);
+        }
+        else
+        {
+            agent.done = true;
+            agent.isPreparingToBoard = true;
+            agent.isWaiting = false;
+        }
+
     }
 
     internal void WaitOutsideTrain(Agent agent)
