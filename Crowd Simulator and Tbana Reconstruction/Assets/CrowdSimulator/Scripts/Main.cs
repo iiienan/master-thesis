@@ -240,6 +240,7 @@ public class Main : MonoBehaviour {
 			}
 			if (agent.done && agent.isPreparingToBoard)
 			{
+				agent.PassiveMove();
 				continue;
 			}
 			if (agent.done && agent.isAlighting && agent.noMap)
