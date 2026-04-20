@@ -29,7 +29,7 @@ public class CustomNodeEllipse : CustomNode
             dir = new Vector3(0, 0, 1);
         }
 
-        float offset = (Mathf.Abs(agentID * 31) % 1000) / 1000f - 0.5f;
+        float offset = Mathf.Abs(agentID * 31) % 1000 / 1000f - 0.5f;
         
         Vector3 target = dir * offset;
         return transform.TransformPoint(target);
