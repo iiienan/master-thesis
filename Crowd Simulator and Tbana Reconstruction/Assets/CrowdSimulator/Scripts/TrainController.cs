@@ -316,11 +316,11 @@ public class TrainController : MonoBehaviour
 
         if (agent.tr.position.x < targetPoint.x)
         {
-            waitPosition.x = targetPoint.x + Random.Range(-5f, 0.4f);
+            waitPosition.x = agent.tr.position.x + Random.Range(0.5f, 1f);
         }
         else
         {
-            waitPosition.x = targetPoint.x + Random.Range(-0.4f, 5f);
+            waitPosition.x = agent.tr.position.x + Random.Range(-1f, -0.5f);
         }
 
         if (platformType == PlatformType.Central)
@@ -342,11 +342,11 @@ public class TrainController : MonoBehaviour
         {
             if (agent.tr.position.x < targetPoint.x)
             {
-                waitPosition.x = Mathf.Clamp(waitPosition.x, -8.5f, -3.5f);
+                waitPosition.x = Mathf.Clamp(waitPosition.x, -12f, -3.5f);
             }
             else
             {
-                waitPosition.x = Mathf.Clamp(waitPosition.x, 3.5f, 8.5f);
+                waitPosition.x = Mathf.Clamp(waitPosition.x, 3.5f, 12f);
             }
         }
 
@@ -360,10 +360,9 @@ public class TrainController : MonoBehaviour
         agent.collisionAvoidanceVelocity = Vector3.zero;
         
         // Wait for a bit
-        agent.setDelay(Random.Range(0.1f, 3f));
+        agent.setDelay(Random.Range(0.1f, 1f));
 
         // Start moving towards the train door
-        //agent.walkingSpeed = Random.Range(0.5f, 1f);
         agent.done = false;
         agent.isWaiting = false;
         agent.isPreparingToBoard = true;
