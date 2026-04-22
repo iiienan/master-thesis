@@ -129,7 +129,7 @@ public class MapGen : MonoBehaviour {
 			// Inform the waiting area of its node index in the map
 			if(c is WaitingAreaNode)
 			{
-				c.GetComponent<WaitingArea>().setMapIndex(map.Count - 1);
+				c.GetComponent<WaitingArea>().SetMapIndex(map.Count - 1);
 			}
 			c.index = map.Count - 1;
 

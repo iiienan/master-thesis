@@ -5,7 +5,7 @@ public class CustomNode : MonoBehaviour {
 
 	public bool isSpawn = false;
 	public bool isGoal = false;
-	public int index;
+	internal int index;
 
 	public virtual bool IsAgentInsideArea(Vector3 agentPosition)
 	{
@@ -20,7 +20,7 @@ public class CustomNode : MonoBehaviour {
 	}
 
 
-/* 	private void OnDrawGizmos()
+	/* private void OnDrawGizmos()
 	{
 		UnityEditor.Handles.color = Color.white;
 		UnityEditor.Handles.Label(transform.position + Vector3.up * 0.5f, index.ToString());

@@ -25,6 +25,8 @@ public class WaitingAreaController : MonoBehaviour
     public Material boardingAgentMaterial;
     private Main mainScript;
     public Train[] trains;
+    private CustomNode[][] trainDoorNodes; 
+    private Vector3[][] trainDoorPositions;
 
     public void Initialize()
     {
@@ -39,7 +41,7 @@ public class WaitingAreaController : MonoBehaviour
         foreach(WaitingArea waitingArea in FindObjectsOfType<WaitingArea>())
         {
             waitingAreas.Add(waitingArea);
-            totalWaitingSpots += waitingArea.nWaitingSpots(waitingSpotSize);
+            totalWaitingSpots += waitingArea.NWaitingSpots(waitingSpotSize);
         }
 
         if(totalWaitingSpots < mainScript.testController.entryFlow)
@@ -49,8 +51,7 @@ public class WaitingAreaController : MonoBehaviour
 
             foreach (WaitingArea area in waitingAreas)
             {
-                Vector3 size = area.transform.Find("Area").GetComponent<Renderer>().bounds.size;
-                totalAvailableArea += size.x * size.z;
+                totalAvailableArea += area.GetArea();
             }
 
             float idealWaitingSpotSize = Mathf.Sqrt(totalAvailableArea / mainScript.testController.entryFlow);
@@ -71,12 +72,19 @@ public class WaitingAreaController : MonoBehaviour
         {
             Debug.LogError("TrainController not found in the scene.");
         }
-        
-    }
 
-    public void addAgentToWaitingList(Agent agent)
-    {
-        waitingAgents.Add(agent);
+        trainDoorNodes = new CustomNode[trains.Length][];
+        for (int i = 0; i < trains.Length; i++)
+        {
+            GameObject trainDoors = trains[i].transform.Find("TrainSpawners").gameObject;
+            trainDoorNodes[i] = trainDoors.GetComponentsInChildren<CustomNode>();
+        }
+        
+        trainDoorPositions = new Vector3[trains.Length][];
+        for (int i = 0; i < trains.Length; i++)
+        {
+            trainDoorPositions[i] = trainDoorNodes[i].Select(n => n.transform.position).ToArray();
+        }
     }
 
     /*
@@ -88,7 +96,7 @@ public class WaitingAreaController : MonoBehaviour
 
         foreach (int waitingAreaIndex in spawnerWaitingAreaDistances[startNode])
         {
-            (int waitingAreaMapIndex, int waitingAreaSpot) areaAndSpot = waitingAreas[waitingAreaIndex].getWaitingSpot();
+            (int waitingAreaMapIndex, int waitingAreaSpot) areaAndSpot = waitingAreas[waitingAreaIndex].GetWaitingSpot();
             if(areaAndSpot.waitingAreaSpot != -1)
             {
                 return (areaAndSpot.waitingAreaMapIndex, areaAndSpot.waitingAreaSpot);
@@ -153,7 +161,7 @@ public class WaitingAreaController : MonoBehaviour
             return (-1,-1);
         }
 
-        (int waitingAreaMapIndex, int waitingAreaSpot) areaAndSpot = bestWaitingArea.getWaitingSpot();
+        (int waitingAreaMapIndex, int waitingAreaSpot) areaAndSpot = bestWaitingArea.GetWaitingSpot();
         if(areaAndSpot.waitingAreaSpot != -1)
         {
             return (areaAndSpot.waitingAreaMapIndex, areaAndSpot.waitingAreaSpot);
@@ -215,7 +223,7 @@ public class WaitingAreaController : MonoBehaviour
 
         agent.teleportAgent(adjustedPosition);
         
-        int closestTrainDoor = FindClosestTrainDoor(ref agent);
+        int closestTrainDoor = FindClosestTrainDoor(agent);
         
         agent.rotateAgent(roadmap.allNodes[closestTrainDoor].transform.position);
         
@@ -223,45 +231,28 @@ public class WaitingAreaController : MonoBehaviour
         //Rigidbody rb = agent.GetComponent<Rigidbody>();
         //rb.constraints = RigidbodyConstraints.FreezeAll;
 
-        agent.setNewPath(agent.goal, closestTrainDoor, ref roadmap);
+        agent.setNewPath(agent.goal, closestTrainDoor, roadmap);
         //agent.noMap = false;
         agent.GetComponentInChildren<Renderer>().material = waitingAgentMaterial;
         agent.isWaiting = true;
     }
 
-    internal int FindClosestTrainDoor(ref Agent agent)
+    internal int FindClosestTrainDoor(Agent agent)
     {   
-        GameObject train = trains[agent.trainLine - 1].gameObject;
-        if(train == null)
-        {
-            Debug.LogError("Train not found for train line: " + agent.trainLine);
-        }
-        GameObject trainDoors = train.transform.Find("NodesInsideTrain").gameObject;
-
         float closestDistance = Mathf.Infinity;
         Vector3 currentPosition = agent.tr.position;
-        Vector3 closestNode = Vector3.zero;
+        int index = -1;
 
-        foreach (Transform node in trainDoors.transform)
+        for (int i = 0; i < trainDoorPositions[agent.trainLine - 1].Length; i++)
         {   
-            float distance = Vector3.Distance(currentPosition, node.position);
+            float distance = Vector3.Distance(currentPosition, trainDoorPositions[agent.trainLine - 1][i]);
             if (distance < closestDistance)
             {
                 closestDistance = distance;
-                closestNode = node.position;
+                index = trainDoorNodes[agent.trainLine - 1][i].index;
             }
         }
         
-        int index = -1;
-
-        for(int i = 0; i < roadmap.allNodes.Count; i++)
-        {   
-            if(roadmap.allNodes[i].transform.position == closestNode)
-            {
-                index = i;
-                break;
-            }
-        }
         if(index == -1)
         {
             Debug.LogError("No train door found");

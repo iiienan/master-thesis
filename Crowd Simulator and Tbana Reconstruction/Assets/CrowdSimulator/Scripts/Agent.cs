@@ -75,6 +75,7 @@ public class Agent : MonoBehaviour
 	internal float movingTimeTest = 0f;
 	internal Vector3 previousPositionTest;
 	private float colliderRadius;
+	internal Renderer agentRenderer;
 
 
 	void Awake()
@@ -87,6 +88,7 @@ public class Agent : MonoBehaviour
 		animator = tr.gameObject.GetComponent<Animator>();
 		rbody = tr.gameObject.GetComponent<Rigidbody>();
 		trainController = FindObjectOfType<TrainController>();
+		agentRenderer = GetComponentInChildren<Renderer>();
 
 		if (rbody != null)
 		{
@@ -168,7 +170,7 @@ public class Agent : MonoBehaviour
 		this.isWaitingAgent = isWaitingAgent;
 	}
 
-	public void setNewPath(int start, int goal, ref MapGen.map map)
+	public void setNewPath(int start, int goal, MapGen.map map)
 	{
 		calculateRowAndColumn();
 		this.goal = goal;

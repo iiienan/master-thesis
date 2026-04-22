@@ -255,7 +255,6 @@ public class Main : MonoBehaviour {
 			{
 				if (agent.isWaitingAgent)
 				{
-					agent.waitingArea.isOccupied[agent.waitingSpot] = false;
 					agent.waitingArea.freeWaitingSpots.Add(agent.waitingSpot);
 					agent.isWaitingAgent = false;
 				}
@@ -337,6 +336,7 @@ public class Main : MonoBehaviour {
 		
 
 		if(losVisualizer != null && simulationTime >= testController.arriveInterval && testController.log && takeScreenshot)
+		if(losVisualizer != null && simulationTime >= testController.arriveInterval && testController.log && takeScreenshot && agentList.Count >= testController.entryFlow)
 		{
 			losVisualizer.UpdateLOS();
 			losVisualizer.takeScreenshot();
