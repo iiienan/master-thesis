@@ -21,7 +21,7 @@ public class TestController : MonoBehaviour
     public bool alightBeforeBoarding;
     public bool log = true;
 
-    public String logFileNames;
+    internal String logFileNames;
     private TrainController trainController;
     private Main main;
     private Logger logger;
