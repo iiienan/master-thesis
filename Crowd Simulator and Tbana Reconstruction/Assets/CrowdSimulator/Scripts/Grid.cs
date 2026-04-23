@@ -332,7 +332,7 @@ public class Grid : MonoBehaviour {
 	/**
 	 * Handle pair-wise collision for a set of agents with given agent.
 	 **/ 
-	internal void handleCollision(int a, int row, int col, ref List<Agent> agentList) {
+	internal void handleCollision(int a, int row, int col, List<Agent> agentList) {
 		if (row < 0 || col < 0 || row >= neighbourBins || col >= neighbourBins)
 			return;
 		for(int i = 0; i < neighMatrix[row][col].Count; ++i) {
@@ -376,32 +376,32 @@ public class Grid : MonoBehaviour {
 	/**
 	 * Do pair-wise collision avoidance for a set of agents, with respect to surrounding columns and rows.
 	 **/ 
-	internal void collisionHandling(ref List<Agent> agentList) {
+	internal void collisionHandling(List<Agent> agentList) {
 	//	check = new bool[agentList.Count, agentList.Count];
 
-		calculateNeighborList (ref agentList);
+		calculateNeighborList (agentList);
 		for (int i = 0; i < agentList.Count; ++i) {
 			int row = (int)((agentList [i].transform.position.z - Main.zMinMax.x) / lenOfBin); 
 			int column = (int)((agentList[i].transform.position.x - Main.xMinMax.x) / lenOfBin); 
 			row = Mathf.Clamp(row, 0, neighbourBins - 1);
 			column = Mathf.Clamp(column, 0, neighbourBins - 1);
 
-			handleCollision (i, row, column, ref agentList); 
-			handleCollision (i, row+1, column, ref agentList); 
-			handleCollision (i, row+1, column+1, ref agentList); 
-			handleCollision (i, row, column+1, ref agentList); 
-			handleCollision (i, row-1, column+1, ref agentList); 
-			handleCollision (i, row-1, column, ref agentList); 
-			handleCollision (i, row-1, column-1, ref agentList); 
-			handleCollision (i, row, column-1, ref agentList); 
-			handleCollision (i, row-1, column-1, ref agentList); 
+			handleCollision (i, row, column, agentList); 
+			handleCollision (i, row+1, column, agentList); 
+			handleCollision (i, row+1, column+1, agentList); 
+			handleCollision (i, row, column+1, agentList); 
+			handleCollision (i, row-1, column+1, agentList); 
+			handleCollision (i, row-1, column, agentList); 
+			handleCollision (i, row-1, column-1, agentList); 
+			handleCollision (i, row, column-1, agentList); 
+			handleCollision (i, row-1, column-1, agentList); 
 		}
 	}
 
 	/**
 	 * For each agent, calculate its position in a neighborhood bin.
 	 **/ 
-	internal void calculateNeighborList(ref List<Agent> agents) {
+	internal void calculateNeighborList(List<Agent> agents) {
 		for (int i = 0; i < neighMatrix.Count; ++i) {
 			for (int j = 0; j < neighMatrix [i].Count; ++j) {
 				neighMatrix [i] [j].Clear ();

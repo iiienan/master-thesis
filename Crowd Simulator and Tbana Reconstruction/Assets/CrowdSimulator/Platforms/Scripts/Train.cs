@@ -16,7 +16,7 @@ public class Train : MonoBehaviour
     internal int nSpawnedAgents = 0;
 
     // Start is called before the first frame update
-    void Start()
+    void OnEnable()
     {
         if(goalNodes == null || goalNodes.Count == 0)
         {
@@ -31,7 +31,13 @@ public class Train : MonoBehaviour
         trainSpawners = new List<TrainSpawner>();
 
         Transform spawners = transform.Find("TrainSpawners");
+
         TrainController trainController = FindObjectOfType<TrainController>();
+        if(trainController == null)        {
+            Debug.LogError("TrainController not found in the scene.");
+            return;
+        }
+
         bool alightBeforeBoarding = trainController.alightBeforeBoarding;
         TrainController.PlatformType platformType = trainController.platformType;
 
@@ -53,7 +59,11 @@ public class Train : MonoBehaviour
                     closestIndex = i;
                 }
             }
-
+            if(alightingAgentMaterial == null)
+            {
+                Debug.LogError("Alighting agent material not set for train " + gameObject.name);
+                return;
+            }
             spawner.Initialize(this, closestGoal, burstRate, agentContainer, agentPrefab, alightingAgentMaterial, alightBeforeBoarding, platformType);
         }
         

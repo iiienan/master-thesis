@@ -105,7 +105,7 @@ public class WaitingAreaController : MonoBehaviour
         return (-1,-1);
     }
 
-    public (int,int) GetWaitingAreaSpotNew(ref CustomNode startNode, int trainLine, bool forceTrainLine = false)
+    public (int,int) GetWaitingAreaSpotNew(CustomNode startNode, int trainLine, bool forceTrainLine = false)
     {
         float bestScore = Mathf.Infinity;
         WaitingArea bestWaitingArea = null;

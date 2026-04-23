@@ -74,7 +74,7 @@ public class SubgroupAgent : Agent {
 	internal bool isLeader = false;
 	internal companions c;
 
-	internal void initGroupCalculations(ref MapGen.map map) {
+	internal void initGroupCalculations(MapGen.map map) {
 		//Do the implementation
 		groupCalculation();
 //						for (int i = 0; i < c.balls.Count; ++i) {
@@ -82,21 +82,21 @@ public class SubgroupAgent : Agent {
 //					 }
 	}
 
-	internal override void calculatePreferredVelocity(ref MapGen.map map) {
+	internal override void calculatePreferredVelocity(MapGen.map map) {
 		if (c.noLeader) {
-			base.calculatePreferredVelocity (ref map); //Walk like normal pedestrians
+			base.calculatePreferredVelocity (map); //Walk like normal pedestrians
 		} else {
 			if (isLeader) {
-				base.calculatePreferredVelocity (ref map);
+				base.calculatePreferredVelocity (map);
 				if (done) {
 					//Should be close enough to goal..
 					c.noLeader = true;
 					return;
 				} else {
-					initGroupCalculations (ref map); //Calculate group slot positions
+					initGroupCalculations (map); //Calculate group slot positions
 				}
 			} else {
-				base.calculatePreferredVelocity (ref map); // to get path indexing right
+				base.calculatePreferredVelocity (map); // to get path indexing right
 				bool infront = Vector3.Dot (transform.position - c.slots [number], transform.forward) > 0;
 				float adjustment =  infront ? 0.7f : 1.3f; //Notice values
 				float slotDistance = (c.slots [number] - transform.position).magnitude;

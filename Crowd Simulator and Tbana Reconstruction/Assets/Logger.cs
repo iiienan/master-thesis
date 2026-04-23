@@ -36,22 +36,22 @@ public class Logger : MonoBehaviour
         main = FindObjectOfType<Main>();
         if (main == null)
         {
-            Debug.LogError("Logger did not find main script.");
+            Debug.LogError("Main script not found in the scene.");
+            return;
         }
-
         trainController = FindObjectOfType<TrainController>();
-        if (trainController == null)
-        {
-            Debug.LogError("Logger did not find TrainController script.");
+        if (trainController == null)        {
+            Debug.LogError("TrainController not found in the scene.");
+            return;
         }
-
         testController = FindObjectOfType<TestController>();
         if (testController == null)
         {
             Debug.LogError("Logger did not find TestController script.");
+            return;
         }
 
-        fileNameTravelTime = testController.SetTravelTimeLogFileName();
+        fileNameTravelTime = testController.BuildLogFileName("TravelTime");
         Debug.Log($"Travel time log file name: {fileNameTravelTime}");
         filePathTravelTime = Path.Combine(Application.persistentDataPath, fileNameTravelTime);
 
@@ -65,13 +65,13 @@ public class Logger : MonoBehaviour
             Debug.LogError($"Failed to open travel time log file: {e.Message}");
         }
 
-        fileNameSimulation = testController.SetSimulationLogFileName();
+        fileNameSimulation = testController.BuildLogFileName("Simulation");
         Debug.Log($"Simulation log file name: {fileNameSimulation}");
         filePathSimulation = Path.Combine(Application.persistentDataPath, fileNameSimulation);
 
         WriteHeaderSimulation();
 
-        fileNameYellowLine = testController.SetYellowLineLogFileName();
+        fileNameYellowLine = testController.BuildLogFileName("YellowLine");
         Debug.Log($"Yellow line log file name: {fileNameYellowLine}");
         filePathYellowLine = Path.Combine(Application.persistentDataPath, fileNameYellowLine);
 
@@ -85,7 +85,7 @@ public class Logger : MonoBehaviour
             Debug.LogError($"Failed to open travel time log file: {e.Message}");
         }
 
-        fileNameTravelDistance = testController.SetTravelDistanceLogFileName();
+        fileNameTravelDistance = testController.BuildLogFileName("TravelDistance");
         Debug.Log($"Travel distance log file name: {fileNameTravelDistance}");
         filePathTravelDistance = Path.Combine(Application.persistentDataPath, fileNameTravelDistance);
 
@@ -99,7 +99,7 @@ public class Logger : MonoBehaviour
             Debug.LogError($"Failed to open travel distance log file: {e.Message}");
         }
 
-        fileNameDensity = testController.SetDensityLogFileName();
+        fileNameDensity = testController.BuildLogFileName("Density");
         filePathDensity = Path.Combine(Application.persistentDataPath, fileNameDensity);
         try
         {
@@ -223,7 +223,7 @@ public class Logger : MonoBehaviour
         travelTimeWriter.WriteLine(line.ToString());
     }
 
-    public void LogTravelDistance(float travelDistance, bool passengerTypeBoarding, int trainLine, float averageSpeed)
+    public void LogTravelDistance(float travelDistance, float travelDistanceTest,bool passengerTypeBoarding, int trainLine, float averageSpeed, float AverageSpeedTest)
     {
         if (travelDistanceWriter == null)
         {
@@ -245,7 +245,11 @@ public class Logger : MonoBehaviour
         line.Append(",");
         line.Append(travelDistance.ToString("F2", CultureInfo.InvariantCulture));
         line.Append(",");
+        line.Append(travelDistanceTest.ToString("F2", CultureInfo.InvariantCulture));
+        line.Append(",");
         line.Append(averageSpeed.ToString("F2", CultureInfo.InvariantCulture));
+        line.Append(",");
+        line.Append(AverageSpeedTest.ToString("F2", CultureInfo.InvariantCulture));
         travelDistanceWriter.WriteLine(line.ToString());
     }
 

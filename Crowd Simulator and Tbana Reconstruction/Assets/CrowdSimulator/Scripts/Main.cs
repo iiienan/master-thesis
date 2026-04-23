@@ -5,6 +5,7 @@ using Unity.VisualScripting;
 using System.Data.Common;
 
 public class Main : MonoBehaviour {
+	public static Main instance;
 
 	public enum LCPSolutioner {
 		mprgp,
@@ -72,16 +73,17 @@ public class Main : MonoBehaviour {
 	internal DensityLog densityLog;
 	internal bool spawnAgents = true;
 
+	void Awake()
+	{
+		instance = this;
+	}
+
 	/**
 	 * Initialize simulation by taking the user's options into consideration and spawn agents.
 	 * Then create the Staggered Grid along with all cells and velocity nodes.
 	**/
 	void OnEnable()
 	{
-		bool error = false;
-		if (error)
-			return;
-
 		plane.transform.localScale = new Vector3(planeSizeX, 1.0f, planeSizeZ);
 		Vector3 planeLength = plane.getLengths(); //Staggered grid length
 		xMinMax = new Vector2(plane.transform.position.x - planeLength.x / 2,
@@ -99,31 +101,41 @@ public class Main : MonoBehaviour {
 		if (testController == null)
 		{
 			Debug.LogError("TestController not found in scene");
+			return;
 		}
 		waitingAreaController = FindObjectOfType<WaitingAreaController>();
 		if (waitingAreaController != null)
 		{
 			waitingAreaController.Initialize();
 		}
+		else
+		{
+			Debug.LogError("WaitingAreaController not found in scene");
+			return;
+		}
 		trainController = FindObjectOfType<TrainController>();
 		if (trainController == null)
 		{
 			Debug.LogError("TrainController not found in scene");
+			return;
 		}
 
 		if(testController.log) logger = FindObjectOfType<Logger>();
 		if (logger == null && testController.log)
 		{
 			Debug.LogError("Logger not found in scene");
+			return;
 		}
 
 		losVisualizer = FindObjectOfType<LOSVisualizer>();
 		if (losVisualizer == null)		{
 			Debug.LogError("LOSVisualizer not found in scene");
+			return;
 		}
 		densityLog = FindObjectOfType<DensityLog>();
 		if (densityLog == null)		{
 			Debug.LogError("DensityLog not found in scene");
+			return;
 		}
 
 		Grid grid = Instantiate(gridPrefab) as Grid;
@@ -147,10 +159,8 @@ public class Main : MonoBehaviour {
 
 		for (int i = 0; i < roadmap.spawns.Count; ++i)
 		{
-			//roadmap.spawns[i].spawner.InitializeSpawner (ref agentPrefabs, ref groupAgentPrefabs, ref shirtColorPrefab, ref roadmap, 
-			//								 ref agentList, xMinMax, zMinMax, agentAvoidanceRadius);
-			roadmap.spawns[i].spawner.InitializeSpawner(ref roadmap,
-											 ref agentList, xMinMax, zMinMax, agentAvoidanceRadius);
+			roadmap.spawns[i].spawner.InitializeSpawner(roadmap,
+											 xMinMax, zMinMax, agentAvoidanceRadius);
 		}
 
 		nExitingAgents = trainController.trains[0].GetComponent<Train>().numberOfAgents + trainController.trains[1].GetComponent<Train>().numberOfAgents;
@@ -162,6 +172,11 @@ public class Main : MonoBehaviour {
 		}
 
 		experimentHUD = FindObjectOfType<ExperimentHUD>();
+		if(experimentHUD == null)
+		{
+			Debug.LogError("ExperimentHUD not found in scene");
+			return;
+		}
 
 	}
 
@@ -220,17 +235,7 @@ public class Main : MonoBehaviour {
 				}
 			}
 
-			if (agent.tr.position.y > 0.1f ||
-			agent.tr.position.y < -0.1f ||
-			agent.tr.rotation.x < -0.1 ||
-			agent.tr.rotation.x > 0.1 ||
-			agent.tr.rotation.z > 0.1 ||
-			agent.tr.rotation.z < -0.1)
-			{
-				//Debug.Log(tr.position.y + " " + tr.rotation.x + " " + tr.rotation.z);
-				agent.Reset();
-				//Debug.DrawLine(agent.tr.position, agent.tr.position + Vector3.up * 5f, Color.red, 2f);
-			}
+			agent.CheckPositionAndRotation();
 
 
 			if (agent.isWaiting)
@@ -265,64 +270,16 @@ public class Main : MonoBehaviour {
 
 			if (agent.done)
 			{
-				if (agent.isWaitingAgent)
-				{
-					// Agent reached the waiting area
-					if (!agent.noMap)
-					{
-						waitingAreaController.walkAgentToWaitingSpot(agent);
-						agent.move(ref roadmap);
-					}
-					// Agent reached the waiting spot
-					else
-					{
-						waitingAreaController.putAgentInWaitingArea(agent);
-					}
-				}
-				else
-				{
-					if (agent.boarding)
-					{
-						trainController.nBoardingAgents[agent.trainLine-1]--;
-						if(logger != null) logger.LogTravelTime(agent.travelTime, true, agent.trainLine, agent.startTime);
-						agentList.RemoveAt(i);
-						float averageSpeed = agent.travelDistance / agent.movingTime;
-						if(logger != null) logger.LogTravelDistance(agent.travelDistance, true, agent.trainLine, averageSpeed);
-
-						Destroy(agent.gameObject);
-					}
-					else if (agent.isAlighting)
-					{
-						if(logger != null) logger.LogTravelTime(agent.travelTime, false, agent.trainLine, agent.startTime);
-						nExitingAgents--;
-						agentList.RemoveAt(i);
-						float averageSpeed = agent.travelDistance / agent.movingTime;
-						if(logger != null) logger.LogTravelDistance(agent.travelDistance, false, agent.trainLine, averageSpeed);
-
-						Destroy(agent.gameObject);
-						if (nExitingAgents <= 0)
-						{
-							// All exiting agents have exited the platform, end simulation
-							if (logger != null) { logger.LogEvent("All exiting agents have exited the platform"); }
-							Debug.Log("All exiting agents have exited the platform");
-							if (trainController.nBoardingAgents[0] <= 0 && trainController.nBoardingAgents[1] <= 0)
-							{
-								UnityEditor.EditorApplication.isPlaying = false;
-							}
-
-						}
-					}
-					
-				}
+				HandleAgentDone(agent,i);
 				continue;
 			}
-			agent.move(ref roadmap);
+			agent.move(roadmap);
 			agent.rbody.velocity = Vector3.zero;
 			agent.rbody.angularVelocity = Vector3.zero;
 			agent.UpdateMetrics();
 		}
 		//Pair-wise collision handling between agents
-		Grid.instance.collisionHandling(ref agentList);
+		Grid.instance.collisionHandling(agentList);
 
 		trainController.TrainControllerUpdate();
 
@@ -335,7 +292,6 @@ public class Main : MonoBehaviour {
 		}
 		
 
-		if(losVisualizer != null && simulationTime >= testController.arriveInterval && testController.log && takeScreenshot)
 		if(losVisualizer != null && simulationTime >= testController.arriveInterval && testController.log && takeScreenshot && agentList.Count >= testController.entryFlow)
 		{
 			losVisualizer.UpdateLOS();
@@ -368,6 +324,61 @@ public class Main : MonoBehaviour {
 	public void AddToAgentList(Agent agent)
 	{
 		agentList.Add(agent);
+	}
+
+	private void HandleAgentDone(Agent agent,int index)
+	{
+		if (agent.isWaitingAgent)
+				{
+					// Agent reached the waiting area
+					if (!agent.noMap)
+					{
+						waitingAreaController.walkAgentToWaitingSpot(agent);
+						agent.move(roadmap);
+					}
+					// Agent reached the waiting spot
+					else
+					{
+						waitingAreaController.putAgentInWaitingArea(agent);
+					}
+				}
+				else
+				{
+					if (agent.boarding)
+					{
+						trainController.nBoardingAgents[agent.trainLine-1]--;
+						if(logger != null) logger.LogTravelTime(agent.travelTime, true, agent.trainLine, agent.startTime);
+						agentList.RemoveAt(index);
+						float averageSpeed = agent.travelDistance / agent.movingTime;
+						float averageSpeedTest = agent.travelDistanceTest / agent.movingTimeTest;
+						if(logger != null) logger.LogTravelDistance(agent.travelDistance, agent.travelDistanceTest, true, agent.trainLine, averageSpeed, averageSpeedTest);
+
+						Destroy(agent.gameObject);
+					}
+					else if (agent.isAlighting)
+					{
+						if(logger != null) logger.LogTravelTime(agent.travelTime, false, agent.trainLine, agent.startTime);
+						nExitingAgents--;
+						agentList.RemoveAt(index);
+						float averageSpeed = agent.travelDistance / agent.movingTime;
+						float averageSpeedTest = agent.travelDistanceTest / agent.movingTimeTest;
+						if(logger != null) logger.LogTravelDistance(agent.travelDistance, agent.travelDistanceTest, false, agent.trainLine, averageSpeed, averageSpeedTest);
+
+						Destroy(agent.gameObject);
+						if (nExitingAgents <= 0)
+						{
+							// All exiting agents have exited the platform, end simulation
+							if (logger != null) { logger.LogEvent("All exiting agents have exited the platform"); }
+							Debug.Log("All exiting agents have exited the platform");
+							if (trainController.nBoardingAgents[0] <= 0 && trainController.nBoardingAgents[1] <= 0)
+							{
+								UnityEditor.EditorApplication.isPlaying = false;
+							}
+
+						}
+					}
+					
+				}
 	}
 
 }

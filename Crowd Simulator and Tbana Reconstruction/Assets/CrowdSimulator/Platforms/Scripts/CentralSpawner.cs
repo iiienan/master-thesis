@@ -13,7 +13,7 @@ public class CentralSpawner : NewSpawner
 
         // Find a waiting area goal for the agent. If there are no free waiting area spots their goal will be the ordinary goal for this spawner.
         CustomNode startNode = transform.GetChild(0).GetComponent<CustomNode>();
-        (int waitingArea, int waitingSpot) waitingAreaSpot = waitingAreaController.GetWaitingAreaSpotNew(ref startNode, trainLine, true);
+        (int waitingArea, int waitingSpot) waitingAreaSpot = waitingAreaController.GetWaitingAreaSpotNew(startNode, trainLine, true);
         if (waitingAreaSpot.waitingArea != -1)
         {
             agent.setWaitingAgent(true);

@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
-using UnityEditor.Rendering;
 using UnityEngine;
 
 public class TestController : MonoBehaviour
@@ -21,7 +19,7 @@ public class TestController : MonoBehaviour
     public bool alightBeforeBoarding;
     public bool log = true;
 
-    internal String logFileNames;
+    internal string logFileNames;
     private TrainController trainController;
     private Main main;
     private Logger logger;
@@ -30,16 +28,17 @@ public class TestController : MonoBehaviour
     private void Awake()
     {
         trainController = FindObjectOfType<TrainController>();
-        main = FindObjectOfType<Main>();
-        if(log) logger = FindObjectOfType<Logger>();
-        if (trainController == null)
+        if(trainController == null)
         {
             Debug.LogError("TrainController not found in the scene.");
+            return;
         }
+        main = FindObjectOfType<Main>();
         if (main == null)
         {
             Debug.LogError("Main not found in the scene.");
         }
+        if(log) logger = FindObjectOfType<Logger>();
         if (logger == null && log)
         {
             Debug.LogError("Logger not found in the scene.");
@@ -77,7 +76,10 @@ public class TestController : MonoBehaviour
 
     private void OnValidate()
     {
-        trainController = FindObjectOfType<TrainController>();
+        if(trainController == null)
+        {
+            trainController = FindObjectOfType<TrainController>();
+        }
         if (trainController != null)
         {
             SetTrainControllerParameters();
@@ -90,58 +92,26 @@ public class TestController : MonoBehaviour
         trainController.nAgents = entryFlow;
         trainController.arriveInterval = arriveInterval;
         trainController.alightBeforeBoarding = alightBeforeBoarding;
+        Train train0 = trainController.trains[0].GetComponent<Train>();
+        Train train1 = trainController.trains[1].GetComponent<Train>();
 
         if (flowType == TrainController.Flow.Asymmetric && scenario == Scenario.Exit)
         {
-            trainController.trains[0].GetComponent<Train>().numberOfAgents = (int)(exitFlow * (4f / 5f));
-            trainController.trains[1].GetComponent<Train>().numberOfAgents = (int)(exitFlow * (1f / 5f));
+            train0.numberOfAgents = (int)(exitFlow * (4f / 5f));
+            train1.numberOfAgents = (int)(exitFlow * (1f / 5f));
         }
         else
         {
-            trainController.trains[0].GetComponent<Train>().numberOfAgents = exitFlow / 2;
-            trainController.trains[1].GetComponent<Train>().numberOfAgents = exitFlow / 2;
+            train0.numberOfAgents = exitFlow / 2;
+            train1.numberOfAgents = exitFlow / 2;
         }
         trainController.waitOutsideTrain = waitOutsideTrain;
     }
 
-    internal String SetDensityLogFileName()
-    {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("Density");
-        sb.Append(logFileNames);
-        return sb.ToString();
-    }
 
-    internal String SetTravelTimeLogFileName()
+    internal string BuildLogFileName(string prefix)
     {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("TravelTime");
-        sb.Append(logFileNames);
-        return sb.ToString();
-    }
-
-    internal String SetSimulationLogFileName()
-    {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("Simulation");
-        sb.Append(logFileNames);
-        return sb.ToString();
-    }
-
-    internal String SetYellowLineLogFileName()
-    {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("YellowLine");
-        sb.Append(logFileNames);
-        return sb.ToString();
-    }
-
-    internal String SetTravelDistanceLogFileName()
-    {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("TravelDistance");
-        sb.Append(logFileNames);
-        return sb.ToString();
+        return prefix + logFileNames;
     }
 
 }

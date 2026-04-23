@@ -9,8 +9,6 @@ public class NewSpawner : MonoBehaviour {
 
 	// Waiting agents
 	internal WaitingAreaController waitingAreaController;
-
-	internal List<Agent> agentList; //Reference to global agentlist
 	internal MapGen.map map; //map of available spawns / goals
 	Vector2 X, Z; //Information about plane sizes
 	internal float agentAvoidanceRadius;
@@ -24,7 +22,7 @@ public class NewSpawner : MonoBehaviour {
     public Agent agentPrefab;
 	internal TestController testController;
 	private float nextSpawnTimer;
-	Transform spawnerNode;
+	private CustomNode spawnerNode;
 
 	// Set the node index for this spawner's node
 	public void SetNode(int node)
@@ -38,23 +36,21 @@ public class NewSpawner : MonoBehaviour {
 	*/
 	private void SetGoal()
 	{
-		goal = map.goals[0];
-		if (customGoal != null) {
-			//OPT: Use dictionary in mapgen to get constant time access!
-			for(int i = 0; i < map.allNodes.Count; ++i) {
-				if (map.allNodes [i].transform.position == customGoal.transform.position) {
-					goal = i;
-					break;
-				}
-			}
+		if(customGoal == null)
+		{
+			Debug.LogWarning("No custom goal set for spawner " + gameObject.name + ", using default goal with index 0.");
+			goal = 0;
+		}
+		else
+		{
+			goal = customGoal.index;
 		}
 	}
 
-	public void InitializeSpawner(ref MapGen.map map,  ref List<Agent> agentList, Vector2 X, Vector2 Z, float agentAvoidanceRadius) {
+	public void InitializeSpawner(MapGen.map map, Vector2 X, Vector2 Z, float agentAvoidanceRadius) {
 		this.map = map;
 		this.X = X; this.Z = Z;
 		this.agentAvoidanceRadius = agentAvoidanceRadius;
-		this.agentList = agentList;
 		SetGoal();
 	}
 
@@ -71,7 +67,7 @@ public class NewSpawner : MonoBehaviour {
 		}
 		if(waitingAreaController == null)
 		{
-			Debug.LogError("WaitingAreaController not found in the scene.");
+			Debug.LogError("CustomNode not found in children of " + gameObject.name);
 			return;
 		}
 		if(testController == null)
@@ -80,7 +76,7 @@ public class NewSpawner : MonoBehaviour {
 			return;
 		}
 
-		spawnerNode = transform.GetChild(0);
+		spawnerNode = GetComponentInChildren<CustomNode>();
 
 		SetSpawnRate();
 		nextSpawnTimer = 0f;
@@ -94,7 +90,7 @@ public class NewSpawner : MonoBehaviour {
 	// CONTINUOUS SPAWN
 	public void UpdateSpawner()
 	{
-		if(agentList.Count >= mainScript.maxNumberOfAgents)
+		if(mainScript.agentList.Count >= mainScript.maxNumberOfAgents)
 		{
 			return;
 		}
@@ -104,8 +100,8 @@ public class NewSpawner : MonoBehaviour {
 		if(nextSpawnTimer <= 0)
 		{
 			Vector3 startPos = new Vector3 (Random.Range (-0.5f, 0.5f), 0f, Random.Range (-0.5f, 0.5f)); 
-			startPos = spawnerNode.TransformPoint (startPos);
-			spawnOneAgent(startPos);
+			startPos = spawnerNode.transform.TransformPoint (startPos);
+			SpawnOneAgent(startPos);
 
 			if(usePoisson)
 			{
@@ -125,28 +121,23 @@ public class NewSpawner : MonoBehaviour {
 	{
 		for (int i = 0; i < nAgents; ++i) {
 			Vector3 startPos = new Vector3(transform.position.x + Random.Range(-1.5f, 1.5f), transform.position.y, transform.position.z + Random.Range(-1.5f, 1.5f));
-			spawnOneAgent (startPos);
+			SpawnOneAgent (startPos);
 			yield return new WaitForSeconds (burstRate);
 		}
 
 	}
 
-	public void spawnOneAgent(Vector3 startPosition)
+	public void SpawnOneAgent(Vector3 startPosition)
 	{
-        Agent agent;
-		agent = Instantiate (agentPrefab);
+        Agent agent = Instantiate (agentPrefab);
 
 		int agentGoal = SetSubwayData(agent, startPosition);
-		agent.InitializeAgent (startPosition, node, agentGoal, ref map);
+		agent.InitializeAgent (startPosition, node, agentGoal, map);
 
 		if (agentEditorContainer != null)
 			agent.tr.parent = agentEditorContainer.transform;
 
-		agentList.Add (agent);
-		if(mainScript.trainController.isPreparingToBoard[agent.trainLine-1])
-		{
-			//mainScript.trainController.PrepareWalkingAgent(agent);
-		}
+		mainScript.agentList.Add (agent);
 	}
 
 	internal virtual int SetSubwayData(Agent agent, Vector3 startPosition)
@@ -172,8 +163,7 @@ public class NewSpawner : MonoBehaviour {
 		agent.trainLine = trainLine;
 
 		// Find a waiting area goal for the agent. If there are no free waiting area spots their goal will be the ordinary goal for this spawner.
-		CustomNode startNode = transform.GetChild(0).GetComponent<CustomNode>();
-		(int waitingArea,int waitingSpot) waitingAreaSpot = waitingAreaController.GetWaitingAreaSpotNew(ref startNode, trainLine);
+		(int waitingArea,int waitingSpot) waitingAreaSpot = waitingAreaController.GetWaitingAreaSpotNew(spawnerNode, trainLine);
 		if(waitingAreaSpot.waitingArea != -1)
 		{
 			agent.setWaitingAgent(true);

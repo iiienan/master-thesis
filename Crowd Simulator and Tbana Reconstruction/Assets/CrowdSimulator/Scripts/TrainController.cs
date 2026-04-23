@@ -6,6 +6,7 @@ using UnityEngine.XR;
 
 public class TrainController : MonoBehaviour
 {
+    public static TrainController instance;
     public bool spawnTrains = true;
     public GameObject[] trains = new GameObject[2];
     private float arrivalTimer = 0f;
@@ -33,7 +34,7 @@ public class TrainController : MonoBehaviour
     private Logger logger;
     private TestController testController;
     private bool[] allSpawnersDone = new bool[2];
-    private Train[] trainScripts = new Train[2];
+    internal Train[] trainScripts = new Train[2];
     internal bool[] dwelling = new bool[2];
     internal bool waitOutsideTrain = false;
     private Vector3[] nodePositions;
@@ -41,24 +42,29 @@ public class TrainController : MonoBehaviour
     [SerializeField] private float boardingDelay = 1f;
     [SerializeField] private float exitingDelay = 5f;
 
+    void Awake()
+    {
+        instance = this;
+    }
 
     void Start()
     {
         waitingAreaController = FindObjectOfType<WaitingAreaController>();
-        if (waitingAreaController == null)
-        {
-            Debug.LogError("WaitingAreaController not found");
-        }
-        mainScript = FindObjectOfType<Main>();
-        if (mainScript == null)
-        {
-            Debug.LogError("Main not found");
+        if (waitingAreaController == null)        {
+            Debug.LogError("WaitingAreaController not found in scene");
+            return;
         }
         testController = FindObjectOfType<TestController>();
-        if (testController == null)
-        {
-            Debug.LogError("TestController not found");
+        if (testController == null)        {
+            Debug.LogError("TestController not found in scene");
+            return;
         }
+        mainScript = FindObjectOfType<Main>();
+        if (mainScript == null)        {
+            Debug.LogError("Main script not found in the scene.");
+            return;
+        }
+
         if (testController.log) logger = FindObjectOfType<Logger>();
         if (logger == null && testController.log)
         {
@@ -124,9 +130,9 @@ public class TrainController : MonoBehaviour
 
     private void ToggleTrain(int trainLine, bool active)
     {
-        foreach (Transform child in trains[trainLine].transform)
+        for(int i = 0; i <= 2; i++)
         {
-            child.gameObject.SetActive(active);
+            trains[trainLine].transform.GetChild(i).gameObject.SetActive(active);
         }
     }
 
@@ -439,31 +445,5 @@ public class TrainController : MonoBehaviour
             }
         }
         return closestNode;
-    }
-
-    private void ResetLostAgents()
-    {
-        for (int i = mainScript.agentList.Count - 1; i >= 0; i--)
-        {
-            Agent agent = mainScript.agentList[i];
-            if(agent.isPreparingToBoard || agent.boarding)
-            {
-                /**
-                agent.isPreparingToBoard = false;
-                agent.boarding = false;
-                agent.pathIndex = 1;
-                agent.Reset();
-                agent.tr.position = new Vector3(Mathf.Clamp(agent.tr.position.x, -7.5f, 7.5f), 0f, agent.tr.position.z);
-                agent.isWaiting = true;
-                waitingAreaController.waitingAgents.Add(agent);
-                */
-                mainScript.agentList.RemoveAt(i);
-                Destroy(agent.gameObject);
-            }
-            if(agent.isAlighting)
-            {
-                agent.Reset();
-            }
-        }
     }
 }

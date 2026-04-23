@@ -17,6 +17,7 @@ public class TrainSpawner : MonoBehaviour
 
     private float nextSpawnTimer = 0f;
     internal bool isSpawning = false;
+    private int nodeIndex;
 
     // Start is called before the first frame update
     public void Initialize(Train train, int goal, float burstRate, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, bool alightBeforeBoarding,
@@ -31,7 +32,17 @@ public class TrainSpawner : MonoBehaviour
         this.alightBeforeBoarding = alightBeforeBoarding;
         this.platformType = platformType;
         mainScript = FindObjectOfType<Main>();
+        if (mainScript == null)        {
+            Debug.LogError("Main script not found in the scene.");
+            return;
+        }
         nextSpawnTimer = burstRate + Random.Range(-0.1f, 0.1f);
+        nodeIndex = GetComponent<CustomNode>().index;
+        if(alightingAgentMaterial == null)
+        {
+            Debug.LogError("Alighting agent material not set for train " + train.gameObject.name);
+            return;
+        }
     }
 
     public void UpdateSpawner()
@@ -58,13 +69,12 @@ public class TrainSpawner : MonoBehaviour
     public void spawnOneAgent()
 	{
         Vector3 startPosition = new Vector3(transform.position.x, 0f, transform.position.z + Random.Range(-0.5f, 0.5f));
-		Agent agent;
-		agent = Instantiate (agentPrefab);
-        agent.GetComponentInChildren<Renderer>().material = alightingAgentMaterial;
+		Agent agent = Instantiate (agentPrefab);
 
-        int node = transform.GetComponent<CustomNode>().index;
+        int node = nodeIndex;
 
-		agent.InitializeAgent (startPosition, node, goal, ref mainScript.roadmap);
+		agent.InitializeAgent (startPosition, node, goal, mainScript.roadmap);
+        agent.agentRenderer.material = alightingAgentMaterial;
         agent.trainLine = train.trainLine;
 
         if (alightBeforeBoarding)

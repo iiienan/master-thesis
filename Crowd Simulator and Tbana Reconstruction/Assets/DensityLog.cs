@@ -11,6 +11,11 @@ public class DensityLog : MonoBehaviour
     void Start()
     {
         mainScript = FindObjectOfType<Main>();
+        if(mainScript == null)
+        {
+            Debug.LogError("Main script not found in the scene.");
+            return;
+        }
     }
 
     // Update is called once per frame

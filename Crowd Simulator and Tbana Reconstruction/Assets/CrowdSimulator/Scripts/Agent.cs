@@ -83,12 +83,29 @@ public class Agent : MonoBehaviour
 		tr = transform;
 	}
 
+	internal void CheckPositionAndRotation()
+	{
+		Vector3 pos = tr.position;
+    	Quaternion rot = tr.rotation;
+    
+		if (pos.y > 0.1f ||
+			pos.y < -0.1f ||
+			rot.x < -0.1 ||
+			rot.x > 0.1 ||
+			rot.z > 0.1 ||
+			rot.z < -0.1)
+			{
+				//Debug.Log(tr.position.y + " " + tr.rotation.x + " " + tr.rotation.z);
+				Reset();
+				//Debug.DrawLine(agent.tr.position, agent.tr.position + Vector3.up * 5f, Color.red, 2f);
+			}
+	}
+
 	internal void Start()
 	{
 		animator = tr.gameObject.GetComponent<Animator>();
 		rbody = tr.gameObject.GetComponent<Rigidbody>();
-		trainController = FindObjectOfType<TrainController>();
-		agentRenderer = GetComponentInChildren<Renderer>();
+		trainController = TrainController.instance;
 
 		if (rbody != null)
 		{
@@ -117,7 +134,7 @@ public class Agent : MonoBehaviour
 			Destroy(rbody);
 		}
 
-		mainScript = FindObjectOfType<Main>();
+		mainScript = Main.instance;
 		if (this is SubgroupAgent)
 		{
 			walkingSpeed = mainScript.agentMaxSpeed;
@@ -193,7 +210,7 @@ public class Agent : MonoBehaviour
 
 	}
 
-	public void InitializeAgent(Vector3 pos, int start, int goal, ref MapGen.map map)
+	public void InitializeAgent(Vector3 pos, int start, int goal, MapGen.map map)
 	{
 		tr.position = pos;
 		previousPosition = pos;
@@ -205,12 +222,13 @@ public class Agent : MonoBehaviour
 		pathIndex = 1;
 		targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(pos, gameObject.GetInstanceID());
 		preferredVelocity = (targetPoint - pos).normalized;
+		agentRenderer = GetComponentInChildren<Renderer>();
 		//tr.localScale = new Vector3(1.0f, 1.0f, 1.0f); // Modify this to change the size of characters new Vector3(2.0f, 2.0f, 2.0f) is normal size
 
 
 	}
 
-	public void ApplyMaterials(Material materialColor, ref Dictionary<string, int> skins, Material argMat = null)
+	public void ApplyMaterials(Material materialColor, Dictionary<string, int> skins, Material argMat = null)
 	{
 		if (tag == "original")
 		{
@@ -273,7 +291,7 @@ public class Agent : MonoBehaviour
 		velocity = velocity + collisionAvoidanceVelocity;
 	}
 
-	internal bool canSeeNext(ref MapGen.map map, int modifier)
+	internal bool canSeeNext(MapGen.map map, int modifier)
 	{
 		if (pathIndex + modifier < path.Count && pathIndex + modifier >= 0 && pathIndex + modifier < map.allNodes.Count)
 		{
@@ -300,13 +318,13 @@ public class Agent : MonoBehaviour
 	/**
 	 * Calculate the preferred velocity by looking at desired path
 	 **/
-	bool change = false;
-	internal void calculatePreferredVelocityMap(ref MapGen.map map)
+	internal void calculatePreferredVelocityMap(MapGen.map map)
 	{
+		bool change = false;
 		previousDirection = preferredVelocity.normalized;
 		Vector3 pos = tr.position;
 
-		if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (Grid.instance.skipNodeIfSeeNext && canSeeNext(ref map, 1)))
+		if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (Grid.instance.skipNodeIfSeeNext && canSeeNext(map, 1)))
 		{
 			//New node reached
 			collision = false;
@@ -327,7 +345,7 @@ public class Agent : MonoBehaviour
 				}
 			}
 		}
-		else if (pathIndex > 0 && Grid.instance.walkBack && !canSeeNext(ref map, 0))
+		else if (pathIndex > 0 && Grid.instance.walkBack && !canSeeNext(map, 0))
 		{ //Can we see current heading? Are we trapped?
 		  //No. We want to go back
 			preferredVelocity = (map.allNodes[path[pathIndex - 1]].getTargetPoint(pos, gameObject.GetInstanceID()) - pos).normalized;
@@ -374,7 +392,7 @@ public class Agent : MonoBehaviour
 
 	public void UpdateMetrics()
 	{
-		travelTime = travelTime += Grid.instance.dt;
+		travelTime += Grid.instance.dt;
 
 		Vector3 pos = tr.position;
 		Vector3 delta = pos - previousPosition;
@@ -406,7 +424,7 @@ public class Agent : MonoBehaviour
 		}
 	}
 
-	internal virtual void calculatePreferredVelocity(ref MapGen.map map)
+	internal virtual void calculatePreferredVelocity(MapGen.map map)
 	{
 		if (noMap)
 		{
@@ -414,21 +432,21 @@ public class Agent : MonoBehaviour
 		}
 		else
 		{
-			calculatePreferredVelocityMap(ref map);
+			calculatePreferredVelocityMap(map);
 		}
 	}
 	/**
 	 * Change the position of the agent and reset variables. 
 	 * Do animations.
 	 **/
-	internal void changePosition(ref MapGen.map map)
+	internal void changePosition(MapGen.map map)
 	{
 		if (done)
 		{
 			return; // Don't do anything
 		}
 
-		calculatePreferredVelocity(ref map);
+		calculatePreferredVelocity(map);
 		if ((!trainController.dwelling[0] && !trainController.dwelling[1]) || isAlighting)
 		{
 			ApplyYellowLineForce();
@@ -613,9 +631,9 @@ public class Agent : MonoBehaviour
 	 * Move command (and all it includes) for this agent.
 	 * Recalculate weights and contributions to grid after update.
 	 **/
-	internal void move(ref MapGen.map map)
+	internal void move(MapGen.map map)
 	{
-		changePosition(ref map);
+		changePosition(map);
 		calculateRowAndColumn();
 		setWeights();
 		Grid.instance.cellMatrix[row, column].addVelocity(this);
@@ -672,7 +690,7 @@ public class Agent : MonoBehaviour
 
 	public void setAnimatorStanding(bool isStanding)
 	{
-		if (!(animator == null))
+		if (animator != null)
 		{
 			animator.SetBool("Standing", isStanding);
 		}
