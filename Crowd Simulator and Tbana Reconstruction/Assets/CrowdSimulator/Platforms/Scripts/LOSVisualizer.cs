@@ -17,6 +17,11 @@ public class LOSVisualizer : MonoBehaviour
     void Start()
     {
         mainScript = FindObjectOfType<Main>();
+        if(mainScript == null)
+        {
+            Debug.LogError("Main script not found in the scene.");
+            return;
+        }
         areaSize = new Vector2(mainScript.planeSizeX*10, mainScript.planeSizeZ*10);
         CreateGrid();
     }

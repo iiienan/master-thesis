@@ -64,7 +64,6 @@ public class TrainController : MonoBehaviour
             Debug.LogError("Main script not found in the scene.");
             return;
         }
-
         if (testController.log) logger = FindObjectOfType<Logger>();
         if (logger == null && testController.log)
         {

@@ -13,7 +13,6 @@ public class WaitingAreaController : MonoBehaviour
     internal List<Agent> waitingAgents;                              // Agents that are currently waiting
     private GameObject waitingAgentsContainer;                      // A container for the waiting agent objects in the inspector
     public Dictionary<int, List<int>> spawnerWaitingAreaDistances;  // The distance from each spawner to each waiting area in descending order
-    private MapGen.map roadmap;    
     public GameObject agentContainer;                                 // The map of the nodes in the scene
     public float wdistance = 1.0f, wdensity = 1.0f, wtrainline = 1.0f, wpriority = 1.0f;
     public bool debug = false;
@@ -35,6 +34,16 @@ public class WaitingAreaController : MonoBehaviour
         waitingAgentsContainer = GameObject.Find("Waiting Agents");
 
         mainScript = FindObjectOfType<Main>();
+        if(mainScript == null)
+        {
+            Debug.LogError("Main script not found in the scene.");
+            return;
+        }
+        trainController = FindObjectOfType<TrainController>();
+        if(trainController == null)
+        {
+            Debug.LogError("TrainController not found in the scene.");
+        }
 
         int totalWaitingSpots = 0;
 
@@ -63,15 +72,7 @@ public class WaitingAreaController : MonoBehaviour
             waitingArea.Initialize(debug, waitingSpotSize, useRowColumns);
         }
 
-        roadmap = FindObjectOfType<MapGen>().getRoadmap();
-
         BuildSpawnerWaitingAreaDistances();
-
-        trainController = FindObjectOfType<TrainController>();
-        if(trainController == null)
-        {
-            Debug.LogError("TrainController not found in the scene.");
-        }
 
         trainDoorNodes = new CustomNode[trains.Length][];
         for (int i = 0; i < trains.Length; i++)
@@ -177,12 +178,12 @@ public class WaitingAreaController : MonoBehaviour
     {
         spawnerWaitingAreaDistances = new Dictionary<int, List<int>>();
 
-        foreach(MapGen.spawnNode spawner in roadmap.spawns)
+        foreach(MapGen.spawnNode spawner in mainScript.roadmap.spawns)
         {
             List<(int index,float distance)> distances = new List<(int, float)>();
             for (int areaIndex = 0; areaIndex < waitingAreas.Count; areaIndex++)
             {
-                float distance = Vector3.Distance(roadmap.allNodes[spawner.node].transform.position, waitingAreas[areaIndex].transform.position);
+                float distance = Vector3.Distance(mainScript.roadmap.allNodes[spawner.node].transform.position, waitingAreas[areaIndex].transform.position);
                 distances.Add((areaIndex, distance));
             }
 
@@ -225,13 +226,13 @@ public class WaitingAreaController : MonoBehaviour
         
         int closestTrainDoor = FindClosestTrainDoor(agent);
         
-        agent.rotateAgent(roadmap.allNodes[closestTrainDoor].transform.position);
+        agent.rotateAgent(mainScript.roadmap.allNodes[closestTrainDoor].transform.position);
         
         // Freeze the agent's position and rotation
         //Rigidbody rb = agent.GetComponent<Rigidbody>();
         //rb.constraints = RigidbodyConstraints.FreezeAll;
 
-        agent.setNewPath(agent.goal, closestTrainDoor, roadmap);
+        agent.setNewPath(agent.goal, closestTrainDoor, mainScript.roadmap);
         //agent.noMap = false;
         agent.GetComponentInChildren<Renderer>().material = waitingAgentMaterial;
         agent.isWaiting = true;

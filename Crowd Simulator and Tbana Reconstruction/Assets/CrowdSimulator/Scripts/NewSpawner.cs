@@ -57,8 +57,23 @@ public class NewSpawner : MonoBehaviour {
 	void Start()
 	{
 		mainScript = FindObjectOfType<Main>();
+		if(mainScript == null)
+		{
+			Debug.LogError("Main script not found in the scene.");
+			return;
+		}
 		waitingAreaController = FindObjectOfType<WaitingAreaController>();
+		if(waitingAreaController == null)
+		{
+			Debug.LogError("WaitingAreaController not found in the scene.");
+			return;
+		}
 		testController = FindObjectOfType<TestController>();
+		if(testController == null)
+		{
+			Debug.LogError("TestController not found in the scene.");
+			return;
+		}
 
 		if(mainScript == null)
 		{
