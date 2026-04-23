@@ -18,7 +18,6 @@ public class WaitingArea : MonoBehaviour
 
     internal List<Vector3> waitingSpots;
     internal List<int> freeWaitingSpots;
-    private int currentWaitingSpotIndex = 0;
     internal int mapIndex;
     private bool useRowColumns = false;
     public Material[] priorityMaterials;
