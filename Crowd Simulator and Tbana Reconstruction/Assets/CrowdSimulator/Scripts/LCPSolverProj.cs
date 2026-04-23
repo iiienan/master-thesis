@@ -7,32 +7,7 @@ using System;
 
 public class LCPSolverProj : LCPSolver {
 
-	private double epsilon;
-
-
-	internal bool checkEndCondition() {
-		double[] z = PlusMinusVec (TwoMulOne (x), b, true);
-		//z >= 0
-		bool conditionA = true;
-		//x >= 0
-		bool conditionB = true;
-		//zTx = 0
-		bool conditionC = false;
-		double sum = 0.0;
-
-		for (int i = 0; i < z.GetLength (0); ++i) {
-			if (z [i] < 0)
-				conditionA = false;
-			if (x [i] < 0)
-				conditionB = false;
-			sum += z [i] * x [i];
-		}
-		if (Math.Abs (sum) < epsilon) {
-			conditionC = true;
-		}
-		return conditionA && conditionB && conditionC;
-	}
-	internal double[] LCPSolve(List<List<denseMatrixNode>> aList, double[,] aMatrix, double[] bArray, double[] xArray, double[] lArray) {
+	public override double[] LCPSolve(List<List<denseMatrixNode>> aList, double[,] aMatrix, double[] bArray, double[] xArray, double[] lArray) {
 		this.A = aList;
 		this.b = bArray;
 		this.x = xArray;

@@ -259,10 +259,6 @@ public class SubgroupAgent : Agent {
 		calculateNewSlotPositions();
 
 	}
-
-	void Start () {
-		base.Start ();
-	}
 	
 
 }
