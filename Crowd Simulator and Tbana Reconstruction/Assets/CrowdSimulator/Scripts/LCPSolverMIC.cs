@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Collections.Generic;
 using System;
 
@@ -13,7 +11,7 @@ public class LCPSolverMIC : LCPSolver {
 
 		gammaConstant = 1; //Around 1
 		alphaBar = 1 / (2*frobeniusNormM() + smallEpsilon);
-		epsilon = Grid.instance.solverEpsilon * frobeniusNormV (b); //Very very small..
+		epsilon = SimulationGrid.instance.solverEpsilon * frobeniusNormV (b); //Very very small..
 		if (epsilon > 0.01)
 			epsilon = 0.001;
 
@@ -24,7 +22,7 @@ public class LCPSolverMIC : LCPSolver {
 		double[] p = z;
 		double alphaCG;
 		int cnt = 0;
-		int lim = Grid.instance.solverMaxIterations;
+		int lim = SimulationGrid.instance.solverMaxIterations;
 		Stopwatch s = new Stopwatch ();
 		s.Start ();
 		while (frobeniusNormV (v(x)) > epsilon && cnt < lim && !checkEndCondition()) {

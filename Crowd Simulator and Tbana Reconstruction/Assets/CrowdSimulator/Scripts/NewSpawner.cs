@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 
 public class NewSpawner : MonoBehaviour {
 
@@ -110,7 +109,7 @@ public class NewSpawner : MonoBehaviour {
 			return;
 		}
 
-		nextSpawnTimer -= Grid.instance.dt;
+		nextSpawnTimer -= SimulationGrid.instance.dt;
 
 		if(nextSpawnTimer <= 0)
 		{

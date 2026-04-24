@@ -1,5 +1,4 @@
 ﻿using UnityEditor;
-using UnityEngine;
 
 [CustomEditor(typeof(Main)), CanEditMultipleObjects]
 public class PropertyHolderEditor : Editor {

@@ -16,7 +16,7 @@ public class ExperimentHUD : MonoBehaviour
 
     public void RegisterSimTick()
     {
-        simulationTime += Grid.instance.dt;
+        simulationTime += SimulationGrid.instance.dt;
     }
 
     void Update()

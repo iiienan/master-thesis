@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TrainSpawner : MonoBehaviour
@@ -56,7 +54,7 @@ public class TrainSpawner : MonoBehaviour
             return;
         }
 
-        nextSpawnTimer -= Grid.instance.dt; 
+        nextSpawnTimer -= SimulationGrid.instance.dt; 
 
         if (nextSpawnTimer <= 0)
         {

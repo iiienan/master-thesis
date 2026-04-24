@@ -1,16 +1,12 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using MathNet.Numerics.LinearAlgebra.Double;
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.Distributions;
 
-public class Grid : MonoBehaviour {
+public class SimulationGrid : MonoBehaviour {
 
 	public Cell cellPrefab;
 	public VelocityNode velocityNodePrefab;
 
-	internal static Grid instance; //Alive instance of this grid (should only be one)
+	internal static SimulationGrid instance; //Alive instance of this grid (should only be one)
 
 	internal static float maxDensity; 
 	internal float cellSize;
@@ -46,7 +42,7 @@ public class Grid : MonoBehaviour {
 	public double[,] matrixArray; //Helping array to create A of LCP
 	public double[] xArray, lArray, bArray; //LCP arrays
 	public List<List<LCPSolver.denseMatrixNode>> AArray; //Actual sparse matrix carrier of A
-	internal List<List<List<int>>> neighMatrix; //Neighbourhood grid for pair-wise collision
+	internal List<int>[,] neighMatrix; //Neighbourhood grid for pair-wise collision
 	internal int neighbourBins; //Length of neighMatrix
 	internal float lenOfBin; //Length of each "bin" in neighMatrix
 
@@ -66,6 +62,10 @@ public class Grid : MonoBehaviour {
 	internal float pair = 0.54f;
 	internal float trio = 0.585f;
 	internal float quad = 0.656f;
+
+	public Vector3[,] cellCenters;
+
+	private double cachedCellSizeSquared;
 
 	public void initGrid(Vector2 xMinMax, Vector2 zMinMax, float alpha, float agentAvoidanceRadius) {
 		
@@ -113,18 +113,32 @@ public class Grid : MonoBehaviour {
 		}
 
 		//Create neighmatrix
-		neighMatrix = new List<List<List<int>>> ();
-		for (int i = 0; i < neighbourBins; ++i) {
-			neighMatrix.Add (new List<List<int>>());
-			for (int j = 0; j < neighbourBins; ++j) {
-				neighMatrix [i].Add (new List<int> ());
+		neighMatrix = new List<int>[neighbourBins, neighbourBins];
+		for (int i = 0; i < neighbourBins; ++i)
+		{
+			for (int j = 0; j < neighbourBins; ++j)
+			{
+				neighMatrix[i, j] = new List<int>();
+				lenOfBin = Mathf.Max((xMinMax.y - xMinMax.x), (zMinMax.y - zMinMax.x)) / neighbourBins;
 			}
+				
 		}
-		lenOfBin = Mathf.Max((xMinMax.y - xMinMax.x), (zMinMax.y - zMinMax.x)) / neighbourBins;
 
 		mprgpSolver = new LCPSolver (); 
 		mprgpmicSolver = new LCPSolverMIC();
 		psorSolver = new LCPSolverProj ();
+
+		cellCenters = new Vector3[nCellsZ, nCellsX];
+		for (int z = 0; z < nCellsZ; z++)
+		{
+			for (int x = 0; x < nCellsX; x++)
+			{
+				cellCenters[z, x] = cellMatrix[z, x].transform.position;
+			}
+        		
+		}	
+
+		cachedCellSizeSquared = cellSize * cellSize;
 	}
 		
 	/**
@@ -237,11 +251,10 @@ public class Grid : MonoBehaviour {
 	internal void constructA(int i, int j) {
 		int startIndex = i * nCellsX + j;
 		int currentRow = startIndex;
-		double cls = Mathf.Pow (cellSize, 2);
 
 		//Coeff for P_{i-1,j}
 		if (i > 0) {
-			matrixArray[currentRow, startIndex - nCellsX] = (double)-(dt*zEdgeDensity[i,j]/cls);
+			matrixArray[currentRow, startIndex - nCellsX] = (double)-(dt*zEdgeDensity[i,j]/cachedCellSizeSquared);
 			LCPSolver.denseMatrixNode node = new LCPSolver.denseMatrixNode ();
 			node.value = matrixArray [currentRow, startIndex - nCellsX]; node.colIndex = startIndex - nCellsX;
 			AArray [currentRow].Add (node);
@@ -249,21 +262,21 @@ public class Grid : MonoBehaviour {
 
 		//Coeff for P_{i,j-1}
 		if (j > 0) {
-			matrixArray[currentRow, startIndex - 1] = (double)-(dt*xEdgeDensity[i,j]/cls); 
+			matrixArray[currentRow, startIndex - 1] = (double)-(dt*xEdgeDensity[i,j]/cachedCellSizeSquared); 
 			LCPSolver.denseMatrixNode node = new LCPSolver.denseMatrixNode ();
 			node.value = matrixArray [currentRow, startIndex - 1]; node.colIndex = startIndex - 1;
 			AArray [currentRow].Add (node);
 		} 
 
 		//Coeff for P_{i,j}
-		matrixArray[currentRow, startIndex] = (double)(dt*(xEdgeDensity[i,j] + xEdgeDensity[i,j+1] + zEdgeDensity[i,j] + zEdgeDensity[i+1,j]))/cls;
+		matrixArray[currentRow, startIndex] = (double)(dt*(xEdgeDensity[i,j] + xEdgeDensity[i,j+1] + zEdgeDensity[i,j] + zEdgeDensity[i+1,j]))/cachedCellSizeSquared;
 		LCPSolver.denseMatrixNode nn = new LCPSolver.denseMatrixNode ();
 		nn.value = matrixArray [currentRow, startIndex]; nn.colIndex = startIndex;
 		AArray [currentRow].Add (nn);
 
 		//Coeff for P_{i+1,j}
 		if (i < nCellsZ - 1) {
-			matrixArray[currentRow, startIndex + nCellsX] = (double)-(dt*zEdgeDensity[i+1,j]/cls);
+			matrixArray[currentRow, startIndex + nCellsX] = (double)-(dt*zEdgeDensity[i+1,j]/cachedCellSizeSquared);
 			LCPSolver.denseMatrixNode node = new LCPSolver.denseMatrixNode ();
 			node.value = matrixArray [currentRow, startIndex + nCellsX]; node.colIndex = startIndex + nCellsX;
 			AArray [currentRow].Add (node);
@@ -271,7 +284,7 @@ public class Grid : MonoBehaviour {
 
 		//Coeff for P_{i,j+1}
 		if (j < nCellsX - 1) {
-			matrixArray[currentRow, startIndex + 1] = (double)-(dt*xEdgeDensity[i,j+1]/cls);
+			matrixArray[currentRow, startIndex + 1] = (double)-(dt*xEdgeDensity[i,j+1]/cachedCellSizeSquared);
 			LCPSolver.denseMatrixNode node = new LCPSolver.denseMatrixNode ();
 			node.value = matrixArray [currentRow, startIndex + 1]; node.colIndex = startIndex + 1;
 			AArray [currentRow].Add (node);
@@ -335,14 +348,14 @@ public class Grid : MonoBehaviour {
 	internal void handleCollision(int a, int row, int col, List<Agent> agentList) {
 		if (row < 0 || col < 0 || row >= neighbourBins || col >= neighbourBins)
 			return;
-		for(int i = 0; i < neighMatrix[row][col].Count; ++i) {
-			int oa = neighMatrix [row] [col] [i];
+		for(int i = 0; i < neighMatrix[row, col].Count; ++i) {
+			int oa = neighMatrix [row, col] [i];
 			if (a == oa) continue;
 
 			if(agentList[a].isWaiting && agentList[oa].isWaiting)
 			{
 				float standingDistance = 0.4f;
-				Vector3 distance = agentList [a].transform.position - agentList [oa].transform.position;
+				Vector3 distance = agentList[a].tr.position - agentList [oa].transform.position;
 				if (distance.magnitude < standingDistance) 
 				{
 					agentList [a].collisionAvoidanceVelocity += distance.normalized * (standingDistance - distance.magnitude) * agentList[a].walkingSpeed;
@@ -353,7 +366,7 @@ public class Grid : MonoBehaviour {
 				continue;
 
 			float bumpDiameter = 0.4f;
-			Vector3 dis = agentList [a].transform.position - agentList [oa].transform.position;
+			Vector3 dis = agentList[a].tr.position - agentList[oa].tr.position;
 			if (dis.magnitude < ringDiameter) { //Assumption: ringDiameter > pxpy
 
 				agentList [a].collisionAvoidanceVelocity += dis.normalized * (ringDiameter - dis.magnitude) * agentList[a].walkingSpeed; //Push away
@@ -365,7 +378,7 @@ public class Grid : MonoBehaviour {
 				Vector3 sideDir = Vector3.Cross(walkDir, Vector3.up);
 
 				// Decide left or right based on relative position
-				Vector3 relative = agentList[oa].transform.position - agentList[a].transform.position;
+				Vector3 relative = agentList[oa].tr.position - agentList[a].tr.position;
 				float sideSign = Mathf.Sign(Vector3.Dot(relative, sideDir));
 				Vector3 bumpDir = sideDir * sideSign;
 				agentList[oa].collisionAvoidanceVelocity += bumpDir * agentList[a].walkingSpeed * 0.5f;
@@ -381,8 +394,8 @@ public class Grid : MonoBehaviour {
 
 		calculateNeighborList (agentList);
 		for (int i = 0; i < agentList.Count; ++i) {
-			int row = (int)((agentList [i].transform.position.z - Main.zMinMax.x) / lenOfBin); 
-			int column = (int)((agentList[i].transform.position.x - Main.xMinMax.x) / lenOfBin); 
+			int row = (int)((agentList[i].tr.position.z - Main.zMinMax.x) / lenOfBin); 
+			int column = (int)((agentList[i].tr.position.x - Main.xMinMax.x) / lenOfBin); 
 			row = Mathf.Clamp(row, 0, neighbourBins - 1);
 			column = Mathf.Clamp(column, 0, neighbourBins - 1);
 
@@ -394,7 +407,7 @@ public class Grid : MonoBehaviour {
 			handleCollision (i, row-1, column, agentList); 
 			handleCollision (i, row-1, column-1, agentList); 
 			handleCollision (i, row, column-1, agentList); 
-			handleCollision (i, row-1, column-1, agentList); 
+			handleCollision (i, row+1, column-1, agentList); 
 		}
 	}
 
@@ -402,18 +415,18 @@ public class Grid : MonoBehaviour {
 	 * For each agent, calculate its position in a neighborhood bin.
 	 **/ 
 	internal void calculateNeighborList(List<Agent> agents) {
-		for (int i = 0; i < neighMatrix.Count; ++i) {
-			for (int j = 0; j < neighMatrix [i].Count; ++j) {
-				neighMatrix [i] [j].Clear ();
+		for (int i = 0; i < neighMatrix.GetLength(0); ++i) {
+			for (int j = 0; j < neighMatrix.GetLength(1); ++j) {
+				neighMatrix [i, j].Clear ();
 			}
 		}
 
 		for (int i = 0; i < agents.Count; ++i) {
-			int row = (int)((agents[i].transform.position.z - Main.zMinMax.x)/lenOfBin); 
-			int column = (int)((agents[i].transform.position.x - Main.xMinMax.x)/lenOfBin); 
+			int row = (int)((agents[i].tr.position.z - Main.zMinMax.x)/lenOfBin); 
+			int column = (int)((agents[i].tr.position.x - Main.xMinMax.x)/lenOfBin); 
 			row = Mathf.Clamp(row, 0, neighbourBins - 1);
 			column = Mathf.Clamp(column, 0, neighbourBins - 1);
-			neighMatrix [row] [column].Add (i);
+			neighMatrix [row,column].Add (i);
 		}
 	}
 }

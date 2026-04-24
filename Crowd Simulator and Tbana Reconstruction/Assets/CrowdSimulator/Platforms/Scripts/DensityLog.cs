@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class DensityLog : MonoBehaviour
@@ -21,7 +19,7 @@ public class DensityLog : MonoBehaviour
     // Update is called once per frame
     public void UpdateDensityLog()
     {
-        timer -= Grid.instance.dt;
+        timer -= SimulationGrid.instance.dt;
         if(timer <= 0f)
         {
             countAgents();

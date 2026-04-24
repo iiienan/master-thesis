@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class SubgroupAgent : Agent {
@@ -104,9 +103,9 @@ public class SubgroupAgent : Agent {
 				if (slotDistance > 3.0f) {
 					if (infront) {
 						//Just slow down for the others
-						preferredVelocity = preferredVelocity.normalized * adjustment * Grid.instance.agentMaxSpeed; 
+						preferredVelocity = preferredVelocity.normalized * adjustment * SimulationGrid.instance.agentMaxSpeed; 
 					} else {
-						preferredVelocity += ((c.slots [number] - transform.position).normalized) * adjustment * Grid.instance.agentMaxSpeed;
+						preferredVelocity += ((c.slots [number] - transform.position).normalized) * adjustment * SimulationGrid.instance.agentMaxSpeed;
 					}
 				}
 			
@@ -208,7 +207,7 @@ public class SubgroupAgent : Agent {
 		Vector3 pi = c.comp [c.leaderNumber].transform.position; pi += 1.2f*c.comp [c.leaderNumber].transform.forward;
 		Vector3 vf = c.comp [c.leaderNumber].transform.forward.normalized;
 		Vector3 vr = c.comp [c.leaderNumber].transform.right.normalized;
-		float scale = 1.0f + Grid.instance.agentAvoidanceRadius;
+		float scale = 1.0f + SimulationGrid.instance.agentAvoidanceRadius;
 		switch (c.st) {
 		case state.abreast:
 			c.desiredSlots [0] = pi + 0.0f * vf +  scale*0.0f * vr;

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class VelocityNode : MonoBehaviour {
 
@@ -28,26 +27,26 @@ public class VelocityNode : MonoBehaviour {
 	 * Approximate the derivative of the pressure for this node as a central difference between the two closest cells.
 	 **/ 
 	internal void calculatePressureGradient(){
-		int index = cellRow*Grid.instance.nCellsX+cellCol;
+		int index = cellRow*SimulationGrid.instance.nCellsX+cellCol;
 		if (typeX){
 			if (cellCol == 0){
-				pressureGradient = (float)(Grid.instance.xArray[index] -  0)/Grid.instance.cellSize; //Boundary condition
+				pressureGradient = (float)(SimulationGrid.instance.xArray[index] -  0)/SimulationGrid.instance.cellSize; //Boundary condition
 			}
-			else if(cellCol == Grid.instance.nCellsX){
-				pressureGradient = (float)(0 - Grid.instance.xArray[index-1])/Grid.instance.cellSize; //Boundary condition
+			else if(cellCol == SimulationGrid.instance.nCellsX){
+				pressureGradient = (float)(0 - SimulationGrid.instance.xArray[index-1])/SimulationGrid.instance.cellSize; //Boundary condition
 			}
 			else {
-				pressureGradient = (float)(Grid.instance.xArray[index] - Grid.instance.xArray[index-1])/Grid.instance.cellSize;
+				pressureGradient = (float)(SimulationGrid.instance.xArray[index] - SimulationGrid.instance.xArray[index-1])/SimulationGrid.instance.cellSize;
 			}
 		} else {
 			if (cellRow == 0){
-				pressureGradient = (float)(Grid.instance.xArray[index] - 0)/Grid.instance.cellSize;
+				pressureGradient = (float)(SimulationGrid.instance.xArray[index] - 0)/SimulationGrid.instance.cellSize;
 			}
-			else if(cellRow == Grid.instance.nCellsZ){
-				pressureGradient = (float)(0 - Grid.instance.xArray[index-Grid.instance.nCellsX])/Grid.instance.cellSize; //Boundary condition
+			else if(cellRow == SimulationGrid.instance.nCellsZ){
+				pressureGradient = (float)(0 - SimulationGrid.instance.xArray[index-SimulationGrid.instance.nCellsX])/SimulationGrid.instance.cellSize; //Boundary condition
 			}
 			else {
-				pressureGradient = (float)(Grid.instance.xArray[index] - Grid.instance.xArray[index-Grid.instance.nCellsX])/Grid.instance.cellSize;
+				pressureGradient = (float)(SimulationGrid.instance.xArray[index] - SimulationGrid.instance.xArray[index-SimulationGrid.instance.nCellsX])/SimulationGrid.instance.cellSize;
 			}
 		}
 	}
@@ -56,7 +55,7 @@ public class VelocityNode : MonoBehaviour {
 	 * Re-normalize this velocity and update the velocity field of this node.
 	 **/ 
 	public void renorm() {
-		velocityVector = velocityVector.normalized * Grid.instance.agentMaxSpeed;
+		velocityVector = velocityVector.normalized * SimulationGrid.instance.agentMaxSpeed;
 		updateStoredValues (); //Save total values of current vel and dens in larger grid
 	}
 
@@ -66,9 +65,9 @@ public class VelocityNode : MonoBehaviour {
 	public void pSolve() {
 		velocity = velocity - pressureGradient;
 		if (typeX) {
-			Grid.instance.xEdgeVelocity [cellRow, cellCol] = velocity;
+			SimulationGrid.instance.xEdgeVelocity [cellRow, cellCol] = velocity;
 		} else {
-			Grid.instance.zEdgeVelocity [cellRow, cellCol] = velocity;
+			SimulationGrid.instance.zEdgeVelocity [cellRow, cellCol] = velocity;
 		}
 	}
 		
@@ -78,12 +77,12 @@ public class VelocityNode : MonoBehaviour {
 	internal void updateStoredValues() {
 		if (typeX) {
 			velocity = velocityVector.x;
-			Grid.instance.xEdgeVelocity [cellRow, cellCol] = velocityVector.x;
-			Grid.instance.xEdgeDensity  [cellRow, cellCol] = density;
+			SimulationGrid.instance.xEdgeVelocity [cellRow, cellCol] = velocityVector.x;
+			SimulationGrid.instance.xEdgeDensity  [cellRow, cellCol] = density;
 		} else {
 			velocity = velocityVector.z;
-			Grid.instance.zEdgeVelocity [cellRow, cellCol] = velocityVector.z;
-			Grid.instance.zEdgeDensity  [cellRow, cellCol] = density;
+			SimulationGrid.instance.zEdgeVelocity [cellRow, cellCol] = velocityVector.z;
+			SimulationGrid.instance.zEdgeDensity  [cellRow, cellCol] = density;
 		}
 	}
 
@@ -92,12 +91,12 @@ public class VelocityNode : MonoBehaviour {
 	 **/ 
 	internal void updateValues() {
 		if (weights > 0) {
-			velocityVector = tempVelocity / (Grid.instance.cellSize * Grid.instance.cellSize * weights); //Splat (Change) *Mathf.Pow(Grid.instance.cellLength, 2)
+			velocityVector = tempVelocity / (SimulationGrid.instance.cellSize * SimulationGrid.instance.cellSize * weights); //Splat (Change) *Mathf.Pow(Grid.instance.cellLength, 2)
 		} else {
 			velocityVector = Vector3.zero;
 			velocity = 0;
 		}
-		density = weights / Mathf.Pow(Grid.instance.cellSize, 2); //Splat
+		density = weights / Mathf.Pow(SimulationGrid.instance.cellSize, 2); //Splat
 		updateStoredValues (); //Save total values of current vel and dens in larger grid
 		tempVelocity = Vector3.zero;
 		weights = 0;

@@ -1,8 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using System.Data.Common;
 
 public class Main : MonoBehaviour {
 	public static Main instance;
@@ -30,7 +27,7 @@ public class Main : MonoBehaviour {
 
 
 
-	public Grid gridPrefab;
+	public SimulationGrid gridPrefab;
 	public NewSpawner spawnerPrefab;
 	public MapGen mapGen;
 	public Plane plane;
@@ -72,6 +69,7 @@ public class Main : MonoBehaviour {
 	private bool takeScreenshot = true;
 	internal DensityLog densityLog;
 	internal bool spawnAgents = true;
+	private SimulationGrid simulationGrid;
 
 	void Awake()
 	{
@@ -138,7 +136,7 @@ public class Main : MonoBehaviour {
 			return;
 		}
 
-		Grid grid = Instantiate(gridPrefab) as Grid;
+		SimulationGrid grid = Instantiate(gridPrefab) as SimulationGrid;
 		grid.showSplattedDensity = showSplattedDensity;
 		grid.showSplattedVelocity = showSplattedVelocity;
 		grid.cellSize = cellSize;
@@ -154,8 +152,8 @@ public class Main : MonoBehaviour {
 		grid.solverMaxIterations = solverMaxIterations;
 		grid.colHandler = handleCollision;
 		grid.agentAvoidanceRadius = agentAvoidanceRadius;
-		Grid.instance = grid;
-		Grid.instance.initGrid(xMinMax, zMinMax, alpha, agentAvoidanceRadius);
+		SimulationGrid.instance = grid;
+		SimulationGrid.instance.initGrid(xMinMax, zMinMax, alpha, agentAvoidanceRadius);
 
 		for (int i = 0; i < roadmap.spawns.Count; ++i)
 		{
@@ -177,6 +175,21 @@ public class Main : MonoBehaviour {
 			Debug.LogError("ExperimentHUD not found in scene");
 			return;
 		}
+
+		simulationGrid = SimulationGrid.instance;
+
+		//flags
+		simulationGrid.showSplattedDensity = showSplattedDensity;
+		simulationGrid.showSplattedVelocity = showSplattedVelocity;
+		simulationGrid.walkBack = walkBack;
+		simulationGrid.skipNodeIfSeeNext = skipNodeIfSeeNext;
+		simulationGrid.smoothTurns = smoothTurns;
+
+		simulationGrid.solver = solver;
+		simulationGrid.solverEpsilon = epsilon;
+		simulationGrid.solverMaxIterations = solverMaxIterations;
+
+		
 
 	}
 
@@ -201,18 +214,16 @@ public class Main : MonoBehaviour {
 			}
 		}
 
-		Grid.instance.dt = customTimeStep ? timeStep : Time.deltaTime;
+		simulationGrid.dt = customTimeStep ? timeStep : Time.deltaTime;
 		
 
-		Grid.instance.solver = solver;
-		Grid.instance.solverEpsilon = epsilon;
-		Grid.instance.solverMaxIterations = solverMaxIterations;
+		
 
 		// Update grid with new density and velocity values
-		Grid.instance.updateCellDensity ();
-		Grid.instance.updateVelocityNodes ();
+		simulationGrid.updateCellDensity ();
+		simulationGrid.updateVelocityNodes ();
 		//Solve linear constraint problem
-		Grid.instance.PsolveRenormPsolve ();
+		simulationGrid.PsolveRenormPsolve ();
 
 		
 
@@ -223,7 +234,7 @@ public class Main : MonoBehaviour {
 
 			if(agent.isWaitingForDelay)
 			{
-				agent.delayTimer -= Grid.instance.dt;
+				agent.delayTimer -= simulationGrid.dt;
 				if(agent.delayTimer <= 0f)
 				{
 					agent.isWaitingForDelay = false;
@@ -279,7 +290,7 @@ public class Main : MonoBehaviour {
 			agent.UpdateMetrics();
 		}
 		//Pair-wise collision handling between agents
-		Grid.instance.collisionHandling(agentList);
+		simulationGrid.collisionHandling(agentList);
 
 		trainController.TrainControllerUpdate();
 
@@ -306,20 +317,15 @@ public class Main : MonoBehaviour {
 
 		if(customTimeStep)
 		{
-			Physics.Simulate(Grid.instance.dt);
+			Physics.Simulate(simulationGrid.dt);
 		}
 
 		experimentHUD.RegisterSimTick();
 
-		simulationTime += Grid.instance.dt;
+		simulationTime += simulationGrid.dt;
 
 
-		//flags
-		Grid.instance.showSplattedDensity = showSplattedDensity;
-		Grid.instance.showSplattedVelocity = showSplattedVelocity;
-		Grid.instance.walkBack = walkBack;
-		Grid.instance.skipNodeIfSeeNext = skipNodeIfSeeNext;
-		Grid.instance.smoothTurns = smoothTurns;
+		
 	}
 	public void AddToAgentList(Agent agent)
 	{

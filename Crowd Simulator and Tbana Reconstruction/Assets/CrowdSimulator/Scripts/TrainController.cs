@@ -1,8 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.XR;
 
 public class TrainController : MonoBehaviour
 {
@@ -97,7 +93,7 @@ public class TrainController : MonoBehaviour
 
         if(trainStates[0] == TrainState.Incoming && trainStates[1] == TrainState.Incoming)
         {
-            arrivalTimer += Grid.instance.dt;
+            arrivalTimer += SimulationGrid.instance.dt;
             
             if(arrivalTimer >= arriveInterval)
             {
@@ -140,7 +136,7 @@ public class TrainController : MonoBehaviour
         switch (trainStates[trainLine])
         {
             case TrainState.Arrived:
-                stateTimer[trainLine] -= Grid.instance.dt;
+                stateTimer[trainLine] -= SimulationGrid.instance.dt;
                 if (stateTimer[trainLine] <= 0f)
                 {
                     foreach (var spawner in trainScripts[trainLine].trainSpawners)
@@ -184,7 +180,7 @@ public class TrainController : MonoBehaviour
 
                 if(alightBeforeBoarding && spawnersDone && !boarding[trainLine])
                 {
-                    stateTimer[trainLine] -= Grid.instance.dt;
+                    stateTimer[trainLine] -= SimulationGrid.instance.dt;
                     if(stateTimer[trainLine] <= 0f)
                     {
                         isPreparingToBoard[trainLine] = false;
@@ -205,7 +201,7 @@ public class TrainController : MonoBehaviour
                 break;
 
             case TrainState.Exiting:
-                stateTimer[trainLine] -= Grid.instance.dt;
+                stateTimer[trainLine] -= SimulationGrid.instance.dt;
                 if(stateTimer[trainLine] <= 0f)
                 {
                     ToggleTrain(trainLine,false);
