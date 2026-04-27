@@ -371,7 +371,7 @@ public class SimulationGrid : MonoBehaviour {
 
 				agentList [a].collisionAvoidanceVelocity += dis.normalized * (ringDiameter - dis.magnitude) * agentList[a].walkingSpeed; //Push away
 			}
-			if(agentList[oa].isWaiting && dis.magnitude <= bumpDiameter)
+			if((agentList[oa].isWaiting || (agentList[oa].isPreparingToBoard && agentList[oa].done)) && dis.magnitude <= bumpDiameter)
 			{
 				//agentList[oa].collisionAvoidanceVelocity -= dis.normalized * (bumpDiameter - dis.magnitude) * agentList[oa].walkingSpeed * 2f;
 				Vector3 walkDir = agentList[a].preferredVelocity.normalized;
