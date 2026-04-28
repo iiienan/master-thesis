@@ -278,16 +278,15 @@ public class Main : MonoBehaviour {
 				agentList.RemoveAt(i);
 				Destroy(agent.gameObject);
 			}
-
 			if (agent.done)
 			{
 				HandleAgentDone(agent,i);
 				continue;
 			}
 			agent.move(roadmap);
+			agent.TickMetrics();
 			agent.rbody.velocity = Vector3.zero;
 			agent.rbody.angularVelocity = Vector3.zero;
-			agent.UpdateMetrics();
 		}
 		//Pair-wise collision handling between agents
 		simulationGrid.collisionHandling(agentList);
@@ -323,8 +322,6 @@ public class Main : MonoBehaviour {
 		experimentHUD.RegisterSimTick();
 
 		simulationTime += simulationGrid.dt;
-
-
 		
 	}
 	public void AddToAgentList(Agent agent)
@@ -350,25 +347,28 @@ public class Main : MonoBehaviour {
 				}
 				else
 				{
+					float travelTime = simulationTime - agent.startTime;
+					float straightLine = Vector3.Distance(agent.spawnPosition, agent.finalPosition);
+					float efficiency = straightLine / agent.travelDistance;
+					Debug.LogWarning("Efficiency above 1: " + efficiency);
+					efficiency = Mathf.Min(efficiency, 1.0f);
 					if (agent.boarding)
 					{
 						trainController.nBoardingAgents[agent.trainLine-1]--;
-						if(logger != null) logger.LogTravelTime(agent.travelTime, true, agent.trainLine, agent.startTime);
+						if(logger != null) logger.LogTravelTime(travelTime, true, agent.trainLine, agent.startTime);
 						agentList.RemoveAt(index);
 						float averageSpeed = agent.travelDistance / agent.movingTime;
-						float averageSpeedTest = agent.travelDistanceTest / agent.movingTimeTest;
-						if(logger != null) logger.LogTravelDistance(agent.travelDistance, agent.travelDistanceTest, true, agent.trainLine, averageSpeed, averageSpeedTest);
+						if(logger != null) logger.LogTravelDistance(agent.travelDistance, true, agent.trainLine, averageSpeed, efficiency);
 
 						Destroy(agent.gameObject);
 					}
 					else if (agent.isAlighting)
 					{
-						if(logger != null) logger.LogTravelTime(agent.travelTime, false, agent.trainLine, agent.startTime);
+						if(logger != null) logger.LogTravelTime(travelTime, false, agent.trainLine, agent.startTime);
 						nExitingAgents--;
 						agentList.RemoveAt(index);
 						float averageSpeed = agent.travelDistance / agent.movingTime;
-						float averageSpeedTest = agent.travelDistanceTest / agent.movingTimeTest;
-						if(logger != null) logger.LogTravelDistance(agent.travelDistance, agent.travelDistanceTest, false, agent.trainLine, averageSpeed, averageSpeedTest);
+						if(logger != null) logger.LogTravelDistance(agent.travelDistance, false, agent.trainLine, averageSpeed, efficiency);
 
 						Destroy(agent.gameObject);
 						if (nExitingAgents <= 0)

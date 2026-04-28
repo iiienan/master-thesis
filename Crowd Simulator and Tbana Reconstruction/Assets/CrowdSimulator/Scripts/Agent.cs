@@ -27,7 +27,7 @@ public class Agent : MonoBehaviour
 	Vector3 previousDirection;
 	public float walkingSpeed;
 	public float maxWaitTime = 2f;
-	private bool isProblem = false;
+	//private bool isProblem = false;
 
 	// Waiting
 	internal bool isWaitingAgent;
@@ -43,7 +43,6 @@ public class Agent : MonoBehaviour
 	private TrainController trainController;
 
 	// Travel time
-	internal float travelTime = 0f;
 	internal float startTime;
 
 	// Travel distance
@@ -65,18 +64,15 @@ public class Agent : MonoBehaviour
 	}
 
 	private Main mainScript;
-
-	private float movementMeasureTimer = 0f;
-	private float movementMeasureInterval = 0.1f;
-	internal float travelDistanceTest = 0f;
-	internal float movingTimeTest = 0f;
-	internal Vector3 previousPositionTest;
 	private float colliderRadius;
 	internal Renderer agentRenderer;
 	private SimulationGrid grid;
 	private float cachedCellSize;
 	private float cachedCellSizeSquared;
 	private static int agentLayerMask = -1;
+	private Vector3 tickStartPosition;
+	internal Vector3 spawnPosition;
+	internal Vector3 finalPosition;
 
 
 	void Awake()
@@ -215,7 +211,8 @@ public class Agent : MonoBehaviour
 	{
 		tr.position = pos;
 		previousPosition = pos;
-		previousPositionTest = pos;
+		tickStartPosition = pos;
+		spawnPosition = pos;
 		this.goal = goal;
 		path = map.shortestPaths[start][goal];
 
@@ -331,6 +328,7 @@ public class Agent : MonoBehaviour
 			{
 				//Done
 				done = true;
+				finalPosition = pos;	
 			}
 			else
 			{
@@ -388,38 +386,15 @@ public class Agent : MonoBehaviour
 		preferredVelocity.y = 0f;
 	}
 
-	public void UpdateMetrics()
+	internal void TickMetrics()
 	{
-		travelTime += grid.dt;
-
-		Vector3 pos = tr.position;
-		Vector3 delta = pos - previousPosition;
-		float distance = delta.magnitude;
-		if (distance > 0.001f)
+		float displacement = (tr.position - tickStartPosition).magnitude;
+		if (displacement > 0.001f)
 		{
-			travelDistance += distance;
+			travelDistance += displacement;
 			movingTime += grid.dt;
 		}
-		previousPosition = pos;
-
-		movementMeasureTimer += grid.dt;
-
-		if (movementMeasureTimer >= movementMeasureInterval)
-		{
-			Vector3 poss = tr.position;
-			Vector3 deltaa = poss - previousPositionTest;
-			float distancee = deltaa.magnitude;
-
-			// Only count if movement is significant over the window
-			if (distancee > 0.01f)
-			{
-				travelDistanceTest += distancee;
-				movingTimeTest += movementMeasureTimer;
-			}
-
-			previousPositionTest = pos;
-			movementMeasureTimer = 0f;
-		}
+		tickStartPosition = tr.position;
 	}
 
 	internal virtual void calculatePreferredVelocity(MapGen.map map)
@@ -680,6 +655,7 @@ public class Agent : MonoBehaviour
 	{
 		newPosition.y = 0.0f;
 		tr.position = newPosition;
+		tickStartPosition = newPosition; 
 	}
 
 	public void setAnimatorStanding(bool isStanding)
@@ -709,6 +685,7 @@ public class Agent : MonoBehaviour
 		Vector3 pos = tr.position;
 		tr.position = new Vector3(pos.x, 0f, pos.z);
 		tr.rotation = Quaternion.identity;
+		tickStartPosition = tr.position;
 	}
 
 	private void ApplyYellowLineForce()

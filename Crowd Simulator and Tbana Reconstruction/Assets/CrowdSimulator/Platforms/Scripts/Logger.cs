@@ -148,7 +148,7 @@ public class Logger : MonoBehaviour
             return;
         }
 
-        StringBuilder header = new StringBuilder("PassengerType,TrainLine,TravelDistance,AverageSpeed");
+        StringBuilder header = new StringBuilder("PassengerType,TrainLine,TravelDistance,AverageSpeed,Efficiency");
         travelDistanceWriter.WriteLine(header.ToString());
     }
 
@@ -222,7 +222,7 @@ public class Logger : MonoBehaviour
         travelTimeWriter.WriteLine(line.ToString());
     }
 
-    public void LogTravelDistance(float travelDistance, float travelDistanceTest,bool passengerTypeBoarding, int trainLine, float averageSpeed, float AverageSpeedTest)
+    public void LogTravelDistance(float travelDistance, bool passengerTypeBoarding, int trainLine, float averageSpeed, float efficiency)
     {
         if (travelDistanceWriter == null)
         {
@@ -244,11 +244,9 @@ public class Logger : MonoBehaviour
         line.Append(",");
         line.Append(travelDistance.ToString("F2", CultureInfo.InvariantCulture));
         line.Append(",");
-        line.Append(travelDistanceTest.ToString("F2", CultureInfo.InvariantCulture));
-        line.Append(",");
         line.Append(averageSpeed.ToString("F2", CultureInfo.InvariantCulture));
         line.Append(",");
-        line.Append(AverageSpeedTest.ToString("F2", CultureInfo.InvariantCulture));
+        line.Append(efficiency.ToString("F2", CultureInfo.InvariantCulture));
         travelDistanceWriter.WriteLine(line.ToString());
     }
 
