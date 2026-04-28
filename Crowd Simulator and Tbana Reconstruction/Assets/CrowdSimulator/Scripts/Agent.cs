@@ -651,13 +651,6 @@ public class Agent : MonoBehaviour
 		neighbourLowerVelocityWeight = lowerShiftedRelZPos * Mathf.Abs(agentRelXPos) / cachedCellSizeSquared;
 	}
 
-	public void teleportAgent(Vector3 newPosition)
-	{
-		newPosition.y = 0.0f;
-		tr.position = newPosition;
-		tickStartPosition = newPosition; 
-	}
-
 	public void setAnimatorStanding(bool isStanding)
 	{
 		if (animator != null)

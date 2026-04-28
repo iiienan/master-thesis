@@ -306,6 +306,8 @@ public class TrainController : MonoBehaviour
             agent.isWaiting = false;
         }
 
+        agent.waitingPosition = agent.tr.position;
+
     }
 
     internal void WaitOutsideTrain(Agent agent)
