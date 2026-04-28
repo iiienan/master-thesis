@@ -36,11 +36,12 @@ public class DensityLog : MonoBehaviour
             case TrainController.PlatformType.Central:
                 foreach(Agent agent in mainScript.agentList)
                 {
-                    if(agent.tr.position.x >= 0f && agent.tr.position.x <= 9f)
+                    Vector3 agentPos = agent.tr.position;
+                    if(agentPos.x >= 0f && agentPos.x <= 9f)
                     {
                         platform1Count++;
                     }
-                    if(agent.tr.position.x < 0f && agent.tr.position.x >= -9f)
+                    if(agentPos.x < 0f && agentPos.x >= -9f)
                     {
                         platform2Count++;
                     }
@@ -50,11 +51,12 @@ public class DensityLog : MonoBehaviour
             case TrainController.PlatformType.Side:
                 foreach(Agent agent in mainScript.agentList)
                 {
-                    if(agent.tr.position.x >= 3f)
+                    Vector3 agentPos = agent.tr.position;
+                    if(agentPos.x >= 3f)
                     {
                         platform1Count++;
                     }
-                    if(agent.tr.position.x <= -3f)
+                    if(agentPos.x <= -3f)
                     {
                         platform2Count++;
                     }
@@ -64,15 +66,16 @@ public class DensityLog : MonoBehaviour
             case TrainController.PlatformType.Mixed:
                 int middlePlatformCount = 0;
                 foreach(Agent agent in mainScript.agentList)                {
-                    if(agent.tr.position.x >= 6f)
+                    Vector3 agentPos = agent.tr.position;
+                    if(agentPos.x >= 6f)
                     {
                         platform1Count++;
                     }
-                    if(agent.tr.position.x <= -6f)
+                    if(agentPos.x <= -6f)
                     {
                         platform2Count++;
                     }
-                    if(agent.tr.position.x < 3f && agent.tr.position.x > -3f)
+                    if(agentPos.x < 3f && agentPos.x > -3f)
                     {
                         middlePlatformCount++;
                     }
