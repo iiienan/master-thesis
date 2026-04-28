@@ -38,6 +38,7 @@ public class Train : MonoBehaviour
 
         bool alightBeforeBoarding = trainController.alightBeforeBoarding;
         TrainController.PlatformType platformType = trainController.platformType;
+        bool waitOutsideTrain = trainController.waitOutsideTrain;
 
         foreach (Transform spawnerTransform in spawners)
         {
@@ -62,7 +63,7 @@ public class Train : MonoBehaviour
                 Debug.LogError("Alighting agent material not set for train " + gameObject.name);
                 return;
             }
-            spawner.Initialize(this, closestGoal, burstRate, agentContainer, agentPrefab, alightingAgentMaterial, alightBeforeBoarding, platformType);
+            spawner.Initialize(this, closestGoal, burstRate, agentContainer, agentPrefab, alightingAgentMaterial, alightBeforeBoarding, platformType, waitOutsideTrain);
         }
         
     }

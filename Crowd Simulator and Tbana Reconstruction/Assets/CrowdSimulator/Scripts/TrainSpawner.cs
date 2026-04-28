@@ -16,10 +16,11 @@ public class TrainSpawner : MonoBehaviour
     private float nextSpawnTimer = 0f;
     internal bool isSpawning = false;
     private int nodeIndex;
+    private bool waitOutsideTrain = false;
 
     // Start is called before the first frame update
     public void Initialize(Train train, int goal, float burstRate, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, bool alightBeforeBoarding,
-    TrainController.PlatformType platformType)
+    TrainController.PlatformType platformType, bool waitOutsideTrain)
     {
         this.agentPrefab = agentPrefab;
         this.burstRate = burstRate;
@@ -29,6 +30,7 @@ public class TrainSpawner : MonoBehaviour
         this.alightingAgentMaterial = alightingAgentMaterial;
         this.alightBeforeBoarding = alightBeforeBoarding;
         this.platformType = platformType;
+        this.waitOutsideTrain = waitOutsideTrain;
         mainScript = FindObjectOfType<Main>();
         if (mainScript == null)        {
             Debug.LogError("Main script not found in the scene.");
@@ -75,7 +77,7 @@ public class TrainSpawner : MonoBehaviour
         agent.agentRenderer.material = alightingAgentMaterial;
         agent.trainLine = train.trainLine;
 
-        if (alightBeforeBoarding)
+        if (alightBeforeBoarding && waitOutsideTrain)
         {
             if (platformType == TrainController.PlatformType.Central)
             {
