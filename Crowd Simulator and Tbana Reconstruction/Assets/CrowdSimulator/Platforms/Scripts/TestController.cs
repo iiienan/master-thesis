@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading;
 using UnityEngine;
 
 public class TestController : MonoBehaviour
@@ -47,18 +48,9 @@ public class TestController : MonoBehaviour
         sb.Append(scenario.ToString());
         sb.Append(flowType.ToString());
 
-        if (scenario == Scenario.Entry)
-        {
-            sb.Append(entryFlow.ToString());
-        }
-        else if (scenario == Scenario.Exit)
-        {
-            sb.Append(exitFlow.ToString());
-        }
-        else
-        {
-            Debug.LogError("Unsupported scenario: " + scenario);
-        }
+        sb.Append(entryFlow.ToString());
+        sb.Append("_");
+        sb.Append(exitFlow.ToString());
 
         if (alightBeforeBoarding)
         {
