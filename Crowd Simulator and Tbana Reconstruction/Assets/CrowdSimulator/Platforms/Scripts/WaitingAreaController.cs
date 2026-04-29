@@ -9,9 +9,8 @@ public class WaitingAreaController : MonoBehaviour
 {  
     public List<WaitingArea> waitingAreas;                          // All the waiting areas in the scene
     internal List<Agent> waitingAgents;                              // Agents that are currently waiting
-    private GameObject waitingAgentsContainer;                      // A container for the waiting agent objects in the inspector
     public Dictionary<int, List<int>> spawnerWaitingAreaDistances;  // The distance from each spawner to each waiting area in descending order
-    public GameObject agentContainer;                                 // The map of the nodes in the scene
+    public GameObject agentContainer;                               
     public float wdistance = 1.0f, wdensity = 1.0f, wtrainline = 1.0f, wpriority = 1.0f;
     public bool debug = false;
     public float waitingSpotSize = 0.5f;
@@ -29,7 +28,6 @@ public class WaitingAreaController : MonoBehaviour
     {
         waitingAreas = new List<WaitingArea>();
         waitingAgents = new List<Agent>();
-        waitingAgentsContainer = GameObject.Find("Waiting Agents");
 
         mainScript = FindObjectOfType<Main>();
         if(mainScript == null)
@@ -200,7 +198,10 @@ public class WaitingAreaController : MonoBehaviour
     {
         agent.done = false;
         agent.noMap = true;
-        agent.noMapGoal = agent.waitingArea.waitingSpots[agent.waitingSpot];
+        Vector3 adjustedPosition = agent.waitingArea.waitingSpots[agent.waitingSpot];
+        adjustedPosition.x += Random.Range(-0.3f, 0.3f);
+        adjustedPosition.z += Random.Range(-0.3f, 0.3f);
+        agent.noMapGoal = adjustedPosition;
     }
 
     /*
@@ -208,32 +209,15 @@ public class WaitingAreaController : MonoBehaviour
     *   The agent will be frozen in place and will be an obstacle for other agents.
     *   The closest train door (node) will be set as the agent's goal.
     */
-    public void putAgentInWaitingArea(Agent agent)
+    public void SetWaitingAgent(Agent agent)
     {
-        agent.setAnimatorStanding(true);
         waitingAgents.Add(agent);
-        agent.tr.SetParent(waitingAgentsContainer.transform);
-
-        // Add random offset to the waiting spot position
-        // to make the agents look more natural and less aligned
-        Vector3 adjustedPosition = agent.waitingArea.waitingSpots[agent.waitingSpot];
-        adjustedPosition.x += Random.Range(-0.3f, 0.3f);
-        adjustedPosition.z += Random.Range(-0.3f, 0.3f);
-
-        agent.teleportAgent(adjustedPosition);
-        
         int closestTrainDoor = FindClosestTrainDoor(agent);
-        
         agent.rotateAgent(mainScript.roadmap.allNodes[closestTrainDoor].transform.position);
-        
-        // Freeze the agent's position and rotation
-        //Rigidbody rb = agent.GetComponent<Rigidbody>();
-        //rb.constraints = RigidbodyConstraints.FreezeAll;
-
         agent.setNewPath(agent.goal, closestTrainDoor, mainScript.roadmap);
-        //agent.noMap = false;
-        agent.GetComponentInChildren<Renderer>().material = waitingAgentMaterial;
+        agent.agentRenderer.material = waitingAgentMaterial;
         agent.isWaiting = true;
+        agent.waitingPosition = agent.tr.position;
     }
 
     internal int FindClosestTrainDoor(Agent agent)
