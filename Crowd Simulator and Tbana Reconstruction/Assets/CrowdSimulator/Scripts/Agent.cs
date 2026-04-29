@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 
 public class Agent : MonoBehaviour
@@ -75,6 +76,7 @@ public class Agent : MonoBehaviour
 	internal Vector3 finalPosition;
 	internal Vector3 waitingPosition;
 	internal float shortestPath = 0f;
+	internal float activeTravelDistance = 0f;
 
 
 	void Awake()
@@ -140,7 +142,7 @@ public class Agent : MonoBehaviour
 		}
 		else
 		{
-			walkingSpeed = Random.Range(mainScript.agentMinSpeed, mainScript.agentMaxSpeed);
+			walkingSpeed = UnityEngine.Random.Range(mainScript.agentMinSpeed, mainScript.agentMaxSpeed);
 		}
 		startTime = mainScript.simulationTime;
 
@@ -243,12 +245,12 @@ public class Agent : MonoBehaviour
 		{
 			Renderer ss = tr.GetChild(0).GetComponent<Renderer>();
 			if (ss != null)
-				ss.material.mainTexture = (Texture)Resources.Load(tag + "-" + Random.Range(1, skins[tag] + 1));
+				ss.material.mainTexture = (Texture)Resources.Load(tag + "-" + UnityEngine.Random.Range(1, skins[tag] + 1));
 			else
 			{
 				Renderer ss2 = tr.GetChild(1).GetComponent<Renderer>();
 				if (ss2 != null)
-					ss2.material.mainTexture = (Texture)Resources.Load(tag + "-" + Random.Range(1, skins[tag] + 1));
+					ss2.material.mainTexture = (Texture)Resources.Load(tag + "-" + UnityEngine.Random.Range(1, skins[tag] + 1));
 			}
 		}
 	}
@@ -393,16 +395,27 @@ public class Agent : MonoBehaviour
 		preferredVelocity.y = 0f;
 	}
 
-	internal void TickMetrics()
+	internal void TickMetrics(bool isMoving)
 	{
 		float displacement = (tr.position - tickStartPosition).magnitude;
 		if (displacement > 0.001f)
 		{
 			travelDistance += displacement;
-			movingTime += grid.dt;
+			if (isMoving)
+			{
+				activeTravelDistance += displacement;
+				movingTime += grid.dt;
+			}
 		}
+		/* Debug.DrawLine(
+		tickStartPosition + Vector3.up * 0.1f,
+		tr.position + Vector3.up * 0.1f,
+		Color.green,
+		50f
+		); */
 		tickStartPosition = tr.position;
 	}
+
 
 	internal virtual void calculatePreferredVelocity(MapGen.map map)
 	{
