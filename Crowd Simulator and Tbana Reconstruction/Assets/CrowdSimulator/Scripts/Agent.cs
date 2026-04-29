@@ -73,6 +73,8 @@ public class Agent : MonoBehaviour
 	private Vector3 tickStartPosition;
 	internal Vector3 spawnPosition;
 	internal Vector3 finalPosition;
+	internal Vector3 waitingPosition;
+	internal float shortestPath = 0f;
 
 
 	void Awake()
@@ -324,6 +326,9 @@ public class Agent : MonoBehaviour
 			//New node reached
 			collision = false;
 			pathIndex += 1;
+			shortestPath += Vector3.Distance(pos, previousPosition);
+			previousPosition = pos;
+			
 			if (pathIndex >= path.Count)
 			{
 				//Done
@@ -377,6 +382,8 @@ public class Agent : MonoBehaviour
 			//New node reached
 			//Done
 			done = true;
+			shortestPath += Vector3.Distance(pos, previousPosition);
+			previousPosition = pos;
 		}
 		else
 		{

@@ -219,8 +219,8 @@ public class TrainController : MonoBehaviour
     public void PrepareBoarding(int trainLine)
     {
         isPreparingToBoard[trainLine] = true;
-        PrepareWaitingAgents(trainLine);
         PrepareWalkingAgents(trainLine);
+        PrepareWaitingAgents(trainLine);
         nBoardedAgents[trainLine] = 0;
     }
 
@@ -302,12 +302,12 @@ public class TrainController : MonoBehaviour
         else
         {
             agent.done = true;
+            agent.shortestPath += Vector3.Distance(agent.tr.position, agent.previousPosition);
+			agent.previousPosition = agent.tr.position;
             agent.isPreparingToBoard = true;
             agent.isWaiting = false;
+            agent.waitingPosition = agent.tr.position;
         }
-
-        agent.waitingPosition = agent.tr.position;
-
     }
 
     internal void WaitOutsideTrain(Agent agent)

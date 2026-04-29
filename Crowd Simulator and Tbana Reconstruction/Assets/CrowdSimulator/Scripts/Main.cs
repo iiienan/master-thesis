@@ -252,11 +252,13 @@ public class Main : MonoBehaviour {
 			if (agent.isWaiting)
 			{
 				agent.PassiveMove();
+				agent.TickMetrics();
 				continue;
 			}
 			if (agent.done && agent.isPreparingToBoard)
 			{
 				agent.PassiveMove();
+				agent.TickMetrics();
 				continue;
 			}
 			if (agent.done && agent.isAlighting && agent.noMap)
@@ -342,16 +344,28 @@ public class Main : MonoBehaviour {
 					// Agent reached the waiting spot
 					else
 					{
-						waitingAreaController.putAgentInWaitingArea(agent);
+						waitingAreaController.SetWaitingAgent(agent);
 					}
 				}
 				else
 				{
 					float travelTime = simulationTime - agent.startTime;
-					float straightLine = Vector3.Distance(agent.spawnPosition, agent.finalPosition);
-					float efficiency = straightLine / agent.travelDistance;
-					Debug.LogWarning("Efficiency above 1: " + efficiency);
-					efficiency = Mathf.Min(efficiency, 1.0f);
+					float straightLine = 0f;
+					if(agent.boarding)
+					{
+						straightLine = Vector3.Distance(agent.spawnPosition, agent.waitingPosition) + Vector3.Distance(agent.waitingPosition, agent.finalPosition);
+					}else if(agent.isAlighting)
+					{
+						straightLine = Vector3.Distance(agent.spawnPosition, agent.finalPosition);
+					}
+					float efficiency = agent.shortestPath / agent.travelDistance;
+					if(efficiency > 1f)
+					{
+						Debug.LogWarning("Efficiency above 1: " + efficiency + " " + (straightLine - agent.travelDistance));
+						efficiency = 1f;
+						Debug.DrawLine(agent.tr.position, agent.tr.position + Vector3.up * 5f, Color.red, 10f);
+					}
+					
 					if (agent.boarding)
 					{
 						trainController.nBoardingAgents[agent.trainLine-1]--;
