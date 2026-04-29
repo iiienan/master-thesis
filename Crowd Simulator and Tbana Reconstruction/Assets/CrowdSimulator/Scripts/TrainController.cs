@@ -37,6 +37,7 @@ public class TrainController : MonoBehaviour
     [SerializeField] private float arrivalDelay = 10f;
     [SerializeField] private float boardingDelay = 1f;
     [SerializeField] private float exitingDelay = 5f;
+    internal bool done = false;
 
     void Awake()
     {
@@ -207,9 +208,9 @@ public class TrainController : MonoBehaviour
                     ToggleTrain(trainLine,false);
                     dwelling[trainLine] = false;
 
-                    if (mainScript.nExitingAgents <= 0 && trainStates[0] == TrainState.Exiting && trainStates[1] == TrainState.Exiting)
+                    if (trainStates[0] == TrainState.Exiting && trainStates[1] == TrainState.Exiting)
                     {
-                        UnityEditor.EditorApplication.isPlaying = false;
+                        done = true;
                     }
                 }
                 break;
@@ -382,7 +383,7 @@ public class TrainController : MonoBehaviour
 
     public void Board(int trainLine)
     {
-        if(logger != null) logger.LogEvent("Train " + trainLine + " started boarding");
+        if(testController.log) logger.LogEvent("Train " + trainLine + " started boarding");
         boarding[trainLine] = true;
         for (int i = mainScript.agentList.Count - 1; i >= 0; i--)
         {

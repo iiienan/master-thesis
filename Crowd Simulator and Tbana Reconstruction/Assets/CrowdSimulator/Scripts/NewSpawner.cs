@@ -152,6 +152,7 @@ public class NewSpawner : MonoBehaviour {
 			agent.tr.parent = agentEditorContainer.transform;
 
 		mainScript.agentList.Add (agent);
+		mainScript.nEnteringAgents++;
 	}
 
 	internal virtual int SetSubwayData(Agent agent, Vector3 startPosition)
