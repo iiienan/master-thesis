@@ -50,6 +50,11 @@ public class Logger : MonoBehaviour
             return;
         }
 
+        if(!testController.log)
+        {
+            return;
+        }
+
         fileNameTravelTime = testController.BuildLogFileName("TravelTime");
         Debug.Log($"Travel time log file name: {fileNameTravelTime}");
         filePathTravelTime = Path.Combine(Application.persistentDataPath, fileNameTravelTime);

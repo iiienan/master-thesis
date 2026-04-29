@@ -4,6 +4,7 @@ public class DensityLog : MonoBehaviour
 {
     private Main mainScript;
     private float timer = 0f;
+    private bool log = false;
 
     // Start is called before the first frame update
     void Start()
@@ -14,11 +15,21 @@ public class DensityLog : MonoBehaviour
             Debug.LogError("Main script not found in the scene.");
             return;
         }
+        TestController testController = FindObjectOfType<TestController>();
+        if(testController == null)        {
+            Debug.LogError("TestController not found in the scene.");
+            return;
+        }
+        log = testController.log;
     }
 
     // Update is called once per frame
     public void UpdateDensityLog()
     {
+        if(!log)
+        {
+            return;
+        }
         timer -= SimulationGrid.instance.dt;
         if(timer <= 0f)
         {

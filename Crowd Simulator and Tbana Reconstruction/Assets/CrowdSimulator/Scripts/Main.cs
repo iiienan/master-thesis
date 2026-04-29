@@ -164,8 +164,7 @@ public class Main : MonoBehaviour
 
 		for (int i = 0; i < roadmap.spawns.Count; ++i)
 		{
-			roadmap.spawns[i].spawner.InitializeSpawner(roadmap,
-											 xMinMax, zMinMax, agentAvoidanceRadius);
+			roadmap.spawns[i].spawner.InitializeSpawner(roadmap,xMinMax, zMinMax, agentAvoidanceRadius);
 		}
 
 		nExitingAgents = trainController.trains[0].GetComponent<Train>().numberOfAgents + trainController.trains[1].GetComponent<Train>().numberOfAgents;
@@ -191,13 +190,9 @@ public class Main : MonoBehaviour
 		simulationGrid.walkBack = walkBack;
 		simulationGrid.skipNodeIfSeeNext = skipNodeIfSeeNext;
 		simulationGrid.smoothTurns = smoothTurns;
-
 		simulationGrid.solver = solver;
 		simulationGrid.solverEpsilon = epsilon;
 		simulationGrid.solverMaxIterations = solverMaxIterations;
-
-
-
 	}
 
 
@@ -206,27 +201,14 @@ public class Main : MonoBehaviour
 	**/
 	void Update()
 	{
-
-		if (!simulationStarted)
+		// Wait a few seconds before starting the simulation
+		if(!simulationStarted)
 		{
-			simulationStartTimer -= Time.deltaTime;
-			if (simulationStartTimer <= 0f)
-			{
-				simulationStarted = true;
-				experimentHUD.realTimeStart = Time.realtimeSinceStartup;
-				Debug.Log("Simulation started");
-			}
-			else
-			{
-				return;
-			}
+			StartSimulation();
+			return;
 		}
 
 		simulationGrid.dt = customTimeStep ? timeStep : Time.deltaTime;
-
-
-
-
 		// Update grid with new density and velocity values
 		simulationGrid.updateCellDensity();
 		simulationGrid.updateVelocityNodes();
@@ -234,91 +216,55 @@ public class Main : MonoBehaviour
 		simulationGrid.PsolveRenormPsolve();
 
 
-
 		//Move agents
 		for (int i = agentList.Count - 1; i >= 0; i--)
 		{
 			Agent agent = agentList[i];
 
+			agent.CheckPositionAndRotation();
+			CheckOutsideBounds(agent, i);
+
 			if (agent.isWaitingForDelay)
 			{
-				agent.delayTimer -= simulationGrid.dt;
-				if (agent.delayTimer <= 0f)
-				{
-					agent.isWaitingForDelay = false;
-					agent.Reset();
-				}
-				else
+				HandleAgentWaitingForDelay(agent);
+				continue;
+			}
+
+			if (agent.done)
+			{
+				if (HandleSpecialCaseAgent(agent))
 				{
 					continue;
 				}
-			}
 
-			agent.CheckPositionAndRotation();
-
-
-			if (agent.isWaiting)
-			{
-				MoveAgent(agent, false);	
-				continue;
-			}
-			if (agent.done && agent.isPreparingToBoard)
-			{
-				MoveAgent(agent, false);
-				continue;
-			}
-			if (agent.done && agent.isAlighting && agent.noMap)
-			{
-				agent.noMap = false;
-				agent.done = false;
-				continue;
-			}
-
-			// remove agent if it is outside the bounds of the plane
-			if (Mathf.Abs(agent.tr.position.x) > planeSizeX * 5f || Mathf.Abs(agent.tr.position.z) > planeSizeZ * 5f || agent.tr.position.y > 0.5f)
-			{
-				if (agent.isWaitingAgent)
-				{
-					agent.waitingArea.freeWaitingSpots.Add(agent.waitingSpot);
-					agent.isWaitingAgent = false;
-				}
-				Debug.Log("Agent outside of bounds, removing");
-				agentList.RemoveAt(i);
-				Destroy(agent.gameObject);
-			}
-			if (agent.done)
-			{
 				HandleAgentDone(agent, i);
 				continue;
 			}
+
 			MoveAgent(agent, true);
-			agent.rbody.velocity = Vector3.zero;
-			agent.rbody.angularVelocity = Vector3.zero;
 		}
+
 		//Pair-wise collision handling between agents
 		simulationGrid.collisionHandling(agentList);
 
 		trainController.TrainControllerUpdate();
 
-		for (int i = 0; i < roadmap.spawns.Count; ++i)
+		// Update spawners
+		if(spawnAgents)
 		{
-			if (agentList.Count < testController.entryFlow && spawnAgents)
+			for (int i = 0; i < roadmap.spawns.Count; ++i)
 			{
-				roadmap.spawns[i].spawner.UpdateSpawner();
+				if (agentList.Count < testController.entryFlow)
+				{
+					roadmap.spawns[i].spawner.UpdateSpawner();
+				}
 			}
 		}
-
-
-
-		if (losVisualizer != null && simulationTime >= testController.arriveInterval && testController.log && takeScreenshot && agentList.Count >= testController.entryFlow)
-		{
-			losVisualizer.UpdateLOS();
-			losVisualizer.takeScreenshot();
-			takeScreenshot = false;
-		}
-
+		
+		// Log metrics
 		if (testController.log)
 		{
+			TakeScreenshot();
 			densityLog.UpdateDensityLog();
 		}
 
@@ -330,6 +276,71 @@ public class Main : MonoBehaviour
 		experimentHUD.RegisterSimTick();
 
 		// Check for simulation end condition
+		EndSimulation();
+
+		simulationTime += simulationGrid.dt;
+	}
+
+	private bool HandleSpecialCaseAgent(Agent agent)
+	{
+		if (agent.isWaiting)
+		{
+			MoveAgent(agent, false);	
+			return true;
+		}
+		if (agent.isPreparingToBoard)
+		{
+			MoveAgent(agent, false);
+			return true;
+		}
+		if (agent.isAlighting && agent.noMap)
+		{
+			agent.noMap = false;
+			agent.done = false;
+			MoveAgent(agent, true);
+			return true;
+		}
+		// Agent reached the waiting area
+		if (agent.isWaitingAgent && !agent.noMap)
+		{
+			waitingAreaController.walkAgentToWaitingSpot(agent);
+			MoveAgent(agent, true);
+			return true;
+		}
+		// Agent reached the waiting spot
+		if(agent.isWaitingAgent && agent.noMap)
+		{
+			waitingAreaController.SetWaitingAgent(agent);
+			MoveAgent(agent, false);
+			return true;
+		}
+		return false;
+	}
+
+	private void HandleAgentWaitingForDelay(Agent agent)
+	{
+		agent.delayTimer -= simulationGrid.dt;
+		if (agent.delayTimer <= 0f)
+		{
+			agent.isWaitingForDelay = false;
+			agent.Reset();
+		}
+				
+	}
+
+	private void StartSimulation()
+	{
+		simulationStartTimer -= Time.deltaTime;
+		if (simulationStartTimer <= 0f)
+		{
+			simulationStarted = true;
+			experimentHUD.realTimeStart = Time.realtimeSinceStartup;
+			Debug.Log("Simulation started");
+		}
+	}
+
+	private void EndSimulation()
+	{
 		if (nExitingAgents <= 0 && !exitDone)
 		{
 			if (testController.log) { logger.LogEvent("All exiting agents have exited the platform"); }
@@ -344,51 +355,55 @@ public class Main : MonoBehaviour
 		if(exitDone && enterDone && trainController.done)
 		{
 			if (testController.log) { logger.LogEvent("Simulation ended"); }
-			Debug.Log("Simulation ended at time: " + simulationTime);
+			Debug.Log("Simulation ended");
 			UnityEditor.EditorApplication.isPlaying = false;
 		}
+	}
 
-		simulationTime += simulationGrid.dt;
+	private void TakeScreenshot()
+	{
+		if (losVisualizer != null && simulationTime >= testController.arriveInterval && takeScreenshot && agentList.Count >= testController.entryFlow)
+		{
+			losVisualizer.UpdateLOS();
+			losVisualizer.takeScreenshot();
+			takeScreenshot = false;
+		}
+	}
 
+	private void CheckOutsideBounds(Agent agent, int index)
+	{
+		if (Mathf.Abs(agent.tr.position.x) > planeSizeX * 5f || Mathf.Abs(agent.tr.position.z) > planeSizeZ * 5f || agent.tr.position.y > 0.5f)
+		{
+			if (agent.isWaitingAgent)
+			{
+				agent.waitingArea.freeWaitingSpots.Add(agent.waitingSpot);
+				agent.isWaitingAgent = false;
+			}
+			Debug.Log("Agent outside of bounds, removing");
+			agentList.RemoveAt(index);
+			Destroy(agent.gameObject);
+		}
 	}
 
 	private void HandleAgentDone(Agent agent, int index)
 	{
-		if (agent.isWaitingAgent)
+		if (testController.log)
 		{
-			// Agent reached the waiting area
-			if (!agent.noMap)
-			{
-				waitingAreaController.walkAgentToWaitingSpot(agent);
-				MoveAgent(agent, true);
-			}
-			// Agent reached the waiting spot
-			else
-			{
-				waitingAreaController.SetWaitingAgent(agent);
-			}
+			LogMetrics(agent);
 		}
-		else
+
+		if (agent.boarding)
 		{
-			if (testController.log)
-			{
-				LogMetrics(agent);
-			}
-
-			if (agent.boarding)
-			{
-				trainController.nBoardingAgents[agent.trainLine - 1]--;
-				nEnteringAgents--;
-				agentList.RemoveAt(index);
-				Destroy(agent.gameObject);
-			}
-			else if (agent.isAlighting)
-			{
-				nExitingAgents--;
-				agentList.RemoveAt(index);
-				Destroy(agent.gameObject);
-			}
-
+			trainController.nBoardingAgents[agent.trainLine - 1]--;
+			nEnteringAgents--;
+			agentList.RemoveAt(index);
+			Destroy(agent.gameObject);
+		}
+		else if (agent.isAlighting)
+		{
+			nExitingAgents--;
+			agentList.RemoveAt(index);
+			Destroy(agent.gameObject);
 		}
 	}
 
@@ -432,6 +447,8 @@ public class Main : MonoBehaviour
 			agent.PassiveMove();
 		}
 		agent.TickMetrics(isMoving);
+		agent.rbody.velocity = Vector3.zero;
+		agent.rbody.angularVelocity = Vector3.zero;
 	}
 
 }
