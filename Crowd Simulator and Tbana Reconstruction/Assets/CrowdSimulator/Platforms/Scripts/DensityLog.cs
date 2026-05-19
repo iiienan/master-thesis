@@ -57,7 +57,7 @@ public class DensityLog : MonoBehaviour
                         platform2Count++;
                     }
                 }
-                mainScript.logger.LogDensity(platform1Count + "," + platform2Count);
+                mainScript.logger.LogDensity(platform1Count + "," + platform2Count + ",");
                 break;
             case TrainController.PlatformType.Side:
                 foreach(Agent agent in mainScript.agentList)
@@ -72,7 +72,7 @@ public class DensityLog : MonoBehaviour
                         platform2Count++;
                     }
                 }
-                mainScript.logger.LogDensity(platform1Count + "," + platform2Count);
+                mainScript.logger.LogDensity(platform1Count + "," + platform2Count + ",");
                 break;
             case TrainController.PlatformType.Mixed:
                 int middlePlatformCount = 0;

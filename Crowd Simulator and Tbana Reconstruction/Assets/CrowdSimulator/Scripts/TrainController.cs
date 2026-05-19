@@ -34,14 +34,15 @@ public class TrainController : MonoBehaviour
     internal bool[] dwelling = new bool[2];
     internal bool waitOutsideTrain = false;
     private Vector3[] nodePositions;
-    [SerializeField] private float arrivalDelay = 10f;
-    [SerializeField] private float boardingDelay = 1f;
-    [SerializeField] private float exitingDelay = 5f;
+    [SerializeField] internal float arrivalDelay = 10f;
+    [SerializeField] internal float boardingDelay = 1f;
+    [SerializeField] internal float exitingDelay = 5f;
     internal bool done = false;
 
     void Awake()
     {
         instance = this;
+        RunManager.Instance?.ApplyParamsToTrainController(this);
     }
 
     void Start()
@@ -66,12 +67,6 @@ public class TrainController : MonoBehaviour
         {
             Debug.LogError("Logger not found");
         }
-
-        Debug.Log("Test Case: " + platformType + " " + testController.scenario + " " + flow + " AB: " + alightBeforeBoarding.ToString());
-
-        Debug.Log("Number of entering agents: " + nAgents);
-
-        Debug.Log("Number of exiting agents: Train 1: " + trains[0].GetComponent<Train>().numberOfAgents + " Train 2: " + trains[1].GetComponent<Train>().numberOfAgents);
 
         for(int i = 0; i < trains.Length; i++)
         {
@@ -120,7 +115,6 @@ public class TrainController : MonoBehaviour
         dwelling[trainLine] = true;
         stateTimer[trainLine] = arrivalDelay;
         PrepareBoarding(trainLine);
-        if(logger != null) logger.LogEvent("Train " + trainLine + " arrived");
         mainScript.spawnAgents = false;
     }
 
@@ -144,7 +138,7 @@ public class TrainController : MonoBehaviour
                     {
                         spawner.isSpawning = true;
                     }
-                    if (logger != null) logger.LogEvent("Train " + trainLine + " started alighting");
+                    if (logger != null) logger.alightingStartTime[trainLine] = mainScript.simulationTime;
 
                     trainStates[trainLine] = TrainState.BoardingAlighting;
 
@@ -170,8 +164,7 @@ public class TrainController : MonoBehaviour
                 if(spawnersDone && !allSpawnersDone[trainLine])
                 {
                     allSpawnersDone[trainLine] = true;
-                    if (logger != null) logger.LogEvent("Train " + trainLine + " finished alighting");
-                    Debug.Log("Train " + trainLine + " finished alighting");
+                    if (logger != null) logger.alightingEndTime[trainLine] = mainScript.simulationTime;
                     if(alightBeforeBoarding)
                     {
                         stateTimer[trainLine] = boardingDelay;
@@ -193,8 +186,7 @@ public class TrainController : MonoBehaviour
 
                 if(spawnersDone && boardingComplete && boarding[trainLine])
                 {
-                    if (logger != null) logger.LogEvent("Train " + trainLine + " finished boarding");
-                    Debug.Log("Train " + trainLine + " finished boarding");
+                    if (logger != null) logger.boardingEndTime[trainLine] = mainScript.simulationTime;
                     boarding[trainLine] = false;
                     trainStates[trainLine] = TrainState.Exiting;
                     stateTimer[trainLine] = exitingDelay;
@@ -383,7 +375,7 @@ public class TrainController : MonoBehaviour
 
     public void Board(int trainLine)
     {
-        if(testController.log) logger.LogEvent("Train " + trainLine + " started boarding");
+        if(logger != null) logger.boardingStartTime[trainLine] = mainScript.simulationTime;
         boarding[trainLine] = true;
         for (int i = mainScript.agentList.Count - 1; i >= 0; i--)
         {

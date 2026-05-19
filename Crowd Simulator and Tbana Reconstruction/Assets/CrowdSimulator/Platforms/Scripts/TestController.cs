@@ -1,5 +1,5 @@
+using System.IO;
 using System.Text;
-using System.Threading;
 using UnityEngine;
 
 public class TestController : MonoBehaviour
@@ -7,7 +7,8 @@ public class TestController : MonoBehaviour
     public enum Scenario
     {
         Entry,
-        Exit
+        Exit,
+        EntryExit
     }
     public Scenario scenario;
     public TrainController.Flow flowType;
@@ -18,13 +19,20 @@ public class TestController : MonoBehaviour
     public bool log = true;
 
     internal string logFileNames;
+    internal string logFolder;
     private TrainController trainController;
     private Main main;
     private Logger logger;
     public bool waitOutsideTrain = false;
+    internal int runIndex = 0;
+
+    internal int[] entryFlowLines = new int[2];
+    internal int[] exitFlowLines = new int[2];
+
 
     private void Awake()
     {
+        RunManager.Instance?.ApplyParamsToTestController(this);
         trainController = FindObjectOfType<TrainController>();
         if(trainController == null)
         {
@@ -36,32 +44,11 @@ public class TestController : MonoBehaviour
         {
             Debug.LogError("Main not found in the scene.");
         }
-        if(log) logger = FindObjectOfType<Logger>();
-        if (logger == null && log)
-        {
-            Debug.LogError("Logger not found in the scene.");
-        }
 
-        StringBuilder sb = new StringBuilder();
-
-        sb.Append(trainController.platformType.ToString());
-        sb.Append(scenario.ToString());
-        sb.Append(flowType.ToString());
-
-        sb.Append(entryFlow.ToString());
-        sb.Append("_");
-        sb.Append(exitFlow.ToString());
-
-        if (alightBeforeBoarding)
-        {
-            sb.Append("AB");
-        }
-
-        sb.Append(".csv");
-
-        logFileNames = sb.ToString();
-
+        SetFlows();
+        SetTrainControllerParameters();
     }
+
 
     private void OnValidate()
     {
@@ -75,32 +62,58 @@ public class TestController : MonoBehaviour
         }
     }
 
+    internal void SetFlows()
+    {
+        if (scenario == Scenario.Entry)
+        {
+            if(flowType == TrainController.Flow.Symmetric)
+            {
+                entryFlowLines[0] = entryFlow / 2;
+                entryFlowLines[1] = entryFlow / 2;
+            }
+            else
+            {
+                entryFlowLines[0] = (int)(entryFlow * (4f / 5f));
+                entryFlowLines[1] = (int)(entryFlow * (1f / 5f));
+            }
+            exitFlowLines[0] = exitFlow / 2;
+            exitFlowLines[1] = exitFlow / 2;
+        } 
+        else if(scenario == Scenario.Exit)
+        {
+            if(flowType == TrainController.Flow.Symmetric)
+            {
+                exitFlowLines[0] = exitFlow / 2;
+                exitFlowLines[1] = exitFlow / 2;
+            }
+            else
+            {
+                exitFlowLines[0] = (int)(exitFlow * (4f / 5f));
+                exitFlowLines[1] = (int)(exitFlow * (1f / 5f));
+            }
+            entryFlowLines[0] = entryFlow / 2;
+            entryFlowLines[1] = entryFlow / 2;
+        }
+        else if(scenario == Scenario.EntryExit)
+        {
+            entryFlowLines[0] = entryFlow / 2;
+            entryFlowLines[1] = entryFlow / 2;
+            exitFlowLines[0] = exitFlow / 2;
+            exitFlowLines[1] = exitFlow / 2;
+        }
+    }
+
     internal void SetTrainControllerParameters()
     {
         trainController.flow = flowType;
         trainController.nAgents = entryFlow;
         trainController.arriveInterval = arriveInterval;
         trainController.alightBeforeBoarding = alightBeforeBoarding;
-        Train train0 = trainController.trains[0].GetComponent<Train>();
-        Train train1 = trainController.trains[1].GetComponent<Train>();
-
-        if (flowType == TrainController.Flow.Asymmetric && scenario == Scenario.Exit)
-        {
-            train0.numberOfAgents = (int)(exitFlow * (4f / 5f));
-            train1.numberOfAgents = (int)(exitFlow * (1f / 5f));
-        }
-        else
-        {
-            train0.numberOfAgents = exitFlow / 2;
-            train1.numberOfAgents = exitFlow / 2;
-        }
-        trainController.waitOutsideTrain = waitOutsideTrain;
+        trainController.trains[0].GetComponent<Train>().numberOfAgents = exitFlowLines[0];
+        trainController.trains[1].GetComponent<Train>().numberOfAgents = exitFlowLines[1];
     }
 
 
-    internal string BuildLogFileName(string prefix)
-    {
-        return prefix + logFileNames;
-    }
+
 
 }

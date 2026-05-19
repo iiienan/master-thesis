@@ -1,37 +1,49 @@
 using UnityEngine;
 using System.IO;
 using System.Text;
-using System.Globalization; // Required for CultureInfo.InvariantCulture
+using System.Globalization;
 
 public class Logger : MonoBehaviour
 {
-    // --- Configuration ---
-    [Header("Logging Settings")]
-    [Tooltip("Name of the CSV file. Will be stored in Application.persistentDataPath.")]
-    internal string fileNameTravelTime = "TravelTimeLog";
-    internal string fileNameSimulation = "SimulationLog";
-    internal string fileNameYellowLine = "YellowLineLog";
-    internal string fileNameTravelDistance = "TravelDistanceLog";
-    internal string fileNameDensity = "DensityLog";
+    internal string fileNameMasterSummary = "master_summary_log.csv";
+    internal string fileNameMasterDensity = "master_density_time_series.csv";
+    internal string fileNameWarningLog = "warning_log.csv";
+    internal string fileNameYellowLineLog = "yellow_line_log.csv";
+
     private Main main;
     private TrainController trainController;
     private TestController testController;
 
     // Internal state
-    private string filePathTravelTime;
-    private string filePathSimulation;
-    private string filePathYellowLine;
-    private string filePathTravelDistance;
-    private string filePathDensity;
+    private string filePathMasterSummary;
+    private string filePathMasterDensity;
+    private string filePathWarningLog;
+    private string filePathYellowLineLog;
+    private string scenarioHeader;
+    internal string scenarioPrefix;
 
-    private StreamWriter travelTimeWriter;
+    private StreamWriter summaryWriter;
+    private StreamWriter densityTimeSeriesWriter;
     private StreamWriter yellowLineWriter;
-    private StreamWriter travelDistanceWriter;
-    private StreamWriter densityWriter;
+    private StreamWriter warningWriter;
 
+    internal float[] alightingStartTime = new float[2];
+    internal float[] boardingStartTime = new float[2];
+    internal float[] alightingEndTime = new float[2];
+    internal float[] boardingEndTime = new float[2];
+    internal float[] allAlightersExitedTimestamp = new float[2];
+    internal int nYellowLineOversteps = 0;
+
+    // Agent metrics
+    internal float[,] totalTravelTime = new float[2, 2];
+    internal float[,] totalDistance = new float[2, 2];
+    internal float[,] totalPathEfficiency = new float[2, 2];
+    internal int[,] totalAgents = new int[2, 2];
+    internal float[,] totalSpeed = new float[2, 2];
+
+    
     void Start()
     {
-        Debug.Log(Application.persistentDataPath);
         main = FindObjectOfType<Main>();
         if (main == null)
         {
@@ -39,7 +51,7 @@ public class Logger : MonoBehaviour
             return;
         }
         trainController = FindObjectOfType<TrainController>();
-        if (trainController == null)        {
+        if (trainController == null) {
             Debug.LogError("TrainController not found in the scene.");
             return;
         }
@@ -50,288 +62,302 @@ public class Logger : MonoBehaviour
             return;
         }
 
-        if(!testController.log)
+        if (!testController.log)
         {
             return;
         }
 
-        fileNameTravelTime = testController.BuildLogFileName("TravelTime");
-        Debug.Log($"Travel time log file name: {fileNameTravelTime}");
-        filePathTravelTime = Path.Combine(Application.persistentDataPath, fileNameTravelTime);
+        fileNameMasterSummary = $"master_summary.csv";
+        fileNameMasterDensity = $"master_density_time_series.csv";
+        fileNameWarningLog = $"warning_log.csv";
+        fileNameYellowLineLog = $"yellow_line_log.csv";
 
-        try
-        {
-            travelTimeWriter = new StreamWriter(filePathTravelTime, false); // Overwrite the file
-            WriteHeaderTravelTime(); // Write column names once
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Failed to open travel time log file: {e.Message}");
-        }
+        // Resolve absolute paths
+        filePathMasterSummary = Path.Combine(Application.persistentDataPath, fileNameMasterSummary);
+        filePathMasterDensity = Path.Combine(Application.persistentDataPath, fileNameMasterDensity);
+        filePathWarningLog = Path.Combine(Application.persistentDataPath, fileNameWarningLog);
+        filePathYellowLineLog = Path.Combine(Application.persistentDataPath, fileNameYellowLineLog);
 
-        fileNameSimulation = testController.BuildLogFileName("Simulation");
-        Debug.Log($"Simulation log file name: {fileNameSimulation}");
-        filePathSimulation = Path.Combine(Application.persistentDataPath, fileNameSimulation);
+        EnsureDirectory(filePathMasterSummary);
+        EnsureDirectory(filePathMasterDensity);
+        EnsureDirectory(filePathWarningLog);
+        EnsureDirectory(filePathYellowLineLog);
 
-        WriteHeaderSimulation();
+        scenarioHeader = "RunID,Platform,Scenario,FlowType,EntryFlowTotal,ExitFlowTotal,AlightBeforeBoarding,EntryFlowT1,EntryFlowT2,ExitFlowT1,ExitFlowT2";
+        scenarioPrefix = string.Join(",",
+            testController.runIndex.ToString(),
+            trainController.platformType.ToString(),
+            testController.scenario.ToString(),
+            testController.flowType.ToString(),
+            testController.entryFlow.ToString(),
+            testController.exitFlow.ToString(),
+            testController.alightBeforeBoarding.ToString(),
+            testController.entryFlowLines[0].ToString(),
+            testController.entryFlowLines[1].ToString(),
+            testController.exitFlowLines[0].ToString(),
+            testController.exitFlowLines[1].ToString()
+        );
 
-        fileNameYellowLine = testController.BuildLogFileName("YellowLine");
-        Debug.Log($"Yellow line log file name: {fileNameYellowLine}");
-        filePathYellowLine = Path.Combine(Application.persistentDataPath, fileNameYellowLine);
+        summaryWriter = OpenWriter(filePathMasterSummary, true);
+        densityTimeSeriesWriter = OpenWriter(filePathMasterDensity, true);
+        warningWriter = OpenWriter(filePathWarningLog, true);
+        yellowLineWriter = OpenWriter(filePathYellowLineLog, true);
 
-        try
-        {
-            yellowLineWriter = new StreamWriter(filePathYellowLine, false); // Overwrite the file
-            WriteHeaderYellowLine(); // Write column names once
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Failed to open travel time log file: {e.Message}");
-        }
+        if (summaryWriter != null && new FileInfo(filePathMasterSummary).Length == 0) WriteHeaderMasterSummary();
+        if (densityTimeSeriesWriter != null && new FileInfo(filePathMasterDensity).Length == 0) WriteHeaderMasterDensity();
+        if (warningWriter != null && new FileInfo(filePathWarningLog).Length == 0) WriteHeaderWarningLog();
+        if (yellowLineWriter != null && new FileInfo(filePathYellowLineLog).Length == 0) WriteHeaderYellowLineLog();
+    }
 
-        fileNameTravelDistance = testController.BuildLogFileName("TravelDistance");
-        Debug.Log($"Travel distance log file name: {fileNameTravelDistance}");
-        filePathTravelDistance = Path.Combine(Application.persistentDataPath, fileNameTravelDistance);
+    public void CloseAllWriters()
+    {
+        FlushAndClose(ref summaryWriter, "Master Summary");
+        FlushAndClose(ref densityTimeSeriesWriter, "Master Density Time Series");
+        FlushAndClose(ref warningWriter, "Warning Log");
+        FlushAndClose(ref yellowLineWriter, "Yellow Line Log");
+    }
 
-        try
+    private void EnsureDirectory(string filePath)
+    {
+        string dir = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
         {
-            travelDistanceWriter = new StreamWriter(filePathTravelDistance, false); // Overwrite the file
-            WriteHeaderTravelDistance(); // Write column names once
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Failed to open travel distance log file: {e.Message}");
-        }
-
-        fileNameDensity = testController.BuildLogFileName("Density");
-        filePathDensity = Path.Combine(Application.persistentDataPath, fileNameDensity);
-        try
-        {
-            densityWriter = new StreamWriter(filePathDensity, false); // Overwrite the file
-            WriteHeaderDensity();
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Failed to open density log file: {e.Message}");
+            Directory.CreateDirectory(dir);
         }
     }
 
-    private void WriteHeaderYellowLine()
+    private StreamWriter OpenWriter(string filePath, bool append)
     {
-        if (yellowLineWriter == null)
+        try
         {
-            Debug.LogError("Yellow line writer is not initialized.");
-            return;
+            return new StreamWriter(filePath, append, Encoding.UTF8); 
         }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Logger] Failed to open file '{filePath}': {e.Message}");
+            return null;
+        }
+    }
 
-        StringBuilder header = new StringBuilder("TimeStamp,PositionX,PositionZ");
+    private void FlushAndClose(ref StreamWriter writer, string label)
+    {
+        if (writer == null) return;
+        try
+        {
+            writer.Flush();
+            writer.Close();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Logger] Error closing {label} writer: {e.Message}");
+        }
+        writer = null;
+    }
+
+    private void WriteHeaderMasterSummary()
+    {
+        if (summaryWriter == null) return;
+
+        StringBuilder header = new StringBuilder();
+        header.Append(scenarioHeader + ",");
+        
+        // Trainline 1 specific metrics
+        header.Append("AlightingTime_T1,BoardingTime_T1,TotalBAT_T1,AllAlightersExitTime_T1,AvgTravelTime_T1_boarding,AvgTravelTime_T1_alighting,AvgDistance_T1_boarding,AvgDistance_T1_alighting,AvgSpeed_T1_boarding,AvgSpeed_T1_alighting,AvgPathEfficiency_T1_boarding,AvgPathEfficiency_T1_alighting,");
+        
+        // Trainline 2 specific metrics
+        header.Append("AlightingTime_T2,BoardingTime_T2,TotalBAT_T2,AllAlightersExitTime_T2,AvgTravelTime_T2_boarding,AvgTravelTime_T2_alighting,AvgDistance_T2_boarding,AvgDistance_T2_alighting,AvgSpeed_T2_boarding,AvgSpeed_T2_alighting,AvgPathEfficiency_T2_boarding,AvgPathEfficiency_T2_alighting,");
+        
+        // Run-wide global metrics
+        header.Append("TimeClearPlatformTotal,AvgTravelTime_boarding,AvgTravelTime_alighting,AvgDistance_boarding,AvgDistance_alighting,AvgSpeed_boarding,AvgSpeed_alighting,AvgPathEfficiency_boarding,AvgPathEfficiency_alighting,YellowLineOverstepsTotal");
+        
+        summaryWriter.WriteLine(header.ToString());
+    }
+
+    private void WriteHeaderMasterDensity()
+    {
+        if (densityTimeSeriesWriter == null) return;
+        StringBuilder header = new StringBuilder(scenarioHeader + ",TimeStamp,Platform1,Platform2,MiddlePlatform");
+        densityTimeSeriesWriter.WriteLine(header.ToString());
+    }
+
+    private void WriteHeaderWarningLog()
+    {
+        if (warningWriter == null) return;
+        StringBuilder header = new StringBuilder(scenarioHeader + ",TimeStamp,WarningMessage");
+        warningWriter.WriteLine(header.ToString());
+    }
+
+    private void WriteHeaderYellowLineLog()
+    {
+        if (yellowLineWriter == null) return;
+        StringBuilder header = new StringBuilder(scenarioHeader + ",TimeStamp,PassengerType,PositionX,PositionZ");
         yellowLineWriter.WriteLine(header.ToString());
     }
-    private void WriteHeaderSimulation()
+
+    public void LogWarning(string warningMessage)
     {
-        try
-        {
-            // Use 'false' in StreamWriter to overwrite the file and write a new header
-            using (StreamWriter sw = new StreamWriter(filePathSimulation, false))
-            {
-                // The header will now only contain the common columns for all entries
-                StringBuilder header = new StringBuilder("TimeStamp,Event");
-                sw.WriteLine(header.ToString());
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Error writing CSV header for simulation: {e.Message}");
-        }
-    }
-
-    private void WriteHeaderTravelDistance()
-    {
-        if (travelDistanceWriter == null)
-        {
-            Debug.LogError("Travel distance writer is not initialized.");
-            return;
-        }
-
-        StringBuilder header = new StringBuilder("PassengerType,TrainLine,TravelDistance,AverageSpeed,Efficiency");
-        travelDistanceWriter.WriteLine(header.ToString());
-    }
-
-    private void WriteHeaderTravelTime()
-    {
-        if (travelTimeWriter == null)
-        {
-            Debug.LogError("Travel time writer is not initialized.");
-            return;
-        }
-
-        StringBuilder header = new StringBuilder("PassengerType,TrainLine,TravelTime,Start,End");
-        travelTimeWriter.WriteLine(header.ToString());
-    }
-
-    private void WriteHeaderDensity()
-    {
-        if (densityWriter == null)
-        {
-            Debug.LogError("Density writer is not initialized.");
-            return;
-        }
-
-        StringBuilder header;
-        switch (trainController.platformType)
-        {
-            case TrainController.PlatformType.Central:
-                header = new StringBuilder("TimeStamp,Platform1,Platform2");
-                densityWriter.WriteLine(header.ToString());
-                break;
-            case TrainController.PlatformType.Side:
-                header = new StringBuilder("TimeStamp,Platform1,Platform2");
-                densityWriter.WriteLine(header.ToString());
-                break;
-            case TrainController.PlatformType.Mixed:
-                header = new StringBuilder("TimeStamp,Platform1,Platform2,MiddlePlatform");
-                densityWriter.WriteLine(header.ToString());
-                break;
-            default:
-                Debug.LogError("Unknown platform type in Logger.");
-                break;
-        }
-    }
-
-    // true boarding, false alighting
-    public void LogTravelTime(float travelTime, bool passengerTypeBoarding, int trainLine, float start)
-    {
-        if (travelTimeWriter == null)
-        {
-            Debug.LogError("Travel time writer is not initialized.");
-            return;
-        }
+        if (warningWriter == null) return;
 
         StringBuilder line = new StringBuilder();
-
-        if (passengerTypeBoarding)
-        {
-            line.Append("Boarding,");
-        }
-        else
-        {
-            line.Append("Alighting,");
-        }
-        line.Append(trainLine.ToString());
-        line.Append(",");
-        line.Append(travelTime.ToString("F2", CultureInfo.InvariantCulture));
-        line.Append(",");
-        line.Append(start.ToString("F2", CultureInfo.InvariantCulture));
-        line.Append(",");
-        line.Append(main.simulationTime.ToString("F2", CultureInfo.InvariantCulture));
-        travelTimeWriter.WriteLine(line.ToString());
-    }
-
-    public void LogTravelDistance(float travelDistance, bool passengerTypeBoarding, int trainLine, float averageSpeed, float efficiency)
-    {
-        if (travelDistanceWriter == null)
-        {
-            Debug.LogError("Travel distance writer is not initialized.");
-            return;
-        }
-
-        StringBuilder line = new StringBuilder();
-
-        if (passengerTypeBoarding)
-        {
-            line.Append("Boarding,");
-        }
-        else
-        {
-            line.Append("Alighting,");
-        }
-        line.Append(trainLine.ToString());
-        line.Append(",");
-        line.Append(travelDistance.ToString("F2", CultureInfo.InvariantCulture));
-        line.Append(",");
-        line.Append(averageSpeed.ToString("F2", CultureInfo.InvariantCulture));
-        line.Append(",");
-        line.Append(efficiency.ToString("F2", CultureInfo.InvariantCulture));
-        travelDistanceWriter.WriteLine(line.ToString());
-    }
-
-    public void LogEvent(string eventDescription)
-    {
-        try
-        {
-            using (StreamWriter sw = new StreamWriter(filePathSimulation, true)) // 'true' to append
-            {
-                StringBuilder line = new StringBuilder();
-                line.Append(main.simulationTime.ToString("F2", CultureInfo.InvariantCulture));
-                line.Append(",");
-                line.Append(eventDescription);
-                sw.WriteLine(line.ToString());
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Error logging event: {e}");
-        }
+        line.Append(scenarioPrefix + ",");
+        line.Append(main.simulationTime.ToString("F2", CultureInfo.InvariantCulture) + ",");
+        line.Append(warningMessage);
+        warningWriter.WriteLine(line.ToString());
     }
 
     public void LogYellowLineViolation(Vector3 position)
     {
-        if (yellowLineWriter == null)
-        {
-            Debug.LogError("Yellow line writer is not initialized.");
-            return;
-        }
+        if (yellowLineWriter == null) return;
 
         StringBuilder line = new StringBuilder();
-        line.Append(main.simulationTime.ToString("F2", CultureInfo.InvariantCulture));
-        line.Append(",");
-        line.Append(position.x.ToString("F2", CultureInfo.InvariantCulture));
-        line.Append(",");
+        line.Append(scenarioPrefix + ",");
+        line.Append(main.simulationTime.ToString("F2", CultureInfo.InvariantCulture) + ",");
+        line.Append(position.x.ToString("F2", CultureInfo.InvariantCulture) + ",");
         line.Append(position.z.ToString("F2", CultureInfo.InvariantCulture));
         yellowLineWriter.WriteLine(line.ToString());
     }
 
-    public void LogDensity(string density)
+    public void LogDensity(string densityValues)
     {
-        if (densityWriter == null)
+        if (densityTimeSeriesWriter == null) return;
+
+        StringBuilder line = new StringBuilder();
+        line.Append(scenarioPrefix + ",");
+        line.Append(main.simulationTime.ToString("F2", CultureInfo.InvariantCulture));
+        line.Append(",");
+        line.Append(densityValues);
+        densityTimeSeriesWriter.WriteLine(line.ToString());
+    }
+
+
+    public void LogRunSummary()
+    {
+        if (summaryWriter == null)
         {
-            Debug.LogError("Density writer is not initialized.");
+            Debug.LogError("Summary writer is not initialized.");
             return;
         }
 
+        float[] alightingTime = new float[2];
+        for(int i = 0; i < 2; i++)
+        {
+            alightingTime[i] = alightingEndTime[i] - alightingStartTime[i];
+        }
+        float[] boardingTime = new float[2];
+        for(int i = 0; i < 2; i++)
+        {
+            boardingTime[i] = boardingEndTime[i] - boardingStartTime[i];
+        }
+        float[] totalTime = new float[2];
+        for(int i = 0; i < 2; i++)
+        {
+            totalTime[i] = Mathf.Max(alightingEndTime[i], boardingEndTime[i]) - alightingStartTime[i];
+        }
+        float[] allAlightersExitTime = new float[2];
+        for(int i = 0; i < 2; i++)
+        {
+            allAlightersExitTime[i] = allAlightersExitedTimestamp[i] - alightingStartTime[i];
+        }
+
+        float[,] avgTravelTime = new float[2, 2];
+        float[,] avgDistance = new float[2, 2];
+        float[,] avgSpeed = new float[2, 2];
+        float[,] avgPathEfficiency = new float[2, 2];
+        for (int i = 0; i < 2; i++)
+        {
+            for (int j = 0; j < 2; j++)
+            {
+                avgTravelTime[i, j] = totalAgents[i, j] > 0 ? totalTravelTime[i, j] / totalAgents[i, j] : 0f;
+                avgDistance[i, j] = totalAgents[i, j] > 0 ? totalDistance[i, j] / totalAgents[i, j] : 0f;
+                avgSpeed[i, j] = totalAgents[i, j] > 0 ? totalSpeed[i, j] / totalAgents[i, j] : 0f;
+                avgPathEfficiency[i, j] = totalAgents[i, j] > 0 ? totalPathEfficiency[i, j] / totalAgents[i, j] : 0f;
+            }
+        }
+
+        int totalAgentsBoarding = totalAgents[0, 0] + totalAgents[0, 1];
+        int totalAgentsAlighting = totalAgents[1, 0] + totalAgents[1, 1];
+
+        float timeClearPlatformTotal = Mathf.Max(allAlightersExitedTimestamp[0], boardingEndTime[0], allAlightersExitedTimestamp[1], boardingEndTime[1]) - Mathf.Min(alightingStartTime[0], boardingStartTime[0], alightingStartTime[1], boardingStartTime[1]);
+        float avgTravelTimeBoarding = (totalTravelTime[0, 0] + totalTravelTime[0, 1]) / totalAgentsBoarding;
+        float avgTravelTimeAlighting = (totalTravelTime[1, 0] + totalTravelTime[1, 1]) / totalAgentsAlighting;
+        float avgDistanceBoarding = (totalDistance[0, 0] + totalDistance[0, 1]) / totalAgentsBoarding;
+        float avgDistanceAlighting = (totalDistance[1, 0] + totalDistance[1, 1]) / totalAgentsAlighting;
+        float avgSpeedBoarding = (totalSpeed[0, 0] + totalSpeed[0, 1]) / totalAgentsBoarding;
+        float avgSpeedAlighting = (totalSpeed[1, 0] + totalSpeed[1, 1]) / totalAgentsAlighting;
+        float avgPathEfficiencyBoarding = (totalPathEfficiency[0, 0] + totalPathEfficiency[0, 1]) / totalAgentsBoarding;
+        float avgPathEfficiencyAlighting = (totalPathEfficiency[1, 0] + totalPathEfficiency[1, 1]) / totalAgentsAlighting;
+     
+
         StringBuilder line = new StringBuilder();
-        line.Append(main.simulationTime.ToString("F2", CultureInfo.InvariantCulture));
-        line.Append(",");
-        line.Append(density);
-        densityWriter.WriteLine(line.ToString());
+        line.Append(scenarioPrefix + ",");
+
+        //Line 1
+        line.AppendFormat(
+            CultureInfo.InvariantCulture, 
+            "{0:F2},{1:F2},{2:F2},{3:F2},", 
+            alightingTime[0], 
+            boardingTime[0], 
+            totalTime[0], 
+            allAlightersExitTime[0]
+        );
+        line.AppendFormat(
+            CultureInfo.InvariantCulture, 
+            "{0:F2},{1:F2},{2:F2},{3:F2},{4:F2},{5:F2},{6:F2},{7:F2},", 
+            avgTravelTime[0, 0], 
+            avgTravelTime[1, 0], 
+            avgDistance[0, 0], 
+            avgDistance[1, 0],
+            avgSpeed[0, 0],
+            avgSpeed[1, 0],
+            avgPathEfficiency[0, 0],
+            avgPathEfficiency[1, 0]
+        );
+
+        // Line 2
+        
+        line.AppendFormat(
+            CultureInfo.InvariantCulture, 
+            "{0:F2},{1:F2},{2:F2},{3:F2},", 
+            alightingTime[1], 
+            boardingTime[1], 
+            totalTime[1], 
+            allAlightersExitTime[1]
+        );
+        line.AppendFormat(
+            CultureInfo.InvariantCulture, 
+            "{0:F2},{1:F2},{2:F2},{3:F2},{4:F2},{5:F2},{6:F2},{7:F2},", 
+            avgTravelTime[0, 1], 
+            avgTravelTime[1, 1], 
+            avgDistance[0, 1], 
+            avgDistance[1, 1],
+            avgSpeed[0, 1],
+            avgSpeed[1, 1],
+            avgPathEfficiency[0, 1],
+            avgPathEfficiency[1, 1]
+        );
+
+        // Run-wide global metrics
+
+        line.AppendFormat(
+            CultureInfo.InvariantCulture, 
+            "{0:F2},{1:F2},{2:F2},{3:F2},{4:F2},{5:F2},{6:F2},{7:F2},{8:F2},{9}", 
+            timeClearPlatformTotal,
+            avgTravelTimeBoarding,
+            avgTravelTimeAlighting,
+            avgDistanceBoarding,
+            avgDistanceAlighting,
+            avgSpeedBoarding,
+            avgSpeedAlighting,
+            avgPathEfficiencyBoarding,
+            avgPathEfficiencyAlighting,
+            nYellowLineOversteps
+        );
+
+        summaryWriter.WriteLine(line.ToString());
     }
 
     void OnApplicationQuit()
     {
-        if (travelTimeWriter != null)
-        {
-            travelTimeWriter.Flush();
-            travelTimeWriter.Close();
-            Debug.Log("Travel time log file flushed and closed.");
-        }
-        if (yellowLineWriter != null)
-        {
-            yellowLineWriter.Flush();
-            yellowLineWriter.Close();
-            Debug.Log("Yellow line log file flushed and closed.");
-        }
-        if (travelDistanceWriter != null)
-        {
-            travelDistanceWriter.Flush();
-            travelDistanceWriter.Close();
-            Debug.Log("Travel distance log file flushed and closed.");
-        }
-        if (densityWriter != null)
-        {
-            densityWriter.Flush();
-            densityWriter.Close();
-            Debug.Log("Density log file flushed and closed.");  
-        }
+        CloseAllWriters();
     }
-
 }

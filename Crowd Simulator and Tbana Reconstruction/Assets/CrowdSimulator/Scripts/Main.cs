@@ -65,6 +65,7 @@ public class Main : MonoBehaviour
 	internal float simulationTime = 0f;
 	internal int nExitingAgents = 0;
 	internal int nEnteringAgents = 0;
+	internal int[] nExitingAgentsPerLine = new int[2];
 	internal bool exitDone = false;
 	internal bool enterDone = false;
 	public ExperimentHUD experimentHUD;
@@ -167,12 +168,14 @@ public class Main : MonoBehaviour
 			roadmap.spawns[i].spawner.InitializeSpawner(roadmap,xMinMax, zMinMax, agentAvoidanceRadius);
 		}
 
-		nExitingAgents = trainController.trains[0].GetComponent<Train>().numberOfAgents + trainController.trains[1].GetComponent<Train>().numberOfAgents;
+		nExitingAgentsPerLine[0] = trainController.trains[0].GetComponent<Train>().numberOfAgents;
+		nExitingAgentsPerLine[1] = trainController.trains[1].GetComponent<Train>().numberOfAgents;
+		nExitingAgents = nExitingAgentsPerLine[0] + nExitingAgentsPerLine[1];
+		
 
 		if (customTimeStep)
 		{
 			Physics.simulationMode = SimulationMode.Script;
-			Debug.Log("Simulation mode set to Script");
 		}
 
 		experimentHUD = FindObjectOfType<ExperimentHUD>();
@@ -335,7 +338,6 @@ public class Main : MonoBehaviour
 		{
 			simulationStarted = true;
 			experimentHUD.realTimeStart = Time.realtimeSinceStartup;
-			Debug.Log("Simulation started");
 		}
 	}
 
@@ -343,8 +345,6 @@ public class Main : MonoBehaviour
 	{
 		if (nExitingAgents <= 0 && !exitDone)
 		{
-			if (testController.log) { logger.LogEvent("All exiting agents have exited the platform"); }
-			Debug.Log("All exiting agents have exited the platform");
 			exitDone = true;
 
 		}
@@ -354,9 +354,7 @@ public class Main : MonoBehaviour
 		}
 		if(exitDone && enterDone && trainController.done)
 		{
-			if (testController.log) { logger.LogEvent("Simulation ended"); }
-			Debug.Log("Simulation ended");
-			UnityEditor.EditorApplication.isPlaying = false;
+			RunManager.Instance?.OnRunComplete();
 		}
 	}
 
@@ -379,7 +377,21 @@ public class Main : MonoBehaviour
 				agent.waitingArea.freeWaitingSpots.Add(agent.waitingSpot);
 				agent.isWaitingAgent = false;
 			}
-			Debug.Log("Agent outside of bounds, removing");
+			logger.LogWarning("Agent outside of bounds, removing");
+			if(agent.boarding)
+			{
+				trainController.nBoardingAgents[agent.trainLine - 1]--;
+				nEnteringAgents--;
+			}
+			else if (agent.isAlighting)
+			{
+				nExitingAgents--;
+				nExitingAgentsPerLine[agent.trainLine - 1]--;
+				if(nExitingAgentsPerLine[agent.trainLine - 1] <= 0)
+				{
+					logger.allAlightersExitedTimestamp[agent.trainLine - 1] = simulationTime;
+				}
+			}
 			agentList.RemoveAt(index);
 			Destroy(agent.gameObject);
 		}
@@ -396,15 +408,18 @@ public class Main : MonoBehaviour
 		{
 			trainController.nBoardingAgents[agent.trainLine - 1]--;
 			nEnteringAgents--;
-			agentList.RemoveAt(index);
-			Destroy(agent.gameObject);
 		}
 		else if (agent.isAlighting)
 		{
 			nExitingAgents--;
-			agentList.RemoveAt(index);
-			Destroy(agent.gameObject);
+			nExitingAgentsPerLine[agent.trainLine - 1]--;
+			if(nExitingAgentsPerLine[agent.trainLine - 1] <= 0)
+			{
+				logger.allAlightersExitedTimestamp[agent.trainLine - 1] = simulationTime;
+			}
 		}
+		agentList.RemoveAt(index);
+		Destroy(agent.gameObject);
 	}
 
 	private void LogMetrics(Agent agent)
@@ -414,26 +429,28 @@ public class Main : MonoBehaviour
 		float efficiency = agent.shortestPath / agent.travelDistance;
 		if (efficiency > 1f)
 		{
-			Debug.LogWarning("Efficiency above 1: " + efficiency + " Difference: " + (agent.shortestPath - agent.travelDistance));
+			logger.LogWarning("Efficiency above 1: " + efficiency + " Difference: " + (agent.shortestPath - agent.travelDistance));
 			efficiency = 1f;
-			Debug.DrawLine(agent.tr.position, agent.tr.position + Vector3.up * 5f, Color.red, 10f);
 		}
 
 		float averageSpeed = agent.activeTravelDistance / agent.movingTime;
 
 		if (agent.boarding)
 		{
-			logger.LogTravelTime(travelTime, true, agent.trainLine, agent.startTime);
-			logger.LogTravelDistance(agent.travelDistance, true, agent.trainLine, averageSpeed, efficiency);
-
+			logger.totalTravelTime[0, agent.trainLine - 1] += travelTime;
+			logger.totalDistance[0, agent.trainLine - 1] += agent.travelDistance;
+			logger.totalSpeed[0, agent.trainLine - 1] += averageSpeed;
+			logger.totalPathEfficiency[0, agent.trainLine - 1] += efficiency;
+			logger.totalAgents[0, agent.trainLine - 1]++;
 		}
 		else if (agent.isAlighting)
 		{
-			logger.LogTravelTime(travelTime, false, agent.trainLine, agent.startTime);
-			logger.LogTravelDistance(agent.travelDistance, false, agent.trainLine, averageSpeed, efficiency);
-
+			logger.totalTravelTime[1, agent.trainLine - 1] += travelTime;
+			logger.totalDistance[1, agent.trainLine - 1] += agent.travelDistance;
+			logger.totalSpeed[1, agent.trainLine - 1] += averageSpeed;
+			logger.totalPathEfficiency[1, agent.trainLine - 1] += efficiency;
+			logger.totalAgents[1, agent.trainLine - 1]++;
 		}
-
 	}
 
 	private void MoveAgent(Agent agent, bool isMoving)

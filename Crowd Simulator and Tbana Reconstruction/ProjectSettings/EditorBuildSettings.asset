@@ -4,7 +4,16 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/CrowdSimulator/Platforms/CentralPlatform.unity
+    guid: d79bbb928a7ed914fa0a15a5a2d2b458
+  - enabled: 1
+    path: Assets/CrowdSimulator/Platforms/SidePlatform.unity
+    guid: 5b9bad5beda030a4eb7aecdc89bf621e
+  - enabled: 1
+    path: Assets/CrowdSimulator/Platforms/MixedPlatform.unity
+    guid: e4f23820af2a5414c9ac9bfdfdfd0241
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 79ad84d9239b2b64bbe3ec8674a0170c, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 05798145b9762694fb52a62d46c7eacb, type: 2}

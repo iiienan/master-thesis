@@ -87,8 +87,18 @@ public void UpdateLOS()
     public void takeScreenshot()
     {
         SetGridVisibility(true);
-        string fileName = mainScript.testController.logFileNames + "_" + mainScript.simulationTime.ToString("F2", CultureInfo.InvariantCulture) + ".png";
-        string fullPath = System.IO.Path.Combine(Application.persistentDataPath, fileName);
+
+        string fileName = mainScript.logger.scenarioPrefix + "_"
+                        + "_"
+                        + mainScript.simulationTime.ToString("F2", CultureInfo.InvariantCulture)
+                        + ".png";
+
+        string fullPath     = System.IO.Path.Combine(Application.persistentDataPath, fileName);
+
+        string dir = System.IO.Path.GetDirectoryName(fullPath);
+        if (!string.IsNullOrEmpty(dir) && !System.IO.Directory.Exists(dir))
+            System.IO.Directory.CreateDirectory(dir);
+
         ScreenCapture.CaptureScreenshot(fullPath);
         StartCoroutine(HideAfterFrame());
     }
@@ -96,7 +106,8 @@ public void UpdateLOS()
     float GetSmoothedDensity(int cx, int cy, int cols, int rows)
     {
         float total = 0;
-        int count = 0;
+        float weightSum = 0;
+        float sigma = smoothingRadius / 2f;
 
         for (int dx = -smoothingRadius; dx <= smoothingRadius; dx++)
         {
@@ -106,14 +117,14 @@ public void UpdateLOS()
                 int y = cy + dy;
                 if (x >= 0 && x < cols && y >= 0 && y < rows)
                 {
-                    total += densityMap[x, y];
-                    count++;
+                    float weight = Mathf.Exp(-(dx * dx + dy * dy) / (2 * sigma * sigma));
+                    total += densityMap[x, y] * weight;
+                    weightSum += weight;
                 }
             }
         }
 
-        float averageDensity = total / count;
-        return averageDensity / (cellSize * cellSize);
+        return (total / weightSum) / (cellSize * cellSize);
     }
 
     public void SetGridVisibility(bool isVisible)

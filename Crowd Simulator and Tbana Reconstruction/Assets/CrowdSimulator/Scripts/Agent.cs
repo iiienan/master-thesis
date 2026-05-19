@@ -495,7 +495,11 @@ public class Agent : MonoBehaviour
 			case TrainController.PlatformType.Central:
 				if (positionX > 8f && !crossingYellowLine)
 				{
-					if (trainController.mainScript.logger != null) trainController.mainScript.logger.LogYellowLineViolation(pos);
+					if (mainScript.logger != null)
+					{
+						mainScript.logger.LogYellowLineViolation(pos);
+						mainScript.logger.nYellowLineOversteps++;
+					}
 					Debug.DrawLine(pos, pos + Vector3.up * 10f, Color.red, 10f);
 					crossingYellowLine = true;
 				}
@@ -510,7 +514,11 @@ public class Agent : MonoBehaviour
 					 (positionX > 2f && positionX < 5f))
 					 && !crossingYellowLine)
 				{
-					if (trainController.mainScript.logger != null) trainController.mainScript.logger.LogYellowLineViolation(pos);
+					if (mainScript.logger != null)
+					{
+						mainScript.logger.LogYellowLineViolation(pos);
+						mainScript.logger.nYellowLineOversteps++;
+					}
 					Debug.DrawLine(pos, pos + Vector3.up * 10f, Color.red, 10f);
 					crossingYellowLine = true;
 				}
@@ -524,7 +532,11 @@ public class Agent : MonoBehaviour
 			case TrainController.PlatformType.Side:
 				if (positionX < 4f && !crossingYellowLine)
 				{
-					if (trainController.mainScript.logger != null) trainController.mainScript.logger.LogYellowLineViolation(pos);
+					if (mainScript.logger != null)
+					{
+						mainScript.logger.LogYellowLineViolation(pos);
+						mainScript.logger.nYellowLineOversteps++;
+					}
 					Debug.DrawLine(pos, pos + Vector3.up * 10f, Color.red, 10f);
 					crossingYellowLine = true;
 				}
