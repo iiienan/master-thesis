@@ -7,7 +7,7 @@ public class Train : MonoBehaviour
     public int numberOfAgents;
     internal List<TrainSpawner> trainSpawners;
     public List<CustomNode> goalNodes;
-    public float burstRate = 0.3f; // Time between agent spawns
+    private float burstRate = 0.3f; // Time between agent spawns
     public GameObject agentContainer;
     public Agent agentPrefab;
     public Material alightingAgentMaterial;
