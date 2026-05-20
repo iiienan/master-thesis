@@ -354,7 +354,19 @@ public class Main : MonoBehaviour
 		}
 		if(exitDone && enterDone && trainController.done)
 		{
-			RunManager.Instance?.OnRunComplete();
+			if(RunManager.Instance)
+			{
+				RunManager.Instance?.OnRunComplete();
+			}
+			else
+			{
+				if(testController.log)
+				{
+					logger.LogRunSummary();
+					logger.CloseAllWriters();
+					UnityEditor.EditorApplication.isPlaying = false;
+				}
+			}
 		}
 	}
 
