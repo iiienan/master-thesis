@@ -37,7 +37,7 @@ public class NewSpawner : MonoBehaviour {
 	{
 		if(customGoal == null)
 		{
-			Debug.LogWarning("No custom goal set for spawner " + gameObject.name + ", using default goal with index 0.");
+			//Debug.LogWarning("No custom goal set for spawner " + gameObject.name + ", using default goal with index 0.");
 			goal = 0;
 		}
 		else
@@ -123,7 +123,7 @@ public class NewSpawner : MonoBehaviour {
 			}
 			else
 			{
-				nextSpawnTimer = timeBetweenSpawns;
+				nextSpawnTimer += timeBetweenSpawns;
 			}
 		}
 
