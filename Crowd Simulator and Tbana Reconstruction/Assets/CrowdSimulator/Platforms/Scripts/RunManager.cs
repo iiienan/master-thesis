@@ -6,16 +6,6 @@ using UnityEngine.SceneManagement;
 /// Persistent manager that drives all simulation runs automatically.
 /// Place this on a GameObject in your first/launcher scene (or any scene).
 /// It survives scene reloads via DontDestroyOnLoad.
-///
-/// Total runs: 5 scenarios x 2 alightBeforeBoarding x 10 flow values x 3 scenes = 300 runs.
-///
-/// SETUP:
-///   1. Add this script to a GameObject (e.g. "RunManager") in your first scene.
-///   2. In your TestController.Awake(), after setting up parameters, call:
-///          RunManager.Instance?.ApplyParamsToTestController(this);
-///      Do this BEFORE building the log file name.
-///   3. When your simulation finishes, call:
-///          RunManager.Instance?.OnRunComplete();
 /// </summary>
 public class RunManager : MonoBehaviour
 {
@@ -35,12 +25,13 @@ public class RunManager : MonoBehaviour
         public int entryFlow;
         public int exitFlow;
         public bool alightBeforeBoarding;
+        public int repetitionIndex; // Track which repetition this run is
 
         public override string ToString()
         {
             return $"[{sceneName}] {scenario} {flowType} " +
                    $"entry={entryFlow} exit={exitFlow} " +
-                   $"ABB={alightBeforeBoarding}";
+                   $"ABB={alightBeforeBoarding} (Rep={repetitionIndex + 1})";
         }
     }
 
@@ -54,6 +45,11 @@ public class RunManager : MonoBehaviour
     // -------------------------------------------------------------------------
     // Configuration — edit here if needed
     // -------------------------------------------------------------------------
+    [Header("Run Repetitions")]
+    [Tooltip("Number of times to repeat each configuration in the matrix.")]
+    [Min(1)]
+    public int repetitionsPerConfig = 3; // Set via Unity Inspector
+
     private static readonly string[] Scenes =
     {
         "CentralPlatform",
@@ -68,11 +64,11 @@ public class RunManager : MonoBehaviour
 
     private Logger logger;
 
+    [Header("Delays & Intervals")]
     public float arriveInterval = 120f;
     public float arrivalDelay = 15f;
     public float boardingDelay = 1f;
     public float exitingDelay = 5f;
-    private TrainController trainController;
 
 
     // -------------------------------------------------------------------------
@@ -89,7 +85,7 @@ public class RunManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         BuildRunList();
-        Debug.Log($"[RunManager] Initialized. {TotalRuns} runs queued.");
+        Debug.Log($"[RunManager] Initialized. {TotalRuns} runs queued (Config Matrix x {repetitionsPerConfig} repetitions).");
         Debug.Log("Logging to: " + Application.persistentDataPath);
         LoadCurrentScene();
 
@@ -105,7 +101,10 @@ public class RunManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F9))
         {
             Debug.LogWarning("[RunManager] Force-skipping current run via F9.");
-            logger.LogWarning("Run " + (CurrentRunIndex + 1) + " skipped by user.");
+            if (logger != null)
+            {
+                logger.LogWarning("Run " + (CurrentRunIndex + 1) + " skipped by user.");
+            }
             OnRunComplete();
         }
     }
@@ -125,64 +124,69 @@ public class RunManager : MonoBehaviour
 
                 foreach (int flow in FlowValues)
                 {
-                    // --- 1. Symmetric Entry ---
-                    // Tested flow: entryFlow. exitFlow = entryFlow / 3.
-                    runs.Add(new SimRun
+                    // Repeat each configuration the specified number of times
+                    for (int rep = 0; rep < repetitionsPerConfig; rep++)
                     {
-                        sceneName          = scene,
-                        scenario           = TestController.Scenario.Entry,
-                        flowType           = TrainController.Flow.Symmetric,
-                        entryFlow          = flow,
-                        exitFlow           = flow / 3,
-                        alightBeforeBoarding = abb
-                    });
+                        // --- 1. Symmetric Entry ---
+                        runs.Add(new SimRun
+                        {
+                            sceneName            = scene,
+                            scenario             = TestController.Scenario.Entry,
+                            flowType             = TrainController.Flow.Symmetric,
+                            entryFlow            = flow,
+                            exitFlow             = flow / 3,
+                            alightBeforeBoarding = abb,
+                            repetitionIndex      = rep
+                        });
 
-                    // --- 2. Asymmetric Entry ---
-                    // Tested flow: entryFlow. exitFlow = entryFlow / 3.
-                    runs.Add(new SimRun
-                    {
-                        sceneName          = scene,
-                        scenario           = TestController.Scenario.Entry,
-                        flowType           = TrainController.Flow.Asymmetric,
-                        entryFlow          = flow,
-                        exitFlow           = flow / 3,
-                        alightBeforeBoarding = abb
-                    });
+                        // --- 2. Asymmetric Entry ---
+                        runs.Add(new SimRun
+                        {
+                            sceneName            = scene,
+                            scenario             = TestController.Scenario.Entry,
+                            flowType             = TrainController.Flow.Asymmetric,
+                            entryFlow            = flow,
+                            exitFlow             = flow / 3,
+                            alightBeforeBoarding = abb,
+                            repetitionIndex      = rep
+                        });
 
-                    // --- 3. Symmetric Exit ---
-                    // Tested flow: exitFlow. entryFlow = exitFlow / 3.
-                    runs.Add(new SimRun
-                    {
-                        sceneName          = scene,
-                        scenario           = TestController.Scenario.Exit,
-                        flowType           = TrainController.Flow.Symmetric,
-                        entryFlow          = flow / 3,
-                        exitFlow           = flow,
-                        alightBeforeBoarding = abb
-                    });
+                        // --- 3. Symmetric Exit ---
+                        runs.Add(new SimRun
+                        {
+                            sceneName            = scene,
+                            scenario             = TestController.Scenario.Exit,
+                            flowType             = TrainController.Flow.Symmetric,
+                            entryFlow            = flow / 3,
+                            exitFlow             = flow,
+                            alightBeforeBoarding = abb,
+                            repetitionIndex      = rep
+                        });
 
-                    // --- 4. Asymmetric Exit ---
-                    // Tested flow: exitFlow. entryFlow = exitFlow / 3.
-                    runs.Add(new SimRun
-                    {
-                        sceneName          = scene,
-                        scenario           = TestController.Scenario.Exit,
-                        flowType           = TrainController.Flow.Asymmetric,
-                        entryFlow          = flow / 3,
-                        exitFlow           = flow,
-                        alightBeforeBoarding = abb
-                    });
+                        // --- 4. Asymmetric Exit ---
+                        runs.Add(new SimRun
+                        {
+                            sceneName            = scene,
+                            scenario             = TestController.Scenario.Exit,
+                            flowType             = TrainController.Flow.Asymmetric,
+                            entryFlow            = flow / 3,
+                            exitFlow             = flow,
+                            alightBeforeBoarding = abb,
+                            repetitionIndex      = rep
+                        });
 
-                    // --- 5. Symmetric Entry + Exit ---
-                    runs.Add(new SimRun
-                    {
-                        sceneName            = scene,
-                        scenario             = TestController.Scenario.EntryExit,
-                        flowType             = TrainController.Flow.Symmetric,
-                        entryFlow            = flow / 2,
-                        exitFlow             = flow / 2,
-                        alightBeforeBoarding = abb
-                    });
+                        // --- 5. Symmetric Entry + Exit ---
+                        runs.Add(new SimRun
+                        {
+                            sceneName            = scene,
+                            scenario             = TestController.Scenario.EntryExit,
+                            flowType             = TrainController.Flow.Symmetric,
+                            entryFlow            = flow / 2,
+                            exitFlow             = flow / 2,
+                            alightBeforeBoarding = abb,
+                            repetitionIndex      = rep
+                        });
+                    }
                 }
             }
         }
@@ -207,13 +211,16 @@ public class RunManager : MonoBehaviour
         SimRun run = runs[CurrentRunIndex];
         Debug.Log($"[RunManager] Run {CurrentRunIndex + 1}/{TotalRuns}: {run}");
 
-        tc.scenario            = run.scenario;
-        tc.flowType            = run.flowType;
-        tc.entryFlow           = run.entryFlow;
-        tc.exitFlow            = run.exitFlow;
+        tc.scenario             = run.scenario;
+        tc.flowType             = run.flowType;
+        tc.entryFlow            = run.entryFlow;
+        tc.exitFlow             = run.exitFlow;
         tc.alightBeforeBoarding = run.alightBeforeBoarding;
-        tc.runIndex            = CurrentRunIndex;
+        tc.runIndex             = CurrentRunIndex;
         tc.arriveInterval       = arriveInterval;
+        
+        // Note: If your TestController script tracks repetition indices, 
+        // you can assign it here (e.g., tc.repetitionIndex = run.repetitionIndex;)
     }
 
     public void ApplyParamsToTrainController(TrainController tc)
@@ -239,10 +246,11 @@ public class RunManager : MonoBehaviour
         // Flush and close log files before the scene is destroyed
         Logger logger = FindObjectOfType<Logger>();
 
-        logger.LogRunSummary();
-
         if (logger != null)
+        {
+            logger.LogRunSummary();
             logger.CloseAllWriters();
+        }
 
         CurrentRunIndex++;
 
