@@ -481,11 +481,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 55839767}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 778270691}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -8820,11 +8820,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: arrivalDelay
-      value: 15
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: platformType
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
+      propertyPath: boardingDelay
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: trainCapacity
@@ -9403,11 +9407,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 973680388}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 391652302}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -10669,11 +10673,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1079285449}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 1116390633}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -11998,11 +12002,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1185866699}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 1299979488}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -12703,11 +12707,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1242001120}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 471294171}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -13542,11 +13546,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1317236885}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 491737014}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -17588,11 +17592,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1742880681}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 145633494}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -20996,11 +21000,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 2070598344}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 1228317601}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -22304,11 +22308,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: arriveInterval
-      value: 120
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: alightBeforeBoarding
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5233626816181377110, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: m_Name

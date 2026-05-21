@@ -5111,10 +5111,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: arrivalDelay
-      value: 15
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: platformType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
+      propertyPath: boardingDelay
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
@@ -5656,17 +5660,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4000014275702142, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
   m_PrefabInstance: {fileID: 473700916}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &473700918 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1332968127951731744, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
-  m_PrefabInstance: {fileID: 473700916}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60810ec11ab8ae24193f594f9bd8b4dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &479191142
 GameObject:
   m_ObjectHideFlags: 0
@@ -6170,17 +6163,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4000014275702142, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
   m_PrefabInstance: {fileID: 522502794}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &522502796 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1332968127951731744, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
-  m_PrefabInstance: {fileID: 522502794}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60810ec11ab8ae24193f594f9bd8b4dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &526041588
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8000,17 +7982,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4000014275702142, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
   m_PrefabInstance: {fileID: 643186426}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &643186428 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1332968127951731744, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
-  m_PrefabInstance: {fileID: 643186426}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60810ec11ab8ae24193f594f9bd8b4dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &648134715
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12993,11 +12964,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 982150378}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 2137984116}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -16853,11 +16824,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1253809976}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 1628851886}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -17295,17 +17266,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4000014275702142, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
   m_PrefabInstance: {fileID: 1267584786}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1267584788 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1332968127951731744, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
-  m_PrefabInstance: {fileID: 1267584786}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60810ec11ab8ae24193f594f9bd8b4dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1268459309
 GameObject:
   m_ObjectHideFlags: 0
@@ -17612,11 +17572,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1275483791}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 473700918}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -17795,17 +17755,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
---- !u!114 &1307125999 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1332968127951731744, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
-  m_PrefabInstance: {fileID: 1307125998}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60810ec11ab8ae24193f594f9bd8b4dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &1307126000 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4000014275702142, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
@@ -19673,11 +19622,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1454958077}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 1307125999}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -19878,11 +19827,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1466411966}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 643186428}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -21069,11 +21018,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1532308236}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 522502796}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -21378,11 +21327,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1550290839}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 1267584788}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -22283,17 +22232,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4000014275702142, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
   m_PrefabInstance: {fileID: 1628851884}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1628851886 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1332968127951731744, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
-  m_PrefabInstance: {fileID: 1628851884}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60810ec11ab8ae24193f594f9bd8b4dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1629039060
 GameObject:
   m_ObjectHideFlags: 0
@@ -26931,17 +26869,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4000014275702142, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
   m_PrefabInstance: {fileID: 1932665672}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1932665674 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1332968127951731744, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
-  m_PrefabInstance: {fileID: 1932665672}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60810ec11ab8ae24193f594f9bd8b4dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1950756265
 GameObject:
   m_ObjectHideFlags: 0
@@ -27460,11 +27387,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1990204828}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
-  customGoal: {fileID: 1932665674}
+  customGoal: {fileID: 0}
   timeBetweenSpawns: 0
   usePoisson: 0
   agentPrefab: {fileID: 652558794516568689, guid: 6da3b9a6e980a904fa2688413d990bb0, type: 3}
@@ -29609,17 +29536,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4000014275702142, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
   m_PrefabInstance: {fileID: 2137984114}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2137984116 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1332968127951731744, guid: 319ed593d3a3d0e4f814a935059ee52f, type: 3}
-  m_PrefabInstance: {fileID: 2137984114}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60810ec11ab8ae24193f594f9bd8b4dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2147372950
 GameObject:
   m_ObjectHideFlags: 0
@@ -29779,7 +29695,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: exitFlow
-      value: 166
+      value: 2000
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: flowType
@@ -29791,7 +29707,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: entryFlow
-      value: 500
+      value: 2000
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: arriveInterval

@@ -1805,7 +1805,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: arrivalDelay
-      value: 15
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
+      propertyPath: exitingDelay
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
+      propertyPath: boardingDelay
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: trainCapacity
@@ -4191,7 +4199,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 317146641}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
@@ -6186,7 +6194,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 447379185}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
@@ -6739,7 +6747,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 478068497}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
@@ -7569,7 +7577,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &564005947
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7582,10 +7590,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86798b9a816cbf44f9add2449778269e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  repetitionsPerConfig: 5
   arriveInterval: 120
-  arrivalDelay: 5
+  arrivalDelay: 2
   boardingDelay: 1
-  exitingDelay: 5
+  exitingDelay: 2
 --- !u!4 &564005948
 Transform:
   m_ObjectHideFlags: 0
@@ -16444,7 +16453,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1418179493}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
@@ -16743,7 +16752,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1445663578}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
@@ -19344,7 +19353,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1709064493}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
@@ -19622,11 +19631,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: exitFlow
-      value: 1000
+      value: 1666
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: flowType
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: scenario
@@ -19634,11 +19643,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: entryFlow
-      value: 1000
+      value: 5000
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: arriveInterval
-      value: 120
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: waitOutsideTrain
@@ -19646,7 +19655,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: alightBeforeBoarding
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5233626816181377110, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: m_Name
@@ -19812,7 +19821,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1746369928}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
@@ -24088,7 +24097,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2116491434}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ebcea552629544a9fa5fdec5806b64, type: 3}
+  m_Script: {fileID: 11500000, guid: 38c39f329f3cab74fbd5728a977cae88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   agentEditorContainer: {fileID: 2038246482}
