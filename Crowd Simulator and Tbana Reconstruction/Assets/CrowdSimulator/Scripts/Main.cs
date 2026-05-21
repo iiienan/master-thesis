@@ -50,7 +50,6 @@ public class Main : MonoBehaviour
 	public float alpha;
 
 	internal List<Agent> agentList = new List<Agent>();
-	public int maxNumberOfAgents = 1000; // Maximum number of agents when spawning continuously
 
 	public bool showSplattedDensity = false;
 	public bool showSplattedVelocity = false;
@@ -64,7 +63,7 @@ public class Main : MonoBehaviour
 	internal TestController testController;
 	internal float simulationTime = 0f;
 	internal int nExitingAgents = 0;
-	internal int nEnteringAgents = 0;
+	internal int[] nEnteringAgents = new int[2];
 	internal int[] nExitingAgentsPerLine = new int[2];
 	internal bool exitDone = false;
 	internal bool enterDone = false;
@@ -245,6 +244,7 @@ public class Main : MonoBehaviour
 			}
 
 			MoveAgent(agent, true);
+			trainController.CheckAlightingAgent(agent);
 		}
 
 		//Pair-wise collision handling between agents
@@ -257,7 +257,8 @@ public class Main : MonoBehaviour
 		{
 			for (int i = 0; i < roadmap.spawns.Count; ++i)
 			{
-				if (agentList.Count < testController.entryFlow)
+				int trainLine = roadmap.spawns[i].spawner.trainLine;
+				if(nEnteringAgents[trainLine - 1] < testController.entryFlowLines[trainLine-1])
 				{
 					roadmap.spawns[i].spawner.UpdateSpawner();
 				}
@@ -296,7 +297,7 @@ public class Main : MonoBehaviour
 			MoveAgent(agent, false);
 			return true;
 		}
-		if (agent.isAlighting && agent.noMap)
+		if (agent.agentType == TrainController.AgentType.Alighting && agent.noMap)
 		{
 			agent.noMap = false;
 			agent.done = false;
@@ -348,7 +349,7 @@ public class Main : MonoBehaviour
 			exitDone = true;
 
 		}
-		if(nEnteringAgents <= 0 && !enterDone)
+		if(nEnteringAgents[0] <= 0 && nEnteringAgents[1] <= 0 && !enterDone)
 		{
 			enterDone = true;
 		}
@@ -364,8 +365,8 @@ public class Main : MonoBehaviour
 				{
 					logger.LogRunSummary();
 					logger.CloseAllWriters();
-					UnityEditor.EditorApplication.isPlaying = false;
 				}
+				UnityEditor.EditorApplication.isPlaying = false;
 			}
 		}
 	}
@@ -389,13 +390,12 @@ public class Main : MonoBehaviour
 				agent.waitingArea.freeWaitingSpots.Add(agent.waitingSpot);
 				agent.isWaitingAgent = false;
 			}
-			logger.LogWarning("Agent outside of bounds, removing");
-			if(agent.boarding)
+			if(agent.agentType == TrainController.AgentType.Boarding && trainController.trainStates[agent.trainLine-1] == TrainController.TrainState.BoardingAlighting)
 			{
-				trainController.nBoardingAgents[agent.trainLine - 1]--;
-				nEnteringAgents--;
+				trainController.nAgentsToBoard[agent.trainLine - 1]--;
+				nEnteringAgents[agent.trainLine - 1]--;
 			}
-			else if (agent.isAlighting)
+			else if (agent.agentType == TrainController.AgentType.Alighting)
 			{
 				nExitingAgents--;
 				nExitingAgentsPerLine[agent.trainLine - 1]--;
@@ -403,9 +403,14 @@ public class Main : MonoBehaviour
 				{
 					logger.allAlightersExitedTimestamp[agent.trainLine - 1] = simulationTime;
 				}
+				if(!agent.exitedTrain)
+				{
+					trainController.nAgentsToAlight[agent.trainLine - 1]--;
+				}
 			}
 			agentList.RemoveAt(index);
 			Destroy(agent.gameObject);
+			logger.LogWarning("Agent removed outside of bounds");
 		}
 	}
 
@@ -416,20 +421,21 @@ public class Main : MonoBehaviour
 			LogMetrics(agent);
 		}
 
-		if (agent.boarding)
+		if (agent.agentType == TrainController.AgentType.Boarding)
 		{
-			trainController.nBoardingAgents[agent.trainLine - 1]--;
-			nEnteringAgents--;
+			trainController.nAgentsToBoard[agent.trainLine - 1]--;
+			nEnteringAgents[agent.trainLine - 1]--;
 		}
-		else if (agent.isAlighting)
+		else if (agent.agentType == TrainController.AgentType.Alighting)
 		{
 			nExitingAgents--;
 			nExitingAgentsPerLine[agent.trainLine - 1]--;
-			if(nExitingAgentsPerLine[agent.trainLine - 1] <= 0)
+			if(nExitingAgentsPerLine[agent.trainLine - 1] <= 0 && testController.log)
 			{
 				logger.allAlightersExitedTimestamp[agent.trainLine - 1] = simulationTime;
 			}
 		}
+		Debug.Log("Agent done");
 		agentList.RemoveAt(index);
 		Destroy(agent.gameObject);
 	}
@@ -447,7 +453,7 @@ public class Main : MonoBehaviour
 
 		float averageSpeed = agent.activeTravelDistance / agent.movingTime;
 
-		if (agent.boarding)
+		if (agent.agentType == TrainController.AgentType.Boarding)
 		{
 			logger.totalTravelTime[0, agent.trainLine - 1] += travelTime;
 			logger.totalDistance[0, agent.trainLine - 1] += agent.travelDistance;
@@ -455,7 +461,7 @@ public class Main : MonoBehaviour
 			logger.totalPathEfficiency[0, agent.trainLine - 1] += efficiency;
 			logger.totalAgents[0, agent.trainLine - 1]++;
 		}
-		else if (agent.isAlighting)
+		else if (agent.agentType == TrainController.AgentType.Alighting)
 		{
 			logger.totalTravelTime[1, agent.trainLine - 1] += travelTime;
 			logger.totalDistance[1, agent.trainLine - 1] += agent.travelDistance;

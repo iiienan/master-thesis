@@ -8,6 +8,7 @@ public class CentralSpawner : NewSpawner
     {
         int agentGoal = goal;
         agent.trainLine = trainLine;
+        agent.agentType = TrainController.AgentType.Boarding;
 
         // Find a waiting area goal for the agent. If there are no free waiting area spots their goal will be the ordinary goal for this spawner.
         CustomNode startNode = transform.GetChild(0).GetComponent<CustomNode>();

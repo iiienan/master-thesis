@@ -106,11 +106,15 @@ public class TestController : MonoBehaviour
     internal void SetTrainControllerParameters()
     {
         trainController.flow = flowType;
-        trainController.nAgents = entryFlow;
+        trainController.nEnteringAgents = entryFlow;
         trainController.arriveInterval = arriveInterval;
         trainController.alightBeforeBoarding = alightBeforeBoarding;
         trainController.trains[0].GetComponent<Train>().numberOfAgents = exitFlowLines[0];
         trainController.trains[1].GetComponent<Train>().numberOfAgents = exitFlowLines[1];
+        trainController.nAgentsToAlight[0] = exitFlowLines[0];
+        trainController.nAgentsToAlight[1] = exitFlowLines[1];
+        trainController.nAgentsToBoard[0] = entryFlowLines[0];
+        trainController.nAgentsToBoard[1] = entryFlowLines[1];
     }
 
 

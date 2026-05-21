@@ -39,7 +39,6 @@ public class Agent : MonoBehaviour
 	public bool isWaiting = false;
 	public bool isPreparingToBoard = false;
 	public bool boarding = false;
-	public bool isAlighting = false;
 	internal bool crossingYellowLine = false;
 	private TrainController trainController;
 
@@ -77,11 +76,49 @@ public class Agent : MonoBehaviour
 	internal Vector3 waitingPosition;
 	internal float shortestPath = 0f;
 	internal float activeTravelDistance = 0f;
+	internal bool exitedTrain = false;
+	internal TrainController.AgentType agentType;
 
 
 	void Awake()
 	{
 		tr = transform;
+	}
+
+	internal bool CheckExitedTrain()
+	{
+		float yellowLineStart = 0f;
+		switch (trainController.platformType)
+		{
+			case TrainController.PlatformType.Central:
+				yellowLineStart = 7.76f;
+				if((tr.position.x < 0f && tr.position.x > -yellowLineStart)
+				|| (tr.position.x > 0f && tr.position.x < yellowLineStart))
+				{
+					exitedTrain = true;
+					return true;
+				}
+				break;
+			case TrainController.PlatformType.Mixed:
+				yellowLineStart = 1.76f;
+				if((tr.position.x < 0f && tr.position.x > -yellowLineStart)
+				|| (tr.position.x > 0f && tr.position.x < yellowLineStart))
+				{
+					exitedTrain = true;
+					return true;
+				}
+				break;
+			case TrainController.PlatformType.Side:
+				yellowLineStart = 4.24f;
+				if((tr.position.x < 0f && tr.position.x < -yellowLineStart)
+				|| (tr.position.x > 0f && tr.position.x > yellowLineStart))
+				{
+					exitedTrain = true;
+					return true;
+				}
+				break;
+		}
+		return false;
 	}
 
 	internal void CheckPositionAndRotation()
@@ -440,7 +477,7 @@ public class Agent : MonoBehaviour
 		}
 
 		calculatePreferredVelocity(map);
-		if ((!trainController.dwelling[0] && !trainController.dwelling[1]) || isAlighting)
+		if ((!trainController.dwelling[0] && !trainController.dwelling[1]) || agentType == TrainController.AgentType.Alighting)
 		{
 			ApplyYellowLineForce();
 		}
@@ -486,7 +523,7 @@ public class Agent : MonoBehaviour
 	private void CheckYellowLine()
 	{
 		Vector3 pos = tr.position;
-		if (trainController.dwelling[trainLine - 1] && !isAlighting) { return; }
+		if (trainController.dwelling[trainLine - 1] && agentType != TrainController.AgentType.Alighting) { return; }
 
 		float positionX = Mathf.Abs(pos.x);
 

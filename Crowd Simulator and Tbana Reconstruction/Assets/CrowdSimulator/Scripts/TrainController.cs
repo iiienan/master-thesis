@@ -8,13 +8,12 @@ public class TrainController : MonoBehaviour
     private float arrivalTimer = 0f;
     internal float arriveInterval = 10f;
     public enum TrainState { Incoming, Arrived, BoardingAlighting, Exiting}
-    private TrainState[] trainStates = new TrainState[2];
+    internal TrainState[] trainStates = new TrainState[2];
     private float[] stateTimer = new float[2];
 
     private WaitingAreaController waitingAreaController;
     internal Main mainScript;
-    internal int[] nBoardedAgents = new int[2];
-    internal int nAgents = 100;
+    internal int nEnteringAgents = 100;
     public bool waitForMinimumAgents = false;
     internal bool[] isPreparingToBoard = new bool[2];
     internal bool[] boarding = new bool[2];
@@ -25,7 +24,6 @@ public class TrainController : MonoBehaviour
 
     public enum Flow{Symmetric, Asymmetric}
     internal Flow flow;
-    internal int[] nBoardingAgents = new int[2];
     //public bool useDwellTimer = true;
     private Logger logger;
     private TestController testController;
@@ -38,6 +36,10 @@ public class TrainController : MonoBehaviour
     [SerializeField] internal float boardingDelay = 1f;
     [SerializeField] internal float exitingDelay = 5f;
     internal bool done = false;
+    internal int[] nAgentsToAlight = new int[2];
+    internal int[] nAgentsToBoard = new int[2];
+    private bool[] alighting = new bool[2];
+    public enum AgentType{Boarding, Alighting}
 
     void Awake()
     {
@@ -93,7 +95,7 @@ public class TrainController : MonoBehaviour
             
             if(arrivalTimer >= arriveInterval)
             {
-                if(waitForMinimumAgents && mainScript.agentList.Count < nAgents)
+                if(waitForMinimumAgents && mainScript.agentList.Count < nEnteringAgents)
                 {
                     return;
                 }
@@ -139,6 +141,7 @@ public class TrainController : MonoBehaviour
                         spawner.isSpawning = true;
                     }
                     if (logger != null) logger.alightingStartTime[trainLine] = mainScript.simulationTime;
+                    alighting[trainLine] = true;
 
                     trainStates[trainLine] = TrainState.BoardingAlighting;
 
@@ -164,12 +167,10 @@ public class TrainController : MonoBehaviour
                 if(spawnersDone && !allSpawnersDone[trainLine])
                 {
                     allSpawnersDone[trainLine] = true;
-                    if (logger != null) logger.alightingEndTime[trainLine] = mainScript.simulationTime;
                     if(alightBeforeBoarding)
                     {
                         stateTimer[trainLine] = boardingDelay;
                     }
-
                 }
 
                 if(alightBeforeBoarding && spawnersDone && !boarding[trainLine])
@@ -182,12 +183,24 @@ public class TrainController : MonoBehaviour
                     }
                 }
 
-                bool boardingComplete = nBoardingAgents[trainLine] <= 0;
+                bool alightingComplete = nAgentsToAlight[trainLine] <= 0;
 
-                if(spawnersDone && boardingComplete && boarding[trainLine])
+                if(alightingComplete && alighting[trainLine])
+                {
+                    if (logger != null) logger.alightingEndTime[trainLine] = mainScript.simulationTime;
+                    alighting[trainLine] = false;
+                }
+
+                bool boardingComplete = nAgentsToBoard[trainLine] <= 0;
+                
+                if(boardingComplete && boarding[trainLine])
                 {
                     if (logger != null) logger.boardingEndTime[trainLine] = mainScript.simulationTime;
                     boarding[trainLine] = false;
+                }
+
+                if(boardingComplete && alightingComplete)
+                {
                     trainStates[trainLine] = TrainState.Exiting;
                     stateTimer[trainLine] = exitingDelay;
                 }
@@ -209,12 +222,23 @@ public class TrainController : MonoBehaviour
         }
     }
 
+    public void CheckAlightingAgent(Agent agent)
+    {
+        if(agent.agentType == TrainController.AgentType.Alighting && !agent.exitedTrain)
+        {
+            bool exited = agent.CheckExitedTrain();
+            if(exited)
+            {
+                nAgentsToAlight[agent.trainLine-1]--;
+            }
+        }
+    }
+
     public void PrepareBoarding(int trainLine)
     {
         isPreparingToBoard[trainLine] = true;
         PrepareWalkingAgents(trainLine);
         PrepareWaitingAgents(trainLine);
-        nBoardedAgents[trainLine] = 0;
     }
 
     public void PrepareWaitingAgents(int trainLine)
@@ -242,15 +266,6 @@ public class TrainController : MonoBehaviour
                     agent.isPreparingToBoard = true;
                     agent.isWaiting = false;
                 }
-             
-
-                nBoardedAgents[trainLine]++;
-                /**
-                if (nBoardedAgents[trainLine] >= trainCapacity && boardWithCapacity)
-                {
-                    break;
-                }
-                **/
             }
         }
     }
@@ -263,15 +278,7 @@ public class TrainController : MonoBehaviour
             if (agent.trainLine == trainLine+1 && !agent.boarding && !agent.isWaiting)
             {
                 PrepareWalkingAgent(agent);
-                nBoardedAgents[trainLine]++;
-                /**
-                if (nBoardedAgents[trainLine] >= trainCapacity && boardWithCapacity)
-                {
-                    break;
-                }
-                **/
 			}
-            
 		}
     }
 
@@ -387,7 +394,6 @@ public class TrainController : MonoBehaviour
                     continue;
                 }
                 BoardAgent(agent);
-                nBoardingAgents[agent.trainLine-1]++;
             }
         }
     }

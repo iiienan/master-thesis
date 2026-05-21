@@ -76,6 +76,7 @@ public class TrainSpawner : MonoBehaviour
 		agent.InitializeAgent (startPosition, node, goal, mainScript.roadmap);
         agent.agentRenderer.material = alightingAgentMaterial;
         agent.trainLine = train.trainLine;
+        agent.agentType = TrainController.AgentType.Alighting;
 
         if (alightBeforeBoarding && waitOutsideTrain)
         {
@@ -105,8 +106,7 @@ public class TrainSpawner : MonoBehaviour
                 agent.noMap = true;
             }
         }
-		
-        agent.isAlighting = true;
+
         agent.crossingYellowLine = true;
 		if (agentContainer != null)
             agent.tr.parent = agentContainer.transform;

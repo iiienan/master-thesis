@@ -104,11 +104,6 @@ public class NewSpawner : MonoBehaviour {
 	// CONTINUOUS SPAWN
 	public void UpdateSpawner()
 	{
-		if(mainScript.agentList.Count >= mainScript.maxNumberOfAgents)
-		{
-			return;
-		}
-
 		nextSpawnTimer -= SimulationGrid.instance.dt;
 
 		if(nextSpawnTimer <= 0)
@@ -126,8 +121,6 @@ public class NewSpawner : MonoBehaviour {
 				nextSpawnTimer += timeBetweenSpawns;
 			}
 		}
-
-		
 	}
 
 	// BURST SPAWN
@@ -152,7 +145,7 @@ public class NewSpawner : MonoBehaviour {
 			agent.tr.parent = agentEditorContainer.transform;
 
 		mainScript.agentList.Add (agent);
-		mainScript.nEnteringAgents++;
+		mainScript.nEnteringAgents[agent.trainLine - 1]++;
 	}
 
 	internal virtual int SetSubwayData(Agent agent, Vector3 startPosition)
