@@ -441,7 +441,6 @@ public class Main : MonoBehaviour
 				logger.allAlightersExitedTimestamp[agent.trainLine - 1] = simulationTime;
 			}
 		}
-		Debug.Log("Agent done");
 		agentList.RemoveAt(index);
 		Destroy(agent.gameObject);
 	}

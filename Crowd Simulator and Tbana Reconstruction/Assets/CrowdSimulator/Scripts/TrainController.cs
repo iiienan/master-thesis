@@ -95,7 +95,7 @@ public class TrainController : MonoBehaviour
             
             if(arrivalTimer >= arriveInterval)
             {
-                if(waitForMinimumAgents && mainScript.agentList.Count < nEnteringAgents)
+                if(waitForMinimumAgents && mainScript.agentList.Count < (mainScript.nEnteringAgents[0] + mainScript.nEnteringAgents[1]))
                 {
                     return;
                 }
@@ -118,6 +118,8 @@ public class TrainController : MonoBehaviour
         stateTimer[trainLine] = arrivalDelay;
         PrepareBoarding(trainLine);
         mainScript.spawnAgents = false;
+        nAgentsToBoard[trainLine] = mainScript.nEnteringAgents[trainLine];
+        nAgentsToBoard[trainLine] = mainScript.nEnteringAgents[trainLine];
     }
 
     private void ToggleTrain(int trainLine, bool active)
