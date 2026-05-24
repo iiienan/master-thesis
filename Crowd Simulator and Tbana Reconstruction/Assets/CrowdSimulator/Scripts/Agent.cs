@@ -311,7 +311,7 @@ public class Agent : MonoBehaviour
 	 **/
 	internal void setCorrectedVelocity()
 	{
-		calculateDensityAtPosition();
+		//calculateDensityAtPosition();
 		calculateContinuumVelocity();
 		//-1 since we subtract this agents density at position
 

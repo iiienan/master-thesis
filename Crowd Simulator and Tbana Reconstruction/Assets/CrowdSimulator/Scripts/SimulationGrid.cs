@@ -139,6 +139,9 @@ public class SimulationGrid : MonoBehaviour {
 		}	
 
 		cachedCellSizeSquared = cellSize * cellSize;
+
+		GridParallelBridge.Instance.InitializeGridData(nCellsX, nCellsZ);
+		GridParallelBridge.Instance.SetupSpatialGrid(7000, neighbourBins);
 	}
 		
 	/**
