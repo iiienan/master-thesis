@@ -6,7 +6,18 @@ using Unity.Mathematics;
 
 public class GridParallelBridge : MonoBehaviour
 {
-    public static GridParallelBridge Instance;
+    private static GridParallelBridge _instance;
+    public static GridParallelBridge Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindObjectOfType<GridParallelBridge>();
+            }
+            return _instance;
+        }
+    }
 
     // Persistent native array to mimic the flattened simulation grid density
     public NativeArray<float> nativeDensityGrid;
@@ -15,7 +26,7 @@ public class GridParallelBridge : MonoBehaviour
 
     void Awake()
     {
-        Instance = this;
+        _instance = this;
     }
 
     public void InitializeGridData(int cellsX, int cellsZ)
@@ -188,5 +199,9 @@ public class GridParallelBridge : MonoBehaviour
         // Clean up persistent memory when exiting the scene
         if (nativeDensityGrid.IsCreated) nativeDensityGrid.Dispose();
         if (nativeSpatialGrid.IsCreated) nativeSpatialGrid.Dispose();
+        if (_instance == this)
+        {
+            _instance = null;
+        }
     }
 }

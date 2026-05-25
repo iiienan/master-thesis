@@ -35,9 +35,11 @@ public struct CollisionAvoidanceJob : IJobParallelFor
         float speedA = walkingSpeeds[index];
         float3 totalForce = float3.zero;
 
-        // Determine spatial grid bin
+        // Determine spatial grid bin and clamp to grid boundaries (matching original SimulationGrid)
         int currentBinRow = (int)((posA.z - zMinMax.x) / lenOfBin);
         int currentBinCol = (int)((posA.x - xMinMax.x) / lenOfBin);
+        currentBinRow = math.clamp(currentBinRow, 0, neighbourBins - 1);
+        currentBinCol = math.clamp(currentBinCol, 0, neighbourBins - 1);
 
         // Search 3x3 surrounding spatial bins
         for (int rOffset = -1; rOffset <= 1; rOffset++)
@@ -86,17 +88,22 @@ public struct CollisionAvoidanceJob : IJobParallelFor
                                 {
                                     // Use the moving agent's velocity and speed to calculate the shove
                                     float3 movingAgentPrefVel = preferredVelocities[otherAgentIndex];
-                                    float movingAgentSpeed = walkingSpeeds[otherAgentIndex];
+                                    float lenSq = math.lengthsq(movingAgentPrefVel);
 
-                                    float3 walkDir = math.normalize(movingAgentPrefVel);
-                                    float3 sideDir = new float3(-walkDir.z, 0f, walkDir.x); // Perpendicular vector
+                                    if (lenSq > 0.0001f)
+                                    {
+                                        float movingAgentSpeed = walkingSpeeds[otherAgentIndex];
+                                        float3 walkDir = movingAgentPrefVel / math.sqrt(lenSq);
+                                        float3 sideDir = new float3(-walkDir.z, 0f, walkDir.x); // Perpendicular vector (Cross product with Vector3.up)
 
-                                    // Decide left or right based on relative position from the moving agent's perspective
-                                    float3 relative = posA - posB; // Position of waiting agent relative to moving agent
-                                    float sideSign = math.sign(math.dot(relative, sideDir));
-                                    
-                                    // Apply the side-stepping force to our current waiting agent!
-                                    totalForce += sideDir * sideSign * movingAgentSpeed * 0.5f;
+                                        // Decide left or right based on relative position from the moving agent's perspective
+                                        float3 relative = posA - posB; // Position of waiting agent relative to moving agent
+                                        // Standard Unity Mathf.Sign returns 1f for zero, so we use >= 0f comparison to avoid math.sign(0) returning 0f
+                                        float sideSign = math.dot(relative, sideDir) >= 0f ? 1f : -1f;
+                                        
+                                        // Apply the side-stepping force to our current waiting agent!
+                                        totalForce += sideDir * sideSign * movingAgentSpeed * 0.5f;
+                                    }
                                 }
                                 continue;
                             }

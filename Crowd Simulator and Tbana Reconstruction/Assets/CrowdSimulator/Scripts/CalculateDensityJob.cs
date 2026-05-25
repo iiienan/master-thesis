@@ -35,29 +35,29 @@ public struct CalculateDensityJob : IJobParallelFor
         float neighbourZWeight = neighbourZWeights[index];
         float neighbourXZWeight = neighbourXZWeights[index];
 
-        // Determine neighbor positions using your exact logic
-        int xNeighbour = column + (int)System.Math.Sign(neighbourXWeight);
-        int zNeighbour = row + (int)System.Math.Sign(neighbourZWeight);
+        // Determine neighbor positions using logic that perfectly matches Unity's Mathf.Sign (x >= 0 ? 1 : -1)
+        int xNeighbour = column + (neighbourXWeight >= 0f ? 1 : -1);
+        int zNeighbour = row + (neighbourZWeight >= 0f ? 1 : -1);
 
-        // Start calculating the density for this agent
-        float agentDensity = Mathf.Abs(selfWeight) * globalDensityGrid[row * nCellsX + column];
+        // Start calculating the density for this agent using optimized Unity.Mathematics functions
+        float agentDensity = Unity.Mathematics.math.abs(selfWeight) * globalDensityGrid[row * nCellsX + column];
 
         // X Neighbour contribution
         if (xNeighbour >= 0 && xNeighbour < nCellsX)
         {
-            agentDensity += Mathf.Abs(neighbourXWeight) * globalDensityGrid[row * nCellsX + xNeighbour];
+            agentDensity += Unity.Mathematics.math.abs(neighbourXWeight) * globalDensityGrid[row * nCellsX + xNeighbour];
         }
 
         // Z Neighbour contribution
         if (zNeighbour >= 0 && zNeighbour < nCellsZ)
         {
-            agentDensity += Mathf.Abs(neighbourZWeight) * globalDensityGrid[zNeighbour * nCellsX + column];
+            agentDensity += Unity.Mathematics.math.abs(neighbourZWeight) * globalDensityGrid[zNeighbour * nCellsX + column];
         }
 
         // XZ Diagonal Neighbour contribution
         if (zNeighbour >= 0 && zNeighbour < nCellsZ && xNeighbour >= 0 && xNeighbour < nCellsX)
         {
-            agentDensity += Mathf.Abs(neighbourXZWeight) * globalDensityGrid[zNeighbour * nCellsX + xNeighbour];
+            agentDensity += Unity.Mathematics.math.abs(neighbourXZWeight) * globalDensityGrid[zNeighbour * nCellsX + xNeighbour];
         }
 
         // Write the calculated result directly into our output array
