@@ -1,5 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
+using Unity.Jobs;
+using Unity.Collections;
+using Unity.Mathematics;
 
 public class SimulationGrid : MonoBehaviour {
 
@@ -141,6 +144,7 @@ public class SimulationGrid : MonoBehaviour {
 		cachedCellSizeSquared = cellSize * cellSize;
 
 		GridParallelBridge.Instance.InitializeGridData(nCellsX, nCellsZ);
+		GridParallelBridge.Instance.CopyAvailableAreaToNative(this);
 		GridParallelBridge.Instance.SetupSpatialGrid(7000, neighbourBins);
 	}
 		
@@ -201,35 +205,76 @@ public class SimulationGrid : MonoBehaviour {
 	 * Solve the linear constraint problem, with an option "clamped" if b-values should be clamped to non-negatives
 	 **/ 
 	public void solveLCP(bool clamped) {
-		//Refresh containers
-		for (int i = 0; i < AArray.Count; ++i) {
-			AArray [i].Clear ();
-			matrixArray [i, i] = 0;
+		var bridge = GridParallelBridge.Instance;
+		int totalCells = nCellsX * nCellsZ;
+
+		// Copy density, velocities, and initial values from managed structures to unmanaged NativeArrays
+		bridge.CopyManagedGridsToNative(this);
+
+		// 1. Matrix and B vector construction Job
+		LcpMatrixAssemblyJob assemblyJob = new LcpMatrixAssemblyJob
+		{
+			nCellsX = nCellsX,
+			nCellsZ = nCellsZ,
+			dt = dt,
+			cellSize = cellSize,
+			maxDensity = maxDensity,
+			clamped = clamped,
+			density = bridge.nativeDensity,
+			availableArea = bridge.nativeAvailableArea,
+			xEdgeDensity = bridge.nativeXEdgeDensity,
+			zEdgeDensity = bridge.nativeZEdgeDensity,
+			xEdgeVelocity = bridge.nativeXEdgeVelocity,
+			zEdgeVelocity = bridge.nativeZEdgeVelocity,
+			outCoeffs = bridge.nativeCoeffs,
+			outB = bridge.nativeBArray
+		};
+
+		JobHandle assemblyHandle = assemblyJob.Schedule(totalCells, 64);
+		assemblyHandle.Complete();
+
+		// 2. Solve LCP Job
+		if (solver == Main.LCPSolutioner.mprgp || solver == Main.LCPSolutioner.mprgpmic0)
+		{
+			MPRGPSolverJob solverJob = new MPRGPSolverJob
+			{
+				nCellsX = nCellsX,
+				nCellsZ = nCellsZ,
+				maxIterations = solverMaxIterations,
+				solverEpsilon = solverEpsilon,
+				coeffs = bridge.nativeCoeffs,
+				b = bridge.nativeBArray,
+				l = bridge.nativeLArray,
+				x = bridge.nativeXArray
+			};
+
+			JobHandle solverHandle = solverJob.Schedule();
+			solverHandle.Complete();
+		}
+		else if (solver == Main.LCPSolutioner.psor)
+		{
+			PSORSolverJob solverJob = new PSORSolverJob
+			{
+				nCellsX = nCellsX,
+				nCellsZ = nCellsZ,
+				maxIterations = solverMaxIterations,
+				solverEpsilon = solverEpsilon,
+				coeffs = bridge.nativeCoeffs,
+				b = bridge.nativeBArray,
+				l = bridge.nativeLArray,
+				x = bridge.nativeXArray
+			};
+
+			JobHandle solverHandle = solverJob.Schedule();
+			solverHandle.Complete();
+		}
+		else
+		{
+			Debug.LogError("Error: Invalid solver selected");
 		}
 
-		//Calculate A and B matrices
-		for (int i = 0; i < nCellsZ; ++i) {
-			for (int j = 0; j < nCellsX; ++j) {
-				constructB (i, j, clamped);
-				constructA (i, j);
-			}
-		}
-
-		switch (solver) {
-		case Main.LCPSolutioner.mprgp:
-			xArray = mprgpSolver.LCPSolve (AArray, matrixArray, bArray, xArray, lArray);
-			break;
-		case Main.LCPSolutioner.mprgpmic0:
-			xArray = mprgpmicSolver.LCPSolve (AArray, matrixArray, bArray, xArray, lArray);
-			break;
-		case Main.LCPSolutioner.psor:
-			xArray = psorSolver.LCPSolve (AArray, matrixArray, bArray, xArray, lArray);
-			break;
-
-		default:
-			Debug.LogError ("Error: Invalid solver selected");
-			break;
-		}
+		// Copy solution from native back to managed structures
+		bridge.CopyNativeSolutionToManaged(this);
 	}
 
 	/**
@@ -298,51 +343,83 @@ public class SimulationGrid : MonoBehaviour {
 	 * Perform solution of LCP.
 	 **/ 
 	internal void PsolveRenormPsolve() {
-		solveLCP (true);
-		for (int n = 0; n < nCellsZ; n++) {
-			for (int m = 0; m < nCellsX; m++) {
-				zEdgeVelocityNodeMatrix[n,m].calculatePressureGradient();
-				zEdgeVelocityNodeMatrix[n,m].pSolve();
-				xEdgeVelocityNodeMatrix[n,m].calculatePressureGradient();
-				xEdgeVelocityNodeMatrix[n,m].pSolve();
-				if (n == nCellsZ - 1) {
-					zEdgeVelocityNodeMatrix[n+1,m].calculatePressureGradient();
-					zEdgeVelocityNodeMatrix[n+1,m].pSolve();
-				}
-				if (m == nCellsX - 1) {
-					xEdgeVelocityNodeMatrix[n,m+1].calculatePressureGradient();
-					xEdgeVelocityNodeMatrix[n,m+1].pSolve();
-				}
-			}
-		}
-			
-		for (int n = 0; n < nCellsZ; n++) {
-			for (int m = 0; m < nCellsX; m++) {
-				zEdgeVelocityNodeMatrix [n, m].renorm ();
-				xEdgeVelocityNodeMatrix[n,m].renorm ();
-				if (n == nCellsZ - 1) zEdgeVelocityNodeMatrix[n+1,m].renorm ();
-				if (m == nCellsX - 1) xEdgeVelocityNodeMatrix[n,m+1].renorm ();
-			}
-		}
+		var bridge = GridParallelBridge.Instance;
+		int totalXEdges = nCellsZ * (nCellsX + 1);
+		int totalZEdges = (nCellsZ + 1) * nCellsX;
 
-		solveLCP (false); //Solve again with corrected, normalized velocities.
+		// 1. Solve LCP (clamped = true)
+		solveLCP(true);
 
-		for (int n = 0; n < nCellsZ; n++) {
-			for (int m = 0; m < nCellsX; m++) {
-				zEdgeVelocityNodeMatrix[n,m].calculatePressureGradient();
-				zEdgeVelocityNodeMatrix[n,m].pSolve();
-				xEdgeVelocityNodeMatrix[n,m].calculatePressureGradient();
-				xEdgeVelocityNodeMatrix[n,m].pSolve();
-				if (n == nCellsZ - 1) {
-					zEdgeVelocityNodeMatrix[n+1,m].calculatePressureGradient();
-					zEdgeVelocityNodeMatrix[n+1,m].pSolve();
-				}
-				if (m == nCellsX - 1) {
-					xEdgeVelocityNodeMatrix[n,m+1].calculatePressureGradient();
-					xEdgeVelocityNodeMatrix[n,m+1].pSolve();
-				}
-			}
-		}
+		// 2. Solve X & Z edge velocity gradients from pressure field (Job)
+		SolveXEdgesJob solveXJob1 = new SolveXEdgesJob
+		{
+			nCellsX = nCellsX,
+			nCellsZ = nCellsZ,
+			cellSize = cellSize,
+			xArray = bridge.nativeXArray,
+			xEdgeVelocity = bridge.nativeXEdgeVelocity
+		};
+		SolveZEdgesJob solveZJob1 = new SolveZEdgesJob
+		{
+			nCellsX = nCellsX,
+			nCellsZ = nCellsZ,
+			cellSize = cellSize,
+			xArray = bridge.nativeXArray,
+			zEdgeVelocity = bridge.nativeZEdgeVelocity
+		};
+
+		JobHandle handleX1 = solveXJob1.Schedule(totalXEdges, 64);
+		JobHandle handleZ1 = solveZJob1.Schedule(totalZEdges, 64);
+		JobHandle.CompleteAll(ref handleX1, ref handleZ1);
+
+		// 3. Renormalize velocities (Job)
+		bridge.CopyManagedEdgeVelocityVectorsToNative(this);
+
+		RenormalizeXEdgesJob renormXJob = new RenormalizeXEdgesJob
+		{
+			agentMaxSpeed = agentMaxSpeed,
+			xEdgeVelocityVectors = bridge.nativeXEdgeVelocityVectors,
+			xEdgeVelocity = bridge.nativeXEdgeVelocity
+		};
+		RenormalizeZEdgesJob renormZJob = new RenormalizeZEdgesJob
+		{
+			agentMaxSpeed = agentMaxSpeed,
+			zEdgeVelocityVectors = bridge.nativeZEdgeVelocityVectors,
+			zEdgeVelocity = bridge.nativeZEdgeVelocity
+		};
+
+		JobHandle handleRenormX = renormXJob.Schedule(totalXEdges, 64);
+		JobHandle handleRenormZ = renormZJob.Schedule(totalZEdges, 64);
+		JobHandle.CompleteAll(ref handleRenormX, ref handleRenormZ);
+
+		bridge.CopyNativeEdgeVelocityVectorsToManaged(this);
+
+		// 4. Solve LCP (clamped = false)
+		solveLCP(false);
+
+		// 5. Solve X & Z edge velocity gradients again (Job)
+		SolveXEdgesJob solveXJob2 = new SolveXEdgesJob
+		{
+			nCellsX = nCellsX,
+			nCellsZ = nCellsZ,
+			cellSize = cellSize,
+			xArray = bridge.nativeXArray,
+			xEdgeVelocity = bridge.nativeXEdgeVelocity
+		};
+		SolveZEdgesJob solveZJob2 = new SolveZEdgesJob
+		{
+			nCellsX = nCellsX,
+			nCellsZ = nCellsZ,
+			cellSize = cellSize,
+			xArray = bridge.nativeXArray,
+			zEdgeVelocity = bridge.nativeZEdgeVelocity
+		};
+
+		JobHandle handleX2 = solveXJob2.Schedule(totalXEdges, 64);
+		JobHandle handleZ2 = solveZJob2.Schedule(totalZEdges, 64);
+		JobHandle.CompleteAll(ref handleX2, ref handleZ2);
+
+		bridge.CopyNativeVelocitiesToManaged(this);
 	}
 
 	/**

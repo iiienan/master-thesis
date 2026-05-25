@@ -24,6 +24,24 @@ public class GridParallelBridge : MonoBehaviour
     private int totalGridCells;
     private NativeMultiHashMap<int, int> nativeSpatialGrid;
 
+    // Persistent native arrays for LCP solver
+    public NativeArray<float> nativeAvailableArea;
+    public NativeArray<float> nativeDensity;
+    public NativeArray<float> nativeXEdgeDensity;
+    public NativeArray<float> nativeZEdgeDensity;
+    public NativeArray<float> nativeXEdgeVelocity;
+    public NativeArray<float> nativeZEdgeVelocity;
+    
+    public NativeArray<double> nativeXArray;
+    public NativeArray<double> nativeBArray;
+    public NativeArray<double> nativeLArray;
+    public NativeArray<CellCoefficients> nativeCoeffs;
+    
+    public NativeArray<float3> nativeXEdgeVelocityVectors;
+    public NativeArray<float3> nativeZEdgeVelocityVectors;
+    
+    private bool arraysInitialized = false;
+
     void Awake()
     {
         _instance = this;
@@ -34,6 +52,27 @@ public class GridParallelBridge : MonoBehaviour
         totalGridCells = cellsX * cellsZ;
         // Allocating unmanaged memory that persists throughout the game's lifetime
         nativeDensityGrid = new NativeArray<float>(totalGridCells, Allocator.Persistent);
+
+        int totalXEdges = cellsZ * (cellsX + 1);
+        int totalZEdges = (cellsZ + 1) * cellsX;
+
+        nativeAvailableArea = new NativeArray<float>(totalGridCells, Allocator.Persistent);
+        nativeDensity = new NativeArray<float>(totalGridCells, Allocator.Persistent);
+        
+        nativeXEdgeDensity = new NativeArray<float>(totalXEdges, Allocator.Persistent);
+        nativeZEdgeDensity = new NativeArray<float>(totalZEdges, Allocator.Persistent);
+        nativeXEdgeVelocity = new NativeArray<float>(totalXEdges, Allocator.Persistent);
+        nativeZEdgeVelocity = new NativeArray<float>(totalZEdges, Allocator.Persistent);
+
+        nativeXArray = new NativeArray<double>(totalGridCells, Allocator.Persistent);
+        nativeBArray = new NativeArray<double>(totalGridCells, Allocator.Persistent);
+        nativeLArray = new NativeArray<double>(totalGridCells, Allocator.Persistent);
+        nativeCoeffs = new NativeArray<CellCoefficients>(totalGridCells, Allocator.Persistent);
+
+        nativeXEdgeVelocityVectors = new NativeArray<float3>(totalXEdges, Allocator.Persistent);
+        nativeZEdgeVelocityVectors = new NativeArray<float3>(totalZEdges, Allocator.Persistent);
+
+        arraysInitialized = true;
     }
 
     public void SetupSpatialGrid(int agentCapacity, int totalBins)
@@ -194,11 +233,160 @@ public class GridParallelBridge : MonoBehaviour
     collisionForces.Dispose();
 }
 
+    public void CopyAvailableAreaToNative(SimulationGrid grid)
+    {
+        for (int r = 0; r < grid.nCellsZ; r++)
+        {
+            for (int c = 0; c < grid.nCellsX; c++)
+            {
+                nativeAvailableArea[r * grid.nCellsX + c] = grid.cellMatrix[r, c].availableArea;
+            }
+        }
+    }
+
+    public void CopyManagedGridsToNative(SimulationGrid grid)
+    {
+        int cellsX = grid.nCellsX;
+        int cellsZ = grid.nCellsZ;
+
+        // 1. Density
+        for (int r = 0; r < cellsZ; r++)
+        {
+            for (int c = 0; c < cellsX; c++)
+            {
+                nativeDensity[r * cellsX + c] = grid.density[r, c];
+            }
+        }
+
+        // 2. X Edge Density & Velocity
+        for (int r = 0; r < cellsZ; r++)
+        {
+            for (int c = 0; c <= cellsX; c++)
+            {
+                int index = r * (cellsX + 1) + c;
+                nativeXEdgeDensity[index] = grid.xEdgeDensity[r, c];
+                nativeXEdgeVelocity[index] = grid.xEdgeVelocity[r, c];
+            }
+        }
+
+        // 3. Z Edge Density & Velocity
+        for (int r = 0; r <= cellsZ; r++)
+        {
+            for (int c = 0; c < cellsX; c++)
+            {
+                int index = r * cellsX + c;
+                nativeZEdgeDensity[index] = grid.zEdgeDensity[r, c];
+                nativeZEdgeVelocity[index] = grid.zEdgeVelocity[r, c];
+            }
+        }
+
+        // 4. Initial values of solution xArray
+        for (int i = 0; i < totalGridCells; i++)
+        {
+            nativeXArray[i] = grid.xArray[i];
+            nativeLArray[i] = grid.lArray[i];
+        }
+    }
+
+    public void CopyNativeSolutionToManaged(SimulationGrid grid)
+    {
+        for (int i = 0; i < totalGridCells; i++)
+        {
+            grid.xArray[i] = nativeXArray[i];
+        }
+    }
+
+    public void CopyNativeVelocitiesToManaged(SimulationGrid grid)
+    {
+        int cellsX = grid.nCellsX;
+        int cellsZ = grid.nCellsZ;
+
+        for (int r = 0; r < cellsZ; r++)
+        {
+            for (int c = 0; c <= cellsX; c++)
+            {
+                int index = r * (cellsX + 1) + c;
+                grid.xEdgeVelocity[r, c] = nativeXEdgeVelocity[index];
+                grid.xEdgeVelocityNodeMatrix[r, c].velocity = nativeXEdgeVelocity[index];
+            }
+        }
+
+        for (int r = 0; r <= cellsZ; r++)
+        {
+            for (int c = 0; c < cellsX; c++)
+            {
+                int index = r * cellsX + c;
+                grid.zEdgeVelocity[r, c] = nativeZEdgeVelocity[index];
+                grid.zEdgeVelocityNodeMatrix[r, c].velocity = nativeZEdgeVelocity[index];
+            }
+        }
+    }
+
+    public void CopyManagedEdgeVelocityVectorsToNative(SimulationGrid grid)
+    {
+        for (int r = 0; r < grid.nCellsZ; r++)
+        {
+            for (int c = 0; c <= grid.nCellsX; c++)
+            {
+                int index = r * (grid.nCellsX + 1) + c;
+                nativeXEdgeVelocityVectors[index] = grid.xEdgeVelocityNodeMatrix[r, c].velocityVector;
+            }
+        }
+        for (int r = 0; r <= grid.nCellsZ; r++)
+        {
+            for (int c = 0; c < grid.nCellsX; c++)
+            {
+                int index = r * grid.nCellsX + c;
+                nativeZEdgeVelocityVectors[index] = grid.zEdgeVelocityNodeMatrix[r, c].velocityVector;
+            }
+        }
+    }
+
+    public void CopyNativeEdgeVelocityVectorsToManaged(SimulationGrid grid)
+    {
+        for (int r = 0; r < grid.nCellsZ; r++)
+        {
+            for (int c = 0; c <= grid.nCellsX; c++)
+            {
+                int index = r * (grid.nCellsX + 1) + c;
+                grid.xEdgeVelocityNodeMatrix[r, c].velocityVector = (Vector3)nativeXEdgeVelocityVectors[index];
+                grid.xEdgeVelocityNodeMatrix[r, c].velocity = nativeXEdgeVelocity[index];
+            }
+        }
+        for (int r = 0; r <= grid.nCellsZ; r++)
+        {
+            for (int c = 0; c < grid.nCellsX; c++)
+            {
+                int index = r * grid.nCellsX + c;
+                grid.zEdgeVelocityNodeMatrix[r, c].velocityVector = (Vector3)nativeZEdgeVelocityVectors[index];
+                grid.zEdgeVelocityNodeMatrix[r, c].velocity = nativeZEdgeVelocity[index];
+            }
+        }
+    }
+
     void OnDestroy()
     {
         // Clean up persistent memory when exiting the scene
         if (nativeDensityGrid.IsCreated) nativeDensityGrid.Dispose();
         if (nativeSpatialGrid.IsCreated) nativeSpatialGrid.Dispose();
+        
+        if (arraysInitialized)
+        {
+            if (nativeAvailableArea.IsCreated) nativeAvailableArea.Dispose();
+            if (nativeDensity.IsCreated) nativeDensity.Dispose();
+            if (nativeXEdgeDensity.IsCreated) nativeXEdgeDensity.Dispose();
+            if (nativeZEdgeDensity.IsCreated) nativeZEdgeDensity.Dispose();
+            if (nativeXEdgeVelocity.IsCreated) nativeXEdgeVelocity.Dispose();
+            if (nativeZEdgeVelocity.IsCreated) nativeZEdgeVelocity.Dispose();
+            if (nativeXArray.IsCreated) nativeXArray.Dispose();
+            if (nativeBArray.IsCreated) nativeBArray.Dispose();
+            if (nativeLArray.IsCreated) nativeLArray.Dispose();
+            if (nativeCoeffs.IsCreated) nativeCoeffs.Dispose();
+            if (nativeXEdgeVelocityVectors.IsCreated) nativeXEdgeVelocityVectors.Dispose();
+            if (nativeZEdgeVelocityVectors.IsCreated) nativeZEdgeVelocityVectors.Dispose();
+            arraysInitialized = false;
+        }
+
         if (_instance == this)
         {
             _instance = null;
