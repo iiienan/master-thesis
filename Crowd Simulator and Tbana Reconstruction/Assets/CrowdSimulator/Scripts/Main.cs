@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 public class Main : MonoBehaviour
@@ -211,6 +211,7 @@ public class Main : MonoBehaviour
 		}
 
 		simulationGrid.dt = customTimeStep ? timeStep : Time.deltaTime;
+		GridParallelBridge.Instance.BatchAndRunFrameRaycasts(agentList, roadmap, simulationGrid);
 		// Update grid with new density and velocity values
 		simulationGrid.updateCellDensity();
 		simulationGrid.updateVelocityNodes();

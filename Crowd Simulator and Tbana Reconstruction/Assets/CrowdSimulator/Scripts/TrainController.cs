@@ -1,4 +1,7 @@
 using UnityEngine;
+using Unity.Collections;
+using Unity.Jobs;
+using System.Collections.Generic;
 
 public class TrainController : MonoBehaviour
 {
@@ -272,8 +275,83 @@ public class TrainController : MonoBehaviour
         }
     }
 
+    private void BatchFindClosestNodes(int trainLine)
+    {
+        List<Agent> candidates = new List<Agent>();
+        for (int i = 0; i < mainScript.agentList.Count; i++)
+        {
+            Agent agent = mainScript.agentList[i];
+            if (agent.trainLine == trainLine + 1 && !agent.boarding && !agent.isWaiting)
+            {
+                candidates.Add(agent);
+            }
+        }
+
+        int candidateCount = candidates.Count;
+        if (candidateCount == 0) return;
+
+        int nodeCount = mainScript.roadmap.allNodes.Count;
+        int totalQueries = candidateCount * nodeCount;
+
+        NativeArray<RaycastCommand> commands = new NativeArray<RaycastCommand>(totalQueries, Allocator.TempJob);
+        NativeArray<RaycastHit> results = new NativeArray<RaycastHit>(totalQueries, Allocator.TempJob);
+
+        int layersToIgnore = LayerMask.GetMask("WaitingAgent", "Agent");
+        int layerMask = ~layersToIgnore;
+
+        int queryIndex = 0;
+        for (int i = 0; i < candidateCount; i++)
+        {
+            Vector3 position = candidates[i].tr.position;
+            for (int j = 0; j < nodeCount; j++)
+            {
+                Vector3 nodePos = nodePositions[j];
+                Vector3 dir = nodePos - position;
+                float distance = dir.magnitude;
+                
+                commands[queryIndex] = new RaycastCommand(position, dir.normalized, distance, layerMask);
+                queryIndex++;
+            }
+        }
+
+        JobHandle handle = RaycastCommand.ScheduleBatch(commands, results, 32);
+        handle.Complete();
+
+        queryIndex = 0;
+        for (int i = 0; i < candidateCount; i++)
+        {
+            Agent agent = candidates[i];
+            Vector3 position = agent.tr.position;
+            int closestNode = -1;
+            float closestDistance = Mathf.Infinity;
+
+            for (int j = 0; j < nodeCount; j++)
+            {
+                bool clear = results[queryIndex].collider == null;
+                queryIndex++;
+
+                if (clear)
+                {
+                    Vector3 nodePos = nodePositions[j];
+                    float distance = (nodePos - position).magnitude;
+                    if (nodePos != transform.position && distance < closestDistance)
+                    {
+                        closestDistance = distance;
+                        closestNode = j;
+                    }
+                }
+            }
+
+            agent.batchClosestNode = closestNode;
+        }
+
+        commands.Dispose();
+        results.Dispose();
+    }
+
     private void PrepareWalkingAgents(int trainLine)
     {
+        BatchFindClosestNodes(trainLine);
         for(int i = 0; i < mainScript.agentList.Count; i++)
 		{
 			Agent agent = mainScript.agentList[i];
@@ -289,7 +367,7 @@ public class TrainController : MonoBehaviour
         agent.agentRenderer.material = waitingAreaController.boardingAgentMaterial;
 
         int closestTrainDoor = waitingAreaController.FindClosestTrainDoor(agent);
-        int closestNode = FindClosestNode(agent.tr.position);
+        int closestNode = agent.batchClosestNode;
         agent.setNewPath(closestNode, closestTrainDoor, mainScript.roadmap);
 
         if(agent.isWaitingAgent)

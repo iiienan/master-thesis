@@ -364,6 +364,110 @@ public class GridParallelBridge : MonoBehaviour
         }
     }
 
+    private static int agentLayerMask = -1;
+
+    private struct RaycastMapping
+    {
+        public Agent agent;
+        public int modifier;
+    }
+
+    public void BatchAndRunFrameRaycasts(List<Agent> agentList, MapGen.map roadmap, SimulationGrid grid)
+    {
+        int agentCount = agentList.Count;
+        if (agentCount == 0) return;
+
+        if (agentLayerMask == -1)
+        {
+            agentLayerMask = ~LayerMask.GetMask("WaitingAgent", "Agent");
+        }
+
+        int queryCount = 0;
+        for (int i = 0; i < agentCount; i++)
+        {
+            Agent agent = agentList[i];
+            agent.hasCachedCanSeeNext_0 = false;
+            agent.hasCachedCanSeeNext_1 = false;
+
+            if (agent.done || agent.isWaitingForDelay || agent.isWaiting || agent.isPreparingToBoard || agent.boarding)
+                continue;
+
+            if (agent.path != null && agent.pathIndex < agent.path.Count)
+            {
+                queryCount++;
+                if (agent.pathIndex + 1 < agent.path.Count)
+                {
+                    queryCount++;
+                }
+            }
+        }
+
+        if (queryCount == 0) return;
+
+        NativeArray<RaycastCommand> commands = new NativeArray<RaycastCommand>(queryCount, Allocator.TempJob);
+        NativeArray<RaycastHit> results = new NativeArray<RaycastHit>(queryCount, Allocator.TempJob);
+
+        RaycastMapping[] mappings = new RaycastMapping[queryCount];
+
+        int cmdIndex = 0;
+        for (int i = 0; i < agentCount; i++)
+        {
+            Agent agent = agentList[i];
+            if (agent.done || agent.isWaitingForDelay || agent.isWaiting || agent.isPreparingToBoard || agent.boarding)
+                continue;
+
+            if (agent.path != null && agent.pathIndex < agent.path.Count)
+            {
+                Vector3 pos = agent.tr.position;
+                Vector3 targetPos = pos - agent.tr.forward * agent.colliderRadius;
+
+                // Modifier 0
+                Vector3 next0 = roadmap.allNodes[agent.path[agent.pathIndex]].getTargetPoint(pos, agent.gameObject.GetInstanceID());
+                Vector3 dir = next0 - targetPos;
+                float dist = dir.magnitude;
+                
+                commands[cmdIndex] = new RaycastCommand(targetPos, dir.normalized, dist, agentLayerMask);
+                mappings[cmdIndex] = new RaycastMapping { agent = agent, modifier = 0 };
+                cmdIndex++;
+
+                // Modifier 1
+                if (agent.pathIndex + 1 < agent.path.Count)
+                {
+                    Vector3 next1 = roadmap.allNodes[agent.path[agent.pathIndex + 1]].getTargetPoint(pos, agent.gameObject.GetInstanceID());
+                    Vector3 dir1 = next1 - targetPos;
+                    float dist1 = dir1.magnitude;
+
+                    commands[cmdIndex] = new RaycastCommand(targetPos, dir1.normalized, dist1, agentLayerMask);
+                    mappings[cmdIndex] = new RaycastMapping { agent = agent, modifier = 1 };
+                    cmdIndex++;
+                }
+            }
+        }
+
+        JobHandle handle = RaycastCommand.ScheduleBatch(commands, results, 32);
+        handle.Complete();
+
+        for (int i = 0; i < queryCount; i++)
+        {
+            Agent agent = mappings[i].agent;
+            bool clear = results[i].collider == null;
+
+            if (mappings[i].modifier == 0)
+            {
+                agent.cachedCanSeeNext_0 = clear;
+                agent.hasCachedCanSeeNext_0 = true;
+            }
+            else
+            {
+                agent.cachedCanSeeNext_1 = clear;
+                agent.hasCachedCanSeeNext_1 = true;
+            }
+        }
+
+        commands.Dispose();
+        results.Dispose();
+    }
+
     void OnDestroy()
     {
         // Clean up persistent memory when exiting the scene

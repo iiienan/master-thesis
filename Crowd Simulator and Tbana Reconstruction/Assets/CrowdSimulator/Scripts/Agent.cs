@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using System;
 
@@ -14,12 +14,17 @@ public class Agent : MonoBehaviour
 	internal float selfRightVelocityWeight, selfLeftVelocityWeight, selfUpperVelocityWeight, selfLowerVelocityWeight,
 	neighbourRightVelocityWeight, neighbourLeftVelocityWeight, neighbourUpperVelocityWeight, neighbourLowerVelocityWeight;
 	internal float densityAtAgentPosition;
+	internal bool hasCachedCanSeeNext_0 = false;
+	internal bool cachedCanSeeNext_0 = false;
+	internal bool hasCachedCanSeeNext_1 = false;
+	internal bool cachedCanSeeNext_1 = false;
 
 	internal Vector3 targetPoint;
 	internal bool done = false;
 	internal bool noMap = false;
 	internal Vector3 noMapGoal;
 	internal int goal;
+	internal int batchClosestNode = -1;
 	internal Animator animator;
 	internal Rigidbody rbody;
 	internal bool collision = false;
@@ -64,7 +69,7 @@ public class Agent : MonoBehaviour
 	}
 
 	private Main mainScript;
-	private float colliderRadius;
+	internal float colliderRadius;
 	internal Renderer agentRenderer;
 	private SimulationGrid grid;
 	private float cachedCellSize;
@@ -327,6 +332,15 @@ public class Agent : MonoBehaviour
 
 	internal bool canSeeNext(MapGen.map map, int modifier)
 	{
+		if (modifier == 0 && hasCachedCanSeeNext_0)
+		{
+			return cachedCanSeeNext_0;
+		}
+		if (modifier == 1 && hasCachedCanSeeNext_1)
+		{
+			return cachedCanSeeNext_1;
+		}
+
 		if (pathIndex + modifier < path.Count && pathIndex + modifier >= 0 && pathIndex + modifier < map.allNodes.Count)
 		{
 			//Can we see next goal?
