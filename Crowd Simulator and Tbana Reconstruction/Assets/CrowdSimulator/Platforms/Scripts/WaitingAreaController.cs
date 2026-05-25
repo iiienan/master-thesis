@@ -49,7 +49,30 @@ public class WaitingAreaController : MonoBehaviour
             totalWaitingSpots += waitingArea.NWaitingSpots(waitingSpotSize);
         }
 
-        if(totalWaitingSpots < mainScript.testController.entryFlow)
+        if(mainScript.testController.flowType == TrainController.Flow.Asymmetric && (
+            trainController.platformType == TrainController.PlatformType.Side 
+            || trainController.platformType == TrainController.PlatformType.Mixed))
+        {
+            if(totalWaitingSpots / 2f < mainScript.testController.entryFlowLines[0] || totalWaitingSpots / 2f < mainScript.testController.entryFlowLines[1])
+            {
+                Debug.Log("Warning: Total waiting spots (" + totalWaitingSpots/2f + ") is less than the entry flow for one line. Decreasing waiting spot size.");
+                mainScript.logger.LogWarning("Total waiting spots (" + totalWaitingSpots/2f + ") is less than the entry flow for one line. Decreasing waiting spot size.");
+                float totalAvailableArea = 0;
+
+                foreach (WaitingArea area in waitingAreas)
+                {
+                    totalAvailableArea += area.GetArea();
+                }
+
+                float totalAreaPerPlatform = totalAvailableArea / 2f;
+                int biggestFlow = Mathf.Max(mainScript.testController.entryFlowLines[0], mainScript.testController.entryFlowLines[1]);
+
+                float idealWaitingSpotSize = Mathf.Sqrt(totalAreaPerPlatform / biggestFlow);
+                waitingSpotSize = idealWaitingSpotSize * 0.90f;
+            }
+        }
+
+        else if(totalWaitingSpots < mainScript.testController.entryFlow)
         {
             Debug.Log("Warning: Total waiting spots (" + totalWaitingSpots + ") is less than the entry flow (" + mainScript.testController.entryFlow + "). Decreasing waiting spot size.");
             mainScript.logger.LogWarning("Total waiting spots (" + totalWaitingSpots + ") is less than the entry flow (" + mainScript.testController.entryFlow + "). Decreasing waiting spot size.");

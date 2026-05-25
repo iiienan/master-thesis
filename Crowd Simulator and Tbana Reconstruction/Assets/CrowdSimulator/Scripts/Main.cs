@@ -106,6 +106,12 @@ public class Main : MonoBehaviour
 			Debug.LogError("TestController not found in scene");
 			return;
 		}
+		if (testController.log) logger = FindObjectOfType<Logger>();
+		if (logger == null && testController.log)
+		{
+			Debug.LogError("Logger not found in scene");
+			return;
+		}
 		waitingAreaController = FindObjectOfType<WaitingAreaController>();
 		if (waitingAreaController != null)
 		{
@@ -122,14 +128,6 @@ public class Main : MonoBehaviour
 			Debug.LogError("TrainController not found in scene");
 			return;
 		}
-
-		if (testController.log) logger = FindObjectOfType<Logger>();
-		if (logger == null && testController.log)
-		{
-			Debug.LogError("Logger not found in scene");
-			return;
-		}
-
 		losVisualizer = FindObjectOfType<LOSVisualizer>();
 		if (losVisualizer == null)
 		{
