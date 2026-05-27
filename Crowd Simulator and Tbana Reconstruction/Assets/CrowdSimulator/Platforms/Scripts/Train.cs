@@ -5,16 +5,17 @@ public class Train : MonoBehaviour
 {
     public int trainLine;
     public int numberOfAgents;
-    internal List<TrainSpawner> trainSpawners;
+    internal List<CarriageSpawner> trainSpawners;
     public List<CustomNode> goalNodes;
-    private float burstRate = 0.3f; // Time between agent spawns
     public GameObject agentContainer;
     public Agent agentPrefab;
     public Material alightingAgentMaterial;
     internal int nSpawnedAgents = 0;
+    internal GameObject trainDoors;
+    [SerializeField] internal string doorsSide;
 
     // Start is called before the first frame update
-    void OnEnable()
+    void Start()
     {
         if(goalNodes == null || goalNodes.Count == 0)
         {
@@ -26,9 +27,29 @@ public class Train : MonoBehaviour
             Debug.LogError("Agent container not set for train " + gameObject.name);
             return;
         }
-        trainSpawners = new List<TrainSpawner>();
 
-        Transform spawners = transform.Find("TrainSpawners");
+        trainDoors = transform.Find("TrainDoors" + doorsSide).gameObject;
+        if(trainDoors == null)
+        {
+            Debug.LogError("Train doors not found for train " + gameObject.name);
+            return;
+        }
+
+        trainSpawners = new List<CarriageSpawner>();
+        Transform spawners = transform.Find("Spawners");
+
+        foreach (Transform spawnerTransform in spawners)
+        {
+            CarriageSpawner spawner = spawnerTransform.GetComponent<CarriageSpawner>();
+            if (spawner != null)
+            {
+                trainSpawners.Add(spawner);
+            }
+            else
+            {
+                Debug.LogError("CarriageSpawner component not found on " + spawnerTransform.name + " for train " + gameObject.name);
+            }
+        }
 
         TrainController trainController = FindObjectOfType<TrainController>();
         if(trainController == null)        {
@@ -36,36 +57,43 @@ public class Train : MonoBehaviour
             return;
         }
 
-        bool alightBeforeBoarding = trainController.alightBeforeBoarding;
-        TrainController.PlatformType platformType = trainController.platformType;
-        bool waitOutsideTrain = trainController.waitOutsideTrain;
+        int agentsPerSpawner= numberOfAgents / trainSpawners.Count;
+        int remainder = numberOfAgents % trainSpawners.Count;
 
-        foreach (Transform spawnerTransform in spawners)
+        for (int i = 0; i < trainSpawners.Count; i++)
         {
-            TrainSpawner spawner = spawnerTransform.GetComponent<TrainSpawner>();
-            trainSpawners.Add(spawner);
-            int closestGoal = -1;
-            float closestDistance = Mathf.Infinity;
-            int closestIndex = -1;
+            int agentsForThisSpawner = agentsPerSpawner + (i < remainder ? 1 : 0);
 
-            for (int i = 0; i < goalNodes.Count; i++)
+            if (agentsForThisSpawner > 0)
             {
-                float distance = Vector3.Distance(spawner.transform.position, goalNodes[i].transform.position);
-                if (distance < closestDistance)
+                CarriageSpawner spawner = trainSpawners[i];
+                int closestGoal = -1;
+                float closestDistance = Mathf.Infinity;
+
+                for (int j = 0; j < goalNodes.Count; j++)
                 {
-                    closestDistance = distance;
-                    closestGoal = goalNodes[i].index;
-                    closestIndex = i;
+                    float distance = Vector3.Distance(spawner.transform.position, goalNodes[j].transform.position);
+                    if (distance < closestDistance)
+                    {
+                        closestDistance = distance;
+                        closestGoal = goalNodes[j].index;
+                    }
                 }
+                if(alightingAgentMaterial == null)
+                {
+                    Debug.LogError("Alighting agent material not set for train " + gameObject.name);
+                    return;
+                }
+                spawner.Initialize(this, closestGoal, agentContainer, agentPrefab, alightingAgentMaterial, agentsForThisSpawner);
             }
-            if(alightingAgentMaterial == null)
-            {
-                Debug.LogError("Alighting agent material not set for train " + gameObject.name);
-                return;
-            }
-            spawner.Initialize(this, closestGoal, burstRate, agentContainer, agentPrefab, alightingAgentMaterial, alightBeforeBoarding, platformType, waitOutsideTrain);
         }
         
+    }
+
+
+    public void ToggleTrainDoors(bool open)
+    {
+        trainDoors.SetActive(!open);
     }
 
 }

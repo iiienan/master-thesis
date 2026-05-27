@@ -68,7 +68,7 @@ public class Main : MonoBehaviour
 	internal bool exitDone = false;
 	internal bool enterDone = false;
 	public ExperimentHUD experimentHUD;
-	private float simulationStartTimer = 3f;
+	private float simulationStartTimer = 1f;
 	private bool simulationStarted = false;
 	internal LOSVisualizer losVisualizer;
 	private bool takeScreenshot = true;

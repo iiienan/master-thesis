@@ -27,7 +27,6 @@ public class TrainController : MonoBehaviour
     //public bool useDwellTimer = true;
     private Logger logger;
     private TestController testController;
-    private bool[] allSpawnersDone = new bool[2];
     internal Train[] trainScripts = new Train[2];
     internal bool[] dwelling = new bool[2];
     internal bool waitOutsideTrain = false;
@@ -40,6 +39,7 @@ public class TrainController : MonoBehaviour
     internal int[] nAgentsToBoard = new int[2];
     private bool[] alighting = new bool[2];
     public enum AgentType{Boarding, Alighting}
+    private bool[] spawnersDone = new bool[2];
 
     void Awake()
     {
@@ -76,6 +76,7 @@ public class TrainController : MonoBehaviour
             trainStates[i] = TrainState.Incoming;
             ToggleTrain(i, false);
             dwelling[i] = false;
+            spawnersDone[i] = false;
         }
 
         nodePositions = new Vector3[mainScript.roadmap.allNodes.Count];
@@ -119,14 +120,22 @@ public class TrainController : MonoBehaviour
         PrepareBoarding(trainLine);
         mainScript.spawnAgents = false;
         nAgentsToBoard[trainLine] = mainScript.nEnteringAgents[trainLine];
-        nAgentsToBoard[trainLine] = mainScript.nEnteringAgents[trainLine];
+        spawnersDone[trainLine] = false;
     }
 
     private void ToggleTrain(int trainLine, bool active)
     {
-        for(int i = 0; i <= 2; i++)
+        for(int i = 0; i <= 4; i++)
         {
             trains[trainLine].transform.GetChild(i).gameObject.SetActive(active);
+        }
+        if(trainScripts[trainLine].doorsSide == "L")
+        {
+            trains[trainLine].transform.Find("TrainDoorsR").gameObject.SetActive(active);
+        }
+        else if(trainScripts[trainLine].doorsSide == "R")
+        {
+            trains[trainLine].transform.Find("TrainDoorsL").gameObject.SetActive(active);
         }
     }
 
@@ -138,10 +147,6 @@ public class TrainController : MonoBehaviour
                 stateTimer[trainLine] -= SimulationGrid.instance.dt;
                 if (stateTimer[trainLine] <= 0f)
                 {
-                    foreach (var spawner in trainScripts[trainLine].trainSpawners)
-                    {
-                        spawner.isSpawning = true;
-                    }
                     if (logger != null) logger.alightingStartTime[trainLine] = mainScript.simulationTime;
                     alighting[trainLine] = true;
 
@@ -156,26 +161,21 @@ public class TrainController : MonoBehaviour
 
             case TrainState.BoardingAlighting:
 
-                bool spawnersDone = true;
-                foreach (var spawner in trainScripts[trainLine].trainSpawners)
+                if(!spawnersDone[trainLine])
                 {
-                    spawner.UpdateSpawner();
-                    if (!spawner.done)
+                    foreach (var spawner in trainScripts[trainLine].trainSpawners)
                     {
-                        spawnersDone = false;
+                        spawner.SpawnAgents();
                     }
-                }
-
-                if(spawnersDone && !allSpawnersDone[trainLine])
-                {
-                    allSpawnersDone[trainLine] = true;
+                    spawnersDone[trainLine] = true;
                     if(alightBeforeBoarding)
                     {
                         stateTimer[trainLine] = boardingDelay;
                     }
                 }
+                trainScripts[trainLine].ToggleTrainDoors(true);
 
-                if(alightBeforeBoarding && spawnersDone && !boarding[trainLine])
+                if(alightBeforeBoarding && spawnersDone[trainLine] && !boarding[trainLine])
                 {
                     stateTimer[trainLine] -= SimulationGrid.instance.dt;
                     if(stateTimer[trainLine] <= 0f)

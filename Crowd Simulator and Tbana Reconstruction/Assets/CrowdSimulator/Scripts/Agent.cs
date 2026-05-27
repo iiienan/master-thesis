@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using System;
 
@@ -360,7 +360,8 @@ public class Agent : MonoBehaviour
 		previousDirection = preferredVelocity.normalized;
 		Vector3 pos = tr.position;
 
-		if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (grid.skipNodeIfSeeNext && canSeeNext(map, 1)))
+		if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (grid.skipNodeIfSeeNext && canSeeNext(map, 1)
+		&& !(agentType == TrainController.AgentType.Alighting && !IsOnPlatform())))
 		{
 			//New node reached
 			collision = false;
@@ -867,6 +868,22 @@ public class Agent : MonoBehaviour
 			float strength = Mathf.Clamp01(distToEdge / zoneWidth);
 			Vector3 repel = Vector3.right * strength * walkingSpeed;
 			collisionAvoidanceVelocity += repel;
+		}
+	}
+
+	public bool IsOnPlatform()
+	{
+		float agentX = tr.position.x;
+		switch (trainController.platformType)
+		{
+			case TrainController.PlatformType.Central:
+				return agentX >= -9f && agentX <= 9f;
+			case TrainController.PlatformType.Side:
+				return agentX >= 3f || agentX <= -3f;
+			case TrainController.PlatformType.Mixed:
+				return agentX >= 6f || agentX <= -6f || (agentX > -3f && agentX < 3f);
+			default:
+				return false;
 		}
 	}
 }
