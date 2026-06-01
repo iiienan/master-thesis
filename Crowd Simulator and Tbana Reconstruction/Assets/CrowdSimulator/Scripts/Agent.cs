@@ -390,10 +390,15 @@ public class Agent : MonoBehaviour
 		bool change = false;
 		previousDirection = preferredVelocity.normalized;
 		Vector3 pos = tr.position;
+		if(agentType == TrainController.AgentType.Boarding && pathIndex == path.Count - 1 && isWaitingAgent && canSeeNext(map, 0))
+			{
+				done = true;
+				finalPosition = pos;
+			}
 
-		if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (grid.skipNodeIfSeeNext && canSeeNext(map, 1)
+		else if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (grid.skipNodeIfSeeNext && canSeeNext(map, 1)
 		&& !(agentType == TrainController.AgentType.Alighting && !IsOnPlatform())))
-		{
+		{	
 			//New node reached
 			collision = false;
 			pathIndex += 1;

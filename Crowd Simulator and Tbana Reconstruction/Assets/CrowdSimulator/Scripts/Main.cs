@@ -302,7 +302,7 @@ public class Main : MonoBehaviour
 			MoveAgent(agent, true);
 			return true;
 		}
-		// Agent reached the waiting area
+		// Agent can see the waiting area
 		if (agent.isWaitingAgent && !agent.noMap)
 		{
 			waitingAreaController.walkAgentToWaitingSpot(agent);
