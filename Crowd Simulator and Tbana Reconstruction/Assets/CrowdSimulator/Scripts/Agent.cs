@@ -78,6 +78,7 @@ public class Agent : MonoBehaviour
 	internal float activeTravelDistance = 0f;
 	internal bool exitedTrain = false;
 	internal TrainController.AgentType agentType;
+	internal bool crossedYellowLine = false;
 
 
 	void Awake()
@@ -85,7 +86,7 @@ public class Agent : MonoBehaviour
 		tr = transform;
 	}
 
-	internal bool CheckExitedTrain()
+	internal bool CrossedYellowLine()
 	{
 		float yellowLineStart = 0f;
 		switch (trainController.platformType)
@@ -95,7 +96,7 @@ public class Agent : MonoBehaviour
 				if((tr.position.x < 0f && tr.position.x > -yellowLineStart)
 				|| (tr.position.x > 0f && tr.position.x < yellowLineStart))
 				{
-					exitedTrain = true;
+					crossedYellowLine = true;
 					return true;
 				}
 				break;
@@ -104,7 +105,7 @@ public class Agent : MonoBehaviour
 				if((tr.position.x < 0f && tr.position.x > -yellowLineStart)
 				|| (tr.position.x > 0f && tr.position.x < yellowLineStart))
 				{
-					exitedTrain = true;
+					crossedYellowLine = true;
 					return true;
 				}
 				break;
@@ -112,6 +113,40 @@ public class Agent : MonoBehaviour
 				yellowLineStart = 4.24f;
 				if((tr.position.x < 0f && tr.position.x < -yellowLineStart)
 				|| (tr.position.x > 0f && tr.position.x > yellowLineStart))
+				{
+					crossedYellowLine = true;
+					return true;
+				}
+				break;
+		}
+		return false;
+	}
+
+	internal bool ExitedTrain()
+	{
+		float platformEdgeX = 0f;
+		switch (trainController.platformType)
+		{
+			case TrainController.PlatformType.Central:
+				platformEdgeX = 9f;
+				if(Mathf.Abs(tr.position.x) < platformEdgeX)
+				{
+					exitedTrain = true;
+					return true;
+				}
+				break;
+			case TrainController.PlatformType.Mixed:
+				platformEdgeX = 3f;
+				if(Mathf.Abs(tr.position.x) < platformEdgeX)
+				{
+					exitedTrain = true;
+					return true;
+				}
+				break;
+			case TrainController.PlatformType.Side:
+				platformEdgeX = 5f;
+				if((tr.position.x < 0f && tr.position.x < -platformEdgeX)
+				|| (tr.position.x > 0f && tr.position.x > platformEdgeX))
 				{
 					exitedTrain = true;
 					return true;
