@@ -175,16 +175,13 @@ public class TrainController : MonoBehaviour
                     }
                     spawnersDone[trainLine] = true;
                 }
-                trainScripts[trainLine].ToggleTrainDoors(true);
 
 
                 bool alightingComplete = nAgentsToAlight[trainLine] <= 0;
 
-                bool ninetyPercentExited = nAgentsInsideTrain[trainLine] <= (int)(testController.exitFlowLines[trainLine] * 0.2f);
 
-                if (alightBeforeBoarding && ninetyPercentExited && !boarding[trainLine])
+                if (alightBeforeBoarding && nAgentsInsideTrain[trainLine] <= 84 && !boarding[trainLine])
                 {
-
                     isPreparingToBoard[trainLine] = false;
                     Board(trainLine);
                 }

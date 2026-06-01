@@ -11,27 +11,19 @@ public class Train : MonoBehaviour
     public Agent agentPrefab;
     public Material alightingAgentMaterial;
     internal int nSpawnedAgents = 0;
-    internal GameObject trainDoors;
     [SerializeField] internal string doorsSide;
 
     // Start is called before the first frame update
     void Start()
     {
-        if(goalNodes == null || goalNodes.Count == 0)
+        if (goalNodes == null || goalNodes.Count == 0)
         {
             Debug.LogError("Goal nodes not set for train " + gameObject.name);
             return;
         }
-        if(agentContainer == null)
+        if (agentContainer == null)
         {
             Debug.LogError("Agent container not set for train " + gameObject.name);
-            return;
-        }
-
-        trainDoors = transform.Find("TrainDoors" + doorsSide).gameObject;
-        if(trainDoors == null)
-        {
-            Debug.LogError("Train doors not found for train " + gameObject.name);
             return;
         }
 
@@ -52,12 +44,13 @@ public class Train : MonoBehaviour
         }
 
         TrainController trainController = FindObjectOfType<TrainController>();
-        if(trainController == null)        {
+        if (trainController == null)
+        {
             Debug.LogError("TrainController not found in the scene.");
             return;
         }
 
-        int agentsPerSpawner= numberOfAgents / trainSpawners.Count;
+        int agentsPerSpawner = numberOfAgents / trainSpawners.Count;
         int remainder = numberOfAgents % trainSpawners.Count;
 
         for (int i = 0; i < trainSpawners.Count; i++)
@@ -79,7 +72,7 @@ public class Train : MonoBehaviour
                         closestGoal = goalNodes[j].index;
                     }
                 }
-                if(alightingAgentMaterial == null)
+                if (alightingAgentMaterial == null)
                 {
                     Debug.LogError("Alighting agent material not set for train " + gameObject.name);
                     return;
@@ -87,13 +80,7 @@ public class Train : MonoBehaviour
                 spawner.Initialize(this, closestGoal, agentContainer, agentPrefab, alightingAgentMaterial, agentsForThisSpawner);
             }
         }
-        
-    }
 
-
-    public void ToggleTrainDoors(bool open)
-    {
-        trainDoors.SetActive(!open);
     }
 
 }
