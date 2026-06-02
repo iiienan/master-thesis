@@ -298,6 +298,7 @@ public class TrainController : MonoBehaviour
 
         int layersToIgnore = LayerMask.GetMask("WaitingAgent", "Agent");
         int layerMask = ~layersToIgnore;
+        QueryParameters queryParameters = new QueryParameters(layerMask, false, QueryTriggerInteraction.UseGlobal, false);
 
         int queryIndex = 0;
         for (int i = 0; i < candidateCount; i++)
@@ -309,7 +310,7 @@ public class TrainController : MonoBehaviour
                 Vector3 dir = nodePos - position;
                 float distance = dir.magnitude;
                 
-                commands[queryIndex] = new RaycastCommand(position, dir.normalized, distance, layerMask);
+                commands[queryIndex] = new RaycastCommand(position, dir.normalized, queryParameters, distance);
                 queryIndex++;
             }
         }

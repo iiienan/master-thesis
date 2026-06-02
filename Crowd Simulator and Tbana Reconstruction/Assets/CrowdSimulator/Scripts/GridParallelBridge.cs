@@ -381,6 +381,7 @@ public class GridParallelBridge : MonoBehaviour
         {
             agentLayerMask = ~LayerMask.GetMask("WaitingAgent", "Agent");
         }
+        QueryParameters queryParameters = new QueryParameters(agentLayerMask, false, QueryTriggerInteraction.UseGlobal, false);
 
         int queryCount = 0;
         for (int i = 0; i < agentCount; i++)
@@ -426,7 +427,7 @@ public class GridParallelBridge : MonoBehaviour
                 Vector3 dir = next0 - targetPos;
                 float dist = dir.magnitude;
                 
-                commands[cmdIndex] = new RaycastCommand(targetPos, dir.normalized, dist, agentLayerMask);
+                commands[cmdIndex] = new RaycastCommand(targetPos, dir.normalized, queryParameters, dist);
                 mappings[cmdIndex] = new RaycastMapping { agent = agent, modifier = 0 };
                 cmdIndex++;
 
@@ -437,7 +438,7 @@ public class GridParallelBridge : MonoBehaviour
                     Vector3 dir1 = next1 - targetPos;
                     float dist1 = dir1.magnitude;
 
-                    commands[cmdIndex] = new RaycastCommand(targetPos, dir1.normalized, dist1, agentLayerMask);
+                    commands[cmdIndex] = new RaycastCommand(targetPos, dir1.normalized, queryParameters, dist1);
                     mappings[cmdIndex] = new RaycastMapping { agent = agent, modifier = 1 };
                     cmdIndex++;
                 }
