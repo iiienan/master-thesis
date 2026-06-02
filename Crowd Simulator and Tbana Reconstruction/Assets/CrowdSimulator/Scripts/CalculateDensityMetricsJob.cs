@@ -32,6 +32,13 @@ public struct CalculateMetricsJob : IJobParallelFor
     {
         float3 agentPosition = agentPositions[agentIndex];
 
+        if(!IsPointOnThePlatform(agentPosition))
+        {
+            outEntityDensity[agentIndex] = -1.0f;
+            outSocialProximity[agentIndex] = -1;
+            return;
+        }
+
         // Get current agent's neighbor bin
         int row = (int)((agentPosition.z - zMinMax.x) / lenOfBin); 
 		int column = (int)((agentPosition.x - xMinMax.x) / lenOfBin); 
@@ -61,11 +68,11 @@ public struct CalculateMetricsJob : IJobParallelFor
                             float3 otherAgentPosition = agentPositions[otherAgentIndex];
                             float distance = math.distance(agentPosition, otherAgentPosition);
 
-                            if (distance <= 1.5f)
+                            if (distance <= 1.5f && IsPointOnThePlatform(otherAgentPosition))
                             {
                                 nAgents1_5m++;
                             }
-                            if(distance <= 1f && agentIndex != otherAgentIndex)
+                            if(distance <= 1f && agentIndex != otherAgentIndex && IsPointOnThePlatform(otherAgentPosition))
                             {
                                 nAgents1m++;
                             }
@@ -78,7 +85,7 @@ public struct CalculateMetricsJob : IJobParallelFor
         // Calculate accessible space within the 1.5m radius circle
         float sumAvailability = 0f;
         int sampleCount = 0;
-        float spacing = 0.4f;
+        float spacing = 0.3f;
 
         for (float dx = -1.5f; dx <= 1.5f; dx += spacing)
         {
@@ -86,17 +93,11 @@ public struct CalculateMetricsJob : IJobParallelFor
             {
                 if (dx * dx + dz * dz <= 1.5f * 1.5f)
                 {
-                    float3 samplePosition = agentPosition + new float3(dx, 0f, dz);
+                    float3 samplePoint = agentPosition + new float3(dx, 0f, dz);
 
-                    if (IsPointWalkable(samplePosition))
+                    if (IsPointFree(samplePoint))
                     {
-                        int sampleRow = (int)((samplePosition.z - zMinMax.x) / cellSize);
-                        int sampleColumn = (int)((samplePosition.x - xMinMax.x) / cellSize);
-
-                        if (sampleRow >= 0 && sampleRow < nCellsZ && sampleColumn >= 0 && sampleColumn < nCellsX)
-                        {
-                            sumAvailability += availableAreaGrid[sampleRow * nCellsX + sampleColumn];
-                        }
+                        sumAvailability += 1.0f;
                     }
                     sampleCount++;
                 }
@@ -113,52 +114,58 @@ public struct CalculateMetricsJob : IJobParallelFor
         outSocialProximity[agentIndex] = nAgents1m;
     }
 
-    private bool IsPointWalkable(float3 samplePosition)
+    private bool IsPointOnThePlatform(float3 point)
     {
-        float absX = math.abs(samplePosition.x);
+        float absX = math.abs(point.x);
         
         // Check if the point is on the platform
-        bool onPlatform = false;
         if (platformType == 0) // Central
-        {
-            onPlatform = absX <= 9.0f;
+        {   
+            if(absX <= 9.0f) return true;
         }      
         else if(platformType == 2) // Side
-        {
-            onPlatform = absX >= 3.0f;
+        {   
+            if(absX >= 3.0f) return true;
         } 
         else if (platformType == 1) // Mixed
         {
-            onPlatform = absX >= 6.0f || absX <= 3.0f;
+            if(absX >= 6.0f || absX <= 3.0f) return true;
         }
-        
-        if (onPlatform) return true;
-
-        // If the point is outside the platform, it's walkable if
-        // the train is dwelling and the point is near the train door
-        if (isDwellingT1)
-        {
-            for (int i = 0; i < train1Doors.Length; i++)
-            {
-                if (math.abs(samplePosition.z - train1Doors[i].z) <= halfDoorWidth)
-                {
-                    return true;
-                }
-            }
-        }
-        
-        if (isDwellingT2)
-        {
-            for (int i = 0; i < train2Doors.Length; i++)
-            {
-                if (math.abs(samplePosition.z - train2Doors[i].z) <= halfDoorWidth)
-                {
-                    return true;
-                }
-            }
-        }
-
-        // Otherwise it's not walkable
         return false;
+    }
+
+    private bool IsPointFree(float3 point)
+    {
+        float absX = math.abs(point.x);
+        float absZ = math.abs(point.z);
+
+        // Check platform bounds
+        if(absX > 12f) return false; 
+        if(absZ > 75f) return false;
+
+        // Check train tracks
+        if(platformType == 0) // Central
+        {
+            if(absX > 9f) return false; 
+        }else if(platformType == 2) // Side
+        {
+            if(absX < 3f) return false;
+        }else if(platformType == 1) // Mixed
+        {
+            if(absX > 3f && absX < 6f) return false;
+        }
+
+        // Check stairs
+        if(platformType == 0) // Central
+        {
+            if(absX <= 3f && absZ >= 20f && absZ <= 50f) return false;  
+        }else if(platformType == 2) // Side
+        {
+            if(absX >= 9f && absZ >= 20f && absZ <= 50f) return false;
+        }else if(platformType == 1) // Mixed
+        {
+            if((absX <= 1f || absX >= 10f) && absZ >= 20f && absZ <= 50f) return false;
+        }
+        return true;
     }
 }

@@ -535,9 +535,12 @@ public class GridParallelBridge : MonoBehaviour
 
     for (int i = 0; i < agentCount; i++)
     {
-        agentList[i].sumEntityDensity += densities[i];
-        agentList[i].sumSocialProximity += proximity[i];
-        agentList[i].nSamples++;
+        if (densities[i] >= 0f)
+        {
+            agentList[i].sumEntityDensity += densities[i];
+            agentList[i].sumSocialProximity += proximity[i];
+            agentList[i].nSamples++;
+        }
     }
 
     positions.Dispose();

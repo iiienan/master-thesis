@@ -359,7 +359,7 @@ public class Logger : MonoBehaviour
         );
         line.AppendFormat(
             CultureInfo.InvariantCulture, 
-            "{0:F2},{1:F2},{2:F2},{3:F2},{4:F2},{5:F2},{6:F2},{7:F2},{8:F2},{9:F2},{10:F2},{11:F2}", 
+            "{0:F2},{1:F2},{2:F2},{3:F2},{4:F2},{5:F2},{6:F2},{7:F2},{8:F2},{9:F2},{10:F2},{11:F2},", 
             avgTravelTime[0, 1], 
             avgTravelTime[1, 1], 
             avgDistance[0, 1], 
