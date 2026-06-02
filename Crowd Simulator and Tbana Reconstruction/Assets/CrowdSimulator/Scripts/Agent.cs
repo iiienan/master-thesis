@@ -84,6 +84,21 @@ public class Agent : MonoBehaviour
 	internal bool exitedTrain = false;
 	internal TrainController.AgentType agentType;
 
+	internal float sumEntityDensity;
+	internal float sumSocialProximity;
+	internal int nSamples;
+
+
+	public float GetAverageEntityDensity()
+	{
+		return nSamples > 0 ? sumEntityDensity / nSamples : 0f;
+	}
+
+	public float GetAverageSocialProximity()
+	{
+		return nSamples > 0 ? sumSocialProximity / nSamples : 0f;
+	}
+
 
 	void Awake()
 	{

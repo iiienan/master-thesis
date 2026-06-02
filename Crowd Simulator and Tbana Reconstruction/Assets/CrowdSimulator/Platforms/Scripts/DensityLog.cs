@@ -5,6 +5,7 @@ public class DensityLog : MonoBehaviour
     private Main mainScript;
     private float timer = 0f;
     private bool log = false;
+    GridParallelBridge gridParallelBridge;
 
     // Start is called before the first frame update
     void Start()
@@ -21,6 +22,12 @@ public class DensityLog : MonoBehaviour
             return;
         }
         log = testController.log;
+        gridParallelBridge = FindObjectOfType<GridParallelBridge>();
+        if(gridParallelBridge == null)
+        {
+            Debug.LogError("GridParallelBridge not found in the scene.");
+            return;
+        }
     }
 
     // Update is called once per frame
@@ -34,6 +41,12 @@ public class DensityLog : MonoBehaviour
         if(timer <= 0f)
         {
             countAgents();
+            gridParallelBridge.CalculateMetrics(
+                mainScript.agentList,
+                SimulationGrid.instance,
+                Main.xMinMax,
+                Main.zMinMax
+            );
             timer += 1f;
         }
     }
