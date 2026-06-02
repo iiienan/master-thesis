@@ -22,7 +22,7 @@ public class WaitingAreaController : MonoBehaviour
     private Main mainScript;
     public Train[] trains;
     private CustomNode[][] trainDoorNodes; 
-    private Vector3[][] trainDoorPositions;
+    internal Vector3[][] trainDoorPositions;
 
     public void Initialize()
     {

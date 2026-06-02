@@ -463,6 +463,8 @@ public class Main : MonoBehaviour
 			logger.totalDistance[0, agent.trainLine - 1] += agent.travelDistance;
 			logger.totalSpeed[0, agent.trainLine - 1] += averageSpeed;
 			logger.totalPathEfficiency[0, agent.trainLine - 1] += efficiency;
+			logger.totalEntityDensity[0, agent.trainLine - 1] += agent.GetAverageEntityDensity();
+			logger.totalSocialProximity[0, agent.trainLine - 1] += agent.GetAverageSocialProximity();
 			logger.totalAgents[0, agent.trainLine - 1]++;
 		}
 		else if (agent.agentType == TrainController.AgentType.Alighting)
@@ -471,6 +473,8 @@ public class Main : MonoBehaviour
 			logger.totalDistance[1, agent.trainLine - 1] += agent.travelDistance;
 			logger.totalSpeed[1, agent.trainLine - 1] += averageSpeed;
 			logger.totalPathEfficiency[1, agent.trainLine - 1] += efficiency;
+			logger.totalEntityDensity[1, agent.trainLine - 1] += agent.GetAverageEntityDensity();
+			logger.totalSocialProximity[1, agent.trainLine - 1] += agent.GetAverageSocialProximity();
 			logger.totalAgents[1, agent.trainLine - 1]++;
 		}
 	}

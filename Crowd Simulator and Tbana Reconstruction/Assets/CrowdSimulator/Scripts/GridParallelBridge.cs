@@ -469,6 +469,86 @@ public class GridParallelBridge : MonoBehaviour
         results.Dispose();
     }
 
+    public void CalculateMetrics(List<Agent> agentList, SimulationGrid grid, Vector2 xMinMax, Vector2 zMinMax)
+{
+    int agentCount = agentList.Count;
+    if (agentCount == 0) return;
+
+    WaitingAreaController waitingAreaController = FindObjectOfType<WaitingAreaController>();
+    if (waitingAreaController == null)
+    {
+        Debug.LogError("WaitingAreaController not found during metric calculation!");
+        return;
+    }
+
+    Vector3[] t1Doors = waitingAreaController.trainDoorPositions[0];
+    Vector3[] t2Doors = waitingAreaController.trainDoorPositions[1];
+
+    NativeArray<float3> positions = new NativeArray<float3>(agentCount, Allocator.TempJob);
+    NativeArray<float> densities = new NativeArray<float>(agentCount, Allocator.TempJob);
+    NativeArray<int> proximity = new NativeArray<int>(agentCount, Allocator.TempJob);
+    NativeMultiHashMap<int, int> nativeNeighMatrix = new NativeMultiHashMap<int, int>(agentCount, Allocator.TempJob);
+
+    NativeArray<float3> train1Doors = new NativeArray<float3>(t1Doors.Length, Allocator.TempJob);
+    NativeArray<float3> train2Doors = new NativeArray<float3>(t2Doors.Length, Allocator.TempJob);
+
+    for (int i = 0; i < t1Doors.Length; i++) train1Doors[i] = t1Doors[i];
+    for (int i = 0; i < t2Doors.Length; i++) train2Doors[i] = t2Doors[i];
+
+    for (int i = 0; i < agentCount; i++)
+    {
+        positions[i] = agentList[i].tr.position;
+
+        int row = (int)((agentList[i].tr.position.z - zMinMax.x) / grid.lenOfBin);
+        int column = (int)((agentList[i].tr.position.x - xMinMax.x) / grid.lenOfBin);
+        row = Mathf.Clamp(row, 0, grid.neighbourBins - 1);
+        column = Mathf.Clamp(column, 0, grid.neighbourBins - 1);
+
+        int binKey = row * grid.neighbourBins + column;
+        nativeNeighMatrix.Add(binKey, i);
+    }
+
+    CalculateMetricsJob job = new CalculateMetricsJob
+    {
+        agentPositions = positions,
+        neighMatrix = nativeNeighMatrix,
+        availableAreaGrid = this.nativeAvailableArea,
+        train1Doors = train1Doors,
+        train2Doors = train2Doors,
+        nCellsX = grid.nCellsX,
+        nCellsZ = grid.nCellsZ,
+        cellSize = grid.cellSize,
+        nNeighbourBins = grid.neighbourBins,
+        lenOfBin = grid.lenOfBin,
+        xMinMax = new float3(xMinMax.x, xMinMax.y, 0f),
+        zMinMax = new float3(zMinMax.x, zMinMax.y, 0f),
+        platformType = (int)TrainController.instance.platformType,
+        isDwellingT1 = TrainController.instance.dwelling[0],
+        isDwellingT2 = TrainController.instance.dwelling[1],
+        halfDoorWidth = 0.75f,
+        outEntityDensity = densities,
+        outSocialProximity = proximity
+    };
+
+    JobHandle handle = job.Schedule(agentCount, 32);
+    handle.Complete();
+
+    for (int i = 0; i < agentCount; i++)
+    {
+        agentList[i].sumEntityDensity += densities[i];
+        agentList[i].sumSocialProximity += proximity[i];
+        agentList[i].nSamples++;
+    }
+
+    positions.Dispose();
+    densities.Dispose();
+    proximity.Dispose();
+    nativeNeighMatrix.Dispose();
+    train1Doors.Dispose();
+    train2Doors.Dispose();
+}
+
+
     void OnDestroy()
     {
         // Clean up persistent memory when exiting the scene
