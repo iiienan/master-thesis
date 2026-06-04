@@ -97,8 +97,27 @@ public class WaitingAreaController : MonoBehaviour
         trainDoorNodes = new CustomNode[trains.Length][];
         for (int i = 0; i < trains.Length; i++)
         {
-            GameObject trainDoors = trains[i].transform.Find("TrainSpawners").gameObject;
-            trainDoorNodes[i] = trainDoors.GetComponentsInChildren<CustomNode>();
+            Transform spawnersTransform = trains[i].transform.Find("Spawners");
+            if (spawnersTransform == null)
+            {
+                Debug.LogError("Spawners not found under train " + trains[i].name);
+                trainDoorNodes[i] = new CustomNode[0];
+                continue;
+            }
+
+            List<CustomNode> nodesList = new List<CustomNode>();
+            foreach (Transform carriageSpawner in spawnersTransform)
+            {
+                foreach (Transform spawnNode in carriageSpawner)
+                {
+                    CustomNode node = spawnNode.GetComponent<CustomNode>();
+                    if (node != null)
+                    {
+                        nodesList.Add(node);
+                    }
+                }
+            }
+            trainDoorNodes[i] = nodesList.ToArray();
         }
         
         trainDoorPositions = new Vector3[trains.Length][];

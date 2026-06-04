@@ -83,6 +83,7 @@ public class Agent : MonoBehaviour
 	internal float activeTravelDistance = 0f;
 	internal bool exitedTrain = false;
 	internal TrainController.AgentType agentType;
+	internal bool crossedYellowLine = false;
 
 	internal float sumEntityDensity;
 	internal float sumSocialProximity;
@@ -105,33 +106,63 @@ public class Agent : MonoBehaviour
 		tr = transform;
 	}
 
-	internal bool CheckExitedTrain()
+	internal bool CrossedYellowLine()
 	{
 		float yellowLineStart = 0f;
 		switch (trainController.platformType)
 		{
 			case TrainController.PlatformType.Central:
 				yellowLineStart = 7.76f;
-				if((tr.position.x < 0f && tr.position.x > -yellowLineStart)
-				|| (tr.position.x > 0f && tr.position.x < yellowLineStart))
+				if(Mathf.Abs(tr.position.x) < yellowLineStart)
+				{
+					crossedYellowLine = true;
+					return true;
+				}
+				break;
+			case TrainController.PlatformType.Mixed:
+				yellowLineStart = 1.76f;
+				if(Mathf.Abs(tr.position.x) < yellowLineStart)
+				{
+					crossedYellowLine = true;
+					return true;
+				}
+				break;
+			case TrainController.PlatformType.Side:
+				yellowLineStart = 4.24f;
+				if(Mathf.Abs(tr.position.x) > yellowLineStart)
+				{
+					crossedYellowLine = true;
+					return true;
+				}
+				break;
+		}
+		return false;
+	}
+
+	internal bool ExitedTrain()
+	{
+		float platformEdgeX = 0f;
+		switch (trainController.platformType)
+		{
+			case TrainController.PlatformType.Central:
+				platformEdgeX = 9f;
+				if(Mathf.Abs(tr.position.x) < platformEdgeX)
 				{
 					exitedTrain = true;
 					return true;
 				}
 				break;
 			case TrainController.PlatformType.Mixed:
-				yellowLineStart = 1.76f;
-				if((tr.position.x < 0f && tr.position.x > -yellowLineStart)
-				|| (tr.position.x > 0f && tr.position.x < yellowLineStart))
+				platformEdgeX = 3f;
+				if(Mathf.Abs(tr.position.x) < platformEdgeX)
 				{
 					exitedTrain = true;
 					return true;
 				}
 				break;
 			case TrainController.PlatformType.Side:
-				yellowLineStart = 4.24f;
-				if((tr.position.x < 0f && tr.position.x < -yellowLineStart)
-				|| (tr.position.x > 0f && tr.position.x > yellowLineStart))
+				platformEdgeX = 3f;
+				if(Mathf.Abs(tr.position.x) > platformEdgeX)
 				{
 					exitedTrain = true;
 					return true;
@@ -388,9 +419,15 @@ public class Agent : MonoBehaviour
 		bool change = false;
 		previousDirection = preferredVelocity.normalized;
 		Vector3 pos = tr.position;
+		if(agentType == TrainController.AgentType.Boarding && pathIndex == path.Count - 1 && isWaitingAgent && canSeeNext(map, 0))
+			{
+				done = true;
+				finalPosition = pos;
+			}
 
-		if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (grid.skipNodeIfSeeNext && canSeeNext(map, 1)))
-		{
+		else if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (grid.skipNodeIfSeeNext && canSeeNext(map, 1)
+		&& !(agentType == TrainController.AgentType.Alighting && !IsOnPlatform())))
+		{	
 			//New node reached
 			collision = false;
 			pathIndex += 1;
@@ -896,6 +933,22 @@ public class Agent : MonoBehaviour
 			float strength = Mathf.Clamp01(distToEdge / zoneWidth);
 			Vector3 repel = Vector3.right * strength * walkingSpeed;
 			collisionAvoidanceVelocity += repel;
+		}
+	}
+
+	public bool IsOnPlatform()
+	{
+		float agentX = tr.position.x;
+		switch (trainController.platformType)
+		{
+			case TrainController.PlatformType.Central:
+				return agentX >= -9f && agentX <= 9f;
+			case TrainController.PlatformType.Side:
+				return agentX >= 3f || agentX <= -3f;
+			case TrainController.PlatformType.Mixed:
+				return agentX >= 6f || agentX <= -6f || (agentX > -3f && agentX < 3f);
+			default:
+				return false;
 		}
 	}
 }
