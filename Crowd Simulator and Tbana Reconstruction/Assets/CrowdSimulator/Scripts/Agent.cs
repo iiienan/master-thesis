@@ -76,7 +76,6 @@ public class Agent : MonoBehaviour
 	private float cachedCellSizeSquared;
 	private static int agentLayerMask = -1;
 	private Vector3 tickStartPosition;
-	internal Vector3 spawnPosition;
 	internal Vector3 finalPosition;
 	internal Vector3 waitingPosition;
 	internal float shortestPath = 0f;
@@ -304,7 +303,6 @@ public class Agent : MonoBehaviour
 		tr.position = pos;
 		previousPosition = pos;
 		tickStartPosition = pos;
-		spawnPosition = pos;
 		this.goal = goal;
 		path = map.shortestPaths[start][goal];
 
