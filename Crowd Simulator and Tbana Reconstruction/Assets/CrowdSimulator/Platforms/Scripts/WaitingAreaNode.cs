@@ -9,7 +9,7 @@ public class WaitingAreaNode : CustomNode
     * Returns the closest point on the waiting area plane from the agent's position (origin).
     * The agents will steer toward this point.
     */
-    public override Vector3 getTargetPoint(Vector3 origin, int agentID = 0)
+    private Vector3 TargetPoint(Vector3 origin, int agentID = 0)
     {
         // Multiply by 5 because a plane's default dimensions is 10x10 world units
         // when its scale is (1,1,1) and we want half the width and height.
@@ -30,6 +30,6 @@ public class WaitingAreaNode : CustomNode
     */
     public override bool IsAgentInsideArea(Vector3 agentPosition)
 	{
-		return Vector3.Distance(agentPosition, getTargetPoint(agentPosition)) < thresholdDistance;
+		return Vector3.Distance(agentPosition, TargetPoint(agentPosition)) < thresholdDistance;
 	}
 }
