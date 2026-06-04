@@ -76,7 +76,6 @@ public class Agent : MonoBehaviour
 	private float cachedCellSizeSquared;
 	private static int agentLayerMask = -1;
 	private Vector3 tickStartPosition;
-	internal Vector3 finalPosition;
 	internal Vector3 waitingPosition;
 	internal float shortestPath = 0f;
 	internal float activeTravelDistance = 0f;
@@ -419,8 +418,9 @@ public class Agent : MonoBehaviour
 		Vector3 pos = tr.position;
 		if(agentType == TrainController.AgentType.Boarding && pathIndex == path.Count - 1 && isWaitingAgent && canSeeNext(map, 0))
 			{
+				shortestPath += Vector3.Distance(pos, previousPosition);
+				previousPosition = pos;
 				done = true;
-				finalPosition = pos;
 			}
 
 		else if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (grid.skipNodeIfSeeNext && canSeeNext(map, 1)
@@ -436,7 +436,6 @@ public class Agent : MonoBehaviour
 			{
 				//Done
 				done = true;
-				finalPosition = pos;	
 			}
 			else
 			{
