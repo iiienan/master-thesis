@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class CarriageSpawner : MonoBehaviour
 {
-    private int goal;
     private GameObject agentContainer;
     private Main mainScript;
     private Agent agentPrefab;
@@ -16,12 +15,11 @@ public class CarriageSpawner : MonoBehaviour
     const int SPAWN_AREA_Z = 2;
 
     // Start is called before the first frame update
-    public void Initialize(Train train, int goal, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, int nAgentsToSpawn)
+    public void Initialize(Train train, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, int nAgentsToSpawn)
     {
         this.agentPrefab = agentPrefab;
         this.agentContainer = agentContainer;
         this.train = train;
-        this.goal = goal;
         this.nAgentsToSpawn = nAgentsToSpawn;
         this.alightingAgentMaterial = alightingAgentMaterial;
         mainScript = FindObjectOfType<Main>();
@@ -68,6 +66,19 @@ public class CarriageSpawner : MonoBehaviour
 
     private void SpawnAgentsInGrid(CustomNode node, int agentsForThisNode)
     {
+        int closestGoal = -1;
+        float closestDistance = Mathf.Infinity;
+
+        for (int j = 0; j < train.goalNodes.Count; j++)
+        {
+            float distance = Vector3.Distance(node.transform.position, train.goalNodes[j].transform.position);
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestGoal = train.goalNodes[j].index;
+            }
+        }
+        
         float minX = -SPAWN_AREA_X, maxX = SPAWN_AREA_X;
         float minZ = -SPAWN_AREA_Z, maxZ = SPAWN_AREA_Z;
 
@@ -99,13 +110,13 @@ public class CarriageSpawner : MonoBehaviour
                 float zPos = startZ + stepZ * r;
                 Vector3 startPosition = new Vector3(xPos, 0f, zPos);
 
-                SpawnOneAgent(node.index, startPosition);
+                SpawnOneAgent(node.index, closestGoal, startPosition);
                 nAgentsSpawned++;
             }
         }
     }
 
-    public void SpawnOneAgent(int nodeIndex,Vector3? customPosition = null)
+    public void SpawnOneAgent(int nodeIndex, int goal, Vector3? customPosition = null)
 	{
         Vector3 startPosition = customPosition ?? new Vector3(transform.position.x, 0f, transform.position.z + Random.Range(-0.5f, 0.5f));
 		Agent agent = Instantiate (agentPrefab);

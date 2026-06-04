@@ -60,24 +60,14 @@ public class Train : MonoBehaviour
             if (agentsForThisSpawner > 0)
             {
                 CarriageSpawner spawner = trainSpawners[i];
-                int closestGoal = -1;
-                float closestDistance = Mathf.Infinity;
+                
 
-                for (int j = 0; j < goalNodes.Count; j++)
-                {
-                    float distance = Vector3.Distance(spawner.transform.position, goalNodes[j].transform.position);
-                    if (distance < closestDistance)
-                    {
-                        closestDistance = distance;
-                        closestGoal = goalNodes[j].index;
-                    }
-                }
                 if (alightingAgentMaterial == null)
                 {
                     Debug.LogError("Alighting agent material not set for train " + gameObject.name);
                     return;
                 }
-                spawner.Initialize(this, closestGoal, agentContainer, agentPrefab, alightingAgentMaterial, agentsForThisSpawner);
+                spawner.Initialize(this, agentContainer, agentPrefab, alightingAgentMaterial, agentsForThisSpawner);
             }
         }
 
