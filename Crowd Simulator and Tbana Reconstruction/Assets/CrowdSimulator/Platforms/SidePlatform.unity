@@ -8732,7 +8732,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: arrivalDelay
-      value: 10
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
+      propertyPath: exitingDelay
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: platformType
@@ -8740,7 +8744,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: boardingDelay
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9163898548400775096, guid: df5440e17c6aff940b34e9744166a88b, type: 3}
       propertyPath: trainCapacity
@@ -11467,15 +11471,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5869765157184109524, guid: 6cba24cc6f3ec974fa8c7e2b22f307b1, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 162.90143
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5869765157184109524, guid: 6cba24cc6f3ec974fa8c7e2b22f307b1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -342.15546
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5869765157184109524, guid: 6cba24cc6f3ec974fa8c7e2b22f307b1, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -9.161547
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5869765157184109524, guid: 6cba24cc6f3ec974fa8c7e2b22f307b1, type: 3}
       propertyPath: m_LocalRotation.w
@@ -21934,11 +21938,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: log
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: exitFlow
-      value: 2
+      value: 500
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: flowType
@@ -21946,15 +21950,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: entryFlow
-      value: 2
+      value: 500
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: arriveInterval
-      value: 10
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: alightBeforeBoarding
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5233626816181377110, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: m_Name
