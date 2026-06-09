@@ -172,7 +172,6 @@ public class TrainController : MonoBehaviour
 
                 if (!initialSpawnDone[trainLine])
                 {
-                    Debug.Break();
                     foreach (var spawner in trainScripts[trainLine].trainSpawners)
                     {
                         nSpawnedAgents[trainLine] += spawner.SpawnAgents();
