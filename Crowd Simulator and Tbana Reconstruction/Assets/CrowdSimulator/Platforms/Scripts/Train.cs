@@ -50,8 +50,9 @@ public class Train : MonoBehaviour
             return;
         }
 
-        int agentsPerSpawner = numberOfAgents / trainSpawners.Count;
-        int remainder = numberOfAgents % trainSpawners.Count;
+        int nAgentsToSpawn = Mathf.Min(numberOfAgents, 3000);
+        int agentsPerSpawner = nAgentsToSpawn / trainSpawners.Count;
+        int remainder = nAgentsToSpawn % trainSpawners.Count;
 
         for (int i = 0; i < trainSpawners.Count; i++)
         {

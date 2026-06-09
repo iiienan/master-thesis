@@ -42,8 +42,9 @@ public class TrainController : MonoBehaviour
     internal int[] nAgentsToBoard = new int[2];
     private bool[] alighting = new bool[2];
     public enum AgentType { Boarding, Alighting }
-    private bool[] spawnersDone = new bool[2];
+    private bool[] initialSpawnDone = new bool[2];
     private int[] nAgentsInsideTrain = new int[2];
+    private int[] nSpawnedAgents = new int[2];
 
     void Awake()
     {
@@ -83,7 +84,7 @@ public class TrainController : MonoBehaviour
             trainStates[i] = TrainState.Incoming;
             ToggleTrain(i, false);
             dwelling[i] = false;
-            spawnersDone[i] = false;
+            initialSpawnDone[i] = false;
         }
 
         nodePositions = new Vector3[mainScript.roadmap.allNodes.Count];
@@ -127,7 +128,7 @@ public class TrainController : MonoBehaviour
         PrepareBoarding(trainLine);
         mainScript.spawnAgents = false;
         nAgentsToBoard[trainLine] = mainScript.nEnteringAgents[trainLine];
-        spawnersDone[trainLine] = false;
+        initialSpawnDone[trainLine] = false;
         nAgentsInsideTrain[trainLine] = testController.exitFlowLines[trainLine];
     }
 
@@ -169,20 +170,33 @@ public class TrainController : MonoBehaviour
 
             case TrainState.BoardingAlighting:
 
-                if (!spawnersDone[trainLine])
+                if (!initialSpawnDone[trainLine])
+                {
+                    Debug.Break();
+                    foreach (var spawner in trainScripts[trainLine].trainSpawners)
+                    {
+                        nSpawnedAgents[trainLine] += spawner.SpawnAgents();
+                    }
+                    initialSpawnDone[trainLine] = true;
+                }
+                if(nSpawnedAgents[trainLine] < testController.exitFlowLines[trainLine])
                 {
                     foreach (var spawner in trainScripts[trainLine].trainSpawners)
                     {
-                        spawner.SpawnAgents();
+                        if(nSpawnedAgents[trainLine] < testController.exitFlowLines[trainLine])
+                        {
+                            int nAgentsLeft = testController.exitFlowLines[trainLine] - nSpawnedAgents[trainLine];
+                            nAgentsLeft = Mathf.Min(nAgentsLeft,4);
+                            nSpawnedAgents[trainLine] += spawner.UpdateSpawner(nAgentsLeft);
+                        }
                     }
-                    spawnersDone[trainLine] = true;
                 }
-
+           
 
                 bool alightingComplete = nAgentsToAlight[trainLine] <= 0;
 
 
-                if (alightBeforeBoarding && nAgentsInsideTrain[trainLine] <= 84 && !boarding[trainLine])
+                if (alightBeforeBoarding && nAgentsInsideTrain[trainLine] <= 0 && !boarding[trainLine])
                 {
                     isPreparingToBoard[trainLine] = false;
                     Board(trainLine);
