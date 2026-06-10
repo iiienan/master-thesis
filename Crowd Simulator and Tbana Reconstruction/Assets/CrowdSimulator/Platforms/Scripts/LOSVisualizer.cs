@@ -84,7 +84,7 @@ public void UpdateLOS()
         }
     }
 
-    public void takeScreenshot()
+    public void TakeScreenshot()
     {
         SetGridVisibility(true);
 
