@@ -186,7 +186,7 @@ public class TrainController : MonoBehaviour
                         {
                             int nAgentsLeft = testController.exitFlowLines[trainLine] - nSpawnedAgents[trainLine];
                             nAgentsLeft = Mathf.Min(nAgentsLeft,4);
-                            nSpawnedAgents[trainLine] += spawner.UpdateSpawner(nAgentsLeft);
+                            nSpawnedAgents[trainLine] += spawner.UpdateSpawner(nAgentsInsideTrain[trainLine],nAgentsLeft);
                         }
                     }
                 }
