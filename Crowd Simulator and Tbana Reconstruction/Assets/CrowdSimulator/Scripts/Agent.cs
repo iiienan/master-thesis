@@ -451,8 +451,10 @@ public class Agent : MonoBehaviour
 		else if (pathIndex > 0 && grid.walkBack && !canSeeNext(map, 0))
 		{ //Can we see current heading? Are we trapped?
 		  //No. We want to go back
-			preferredVelocity = (map.allNodes[path[pathIndex - 1]].getTargetPoint(pos, gameObject.GetInstanceID()) - pos).normalized;
-			change = false;
+		  	pathIndex -= 1;
+			targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(pos, gameObject.GetInstanceID());
+			shortestPath += Vector3.Distance(pos, previousPosition);
+			previousPosition = pos;
 		}
 		else
 		{

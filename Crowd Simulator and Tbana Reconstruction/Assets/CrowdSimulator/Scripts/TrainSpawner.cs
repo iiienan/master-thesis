@@ -77,6 +77,7 @@ public class TrainSpawner : MonoBehaviour
         agent.agentRenderer.material = alightingAgentMaterial;
         agent.trainLine = train.trainLine;
         agent.agentType = TrainController.AgentType.Alighting;
+        agent.pathIndex = 0;
 
         if (alightBeforeBoarding && waitOutsideTrain)
         {
