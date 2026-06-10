@@ -26,6 +26,8 @@ public class Logger : MonoBehaviour
     private StreamWriter densityTimeSeriesWriter;
     private StreamWriter yellowLineWriter;
     private StreamWriter warningWriter;
+    private System.Collections.Generic.List<string> bufferedYellowLines = new System.Collections.Generic.List<string>();
+    private System.Collections.Generic.List<string> bufferedDensities = new System.Collections.Generic.List<string>();
 
     internal float[] alightingStartTime = new float[2];
     internal float[] boardingStartTime = new float[2];
@@ -228,26 +230,22 @@ public class Logger : MonoBehaviour
 
     public void LogYellowLineViolation(Vector3 position)
     {
-        if (yellowLineWriter == null) return;
-
         StringBuilder line = new StringBuilder();
         line.Append(scenarioPrefix + ",");
         line.Append(main.simulationTime.ToString("F2", CultureInfo.InvariantCulture) + ",");
         line.Append(position.x.ToString("F2", CultureInfo.InvariantCulture) + ",");
         line.Append(position.z.ToString("F2", CultureInfo.InvariantCulture));
-        yellowLineWriter.WriteLine(line.ToString());
+        bufferedYellowLines.Add(line.ToString());
     }
 
     public void LogDensity(string densityValues)
     {
-        if (densityTimeSeriesWriter == null) return;
-
         StringBuilder line = new StringBuilder();
         line.Append(scenarioPrefix + ",");
         line.Append(main.simulationTime.ToString("F2", CultureInfo.InvariantCulture));
         line.Append(",");
         line.Append(densityValues);
-        densityTimeSeriesWriter.WriteLine(line.ToString());
+        bufferedDensities.Add(line.ToString());
     }
 
 
@@ -396,6 +394,27 @@ public class Logger : MonoBehaviour
         );
 
         summaryWriter.WriteLine(line.ToString());
+    }
+
+    public void LogYellowLineAndDensity()
+    {
+        if (yellowLineWriter != null)
+        {
+            foreach (string logLine in bufferedYellowLines)
+            {
+                yellowLineWriter.WriteLine(logLine);
+            }
+            bufferedYellowLines.Clear();
+        }
+
+        if (densityTimeSeriesWriter != null)
+        {
+            foreach (string logLine in bufferedDensities)
+            {
+                densityTimeSeriesWriter.WriteLine(logLine);
+            }
+            bufferedDensities.Clear();
+        }
     }
 
     void OnApplicationQuit()
