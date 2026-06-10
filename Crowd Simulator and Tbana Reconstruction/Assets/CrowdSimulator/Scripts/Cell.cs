@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class Cell : MonoBehaviour {
 
@@ -30,8 +30,8 @@ public class Cell : MonoBehaviour {
 		Vector3 start = transform.position;
 		float gridCellSize = SimulationGrid.instance.cellSize;
 		
-		start.x -= gridCellSize / 2;
-		start.z -= gridCellSize / 2;
+		start.x -= gridCellSize / 2 - 0.5f;
+		start.z -= gridCellSize / 2 - 0.5f;
 		start.y = 0f;
 
 		for (int i = 0; i < gridCellSize; ++i) {
@@ -41,7 +41,7 @@ public class Cell : MonoBehaviour {
 				}
 				start.x += 1;
 			}
-			start.x = transform.position.x - gridCellSize / 2;
+			start.x = transform.position.x - gridCellSize / 2 + 0.5f;
 			start.z += 1;
 		}
 
