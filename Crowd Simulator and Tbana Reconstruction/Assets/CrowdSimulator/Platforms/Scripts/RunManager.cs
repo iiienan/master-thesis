@@ -62,8 +62,6 @@ public class RunManager : MonoBehaviour
         500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000
     };
 
-    private Logger logger;
-
     [Header("Delays & Intervals")]
     public float arriveInterval = 120f;
     public float arrivalDelay = 15f;
@@ -88,25 +86,50 @@ public class RunManager : MonoBehaviour
         Debug.Log($"[RunManager] Initialized. {TotalRuns} runs queued (Config Matrix x {repetitionsPerConfig} repetitions).");
         Debug.Log("Logging to: " + Application.persistentDataPath);
         LoadCurrentScene();
-
-        logger = FindObjectOfType<Logger>();
-        if (logger == null)        
-        {
-            Debug.LogError("Logger not found in the scene.");
-        }
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F9))
+        if (Input.GetKeyDown(KeyCode.Q))
         {
-            Debug.LogWarning("[RunManager] Force-skipping current run via F9.");
+            Debug.LogWarning("[RunManager] Force-skipping current run via Q.");
+            Logger logger = FindObjectOfType<Logger>();
             if (logger != null)
             {
-                logger.LogWarning("Run " + (CurrentRunIndex + 1) + " skipped by user.");
+                logger.LogWarning("Run " + (CurrentRunIndex + 1) + " skipped by user." +
+                " Entering Agents 1: " + Main.instance.nEnteringAgents[0] + ", Entering Agents 2: " + Main.instance.nEnteringAgents[1] + 
+                ", Exiting Agents 1: " + Main.instance.nExitingAgentsPerLine[0] + ", Exiting Agents 2: " + Main.instance.nExitingAgentsPerLine[1]
+                + ", Number of agents in the scene: " + Main.instance.agentList.Count);
             }
-            OnRunComplete();
+            OnRunComplete(true);
         }
+        if(Main.instance.simulationTime >= 500f)
+        {
+            Debug.LogWarning("[RunManager] Skipping current run due to time limit.");
+            Logger logger = FindObjectOfType<Logger>();
+            if (logger != null)
+            {
+                logger.LogWarning("Run " + (CurrentRunIndex + 1) + " skipped due to time limit." +
+                " Entering Agents 1: " + Main.instance.nEnteringAgents[0] + ", Entering Agents 2: " + Main.instance.nEnteringAgents[1] + 
+                ", Exiting Agents 1: " + Main.instance.nExitingAgentsPerLine[0] + ", Exiting Agents 2: " + Main.instance.nExitingAgentsPerLine[1]
+                + ", Number of agents in the scene: " + Main.instance.agentList.Count);
+            }
+            OnRunComplete(true);
+        }
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            Debug.LogWarning("[RunManager] Force-skipping current run via W. (No rerun)");
+            Logger logger = FindObjectOfType<Logger>();
+            if (logger != null)
+            {
+                logger.LogWarning("Run " + (CurrentRunIndex + 1) + " skipped by user. (No rerun)" +
+                " Entering Agents 1: " + Main.instance.nEnteringAgents[0] + ", Entering Agents 2: " + Main.instance.nEnteringAgents[1] + 
+                ", Exiting Agents 1: " + Main.instance.nExitingAgentsPerLine[0] + ", Exiting Agents 2: " + Main.instance.nExitingAgentsPerLine[1]
+                + ", Number of agents in the scene: " + Main.instance.agentList.Count);
+            }
+            OnRunComplete(false);
+        }
+        
     }
 
     // -------------------------------------------------------------------------
@@ -116,18 +139,16 @@ public class RunManager : MonoBehaviour
     {
         runs.Clear();
 
-        foreach (string scene in Scenes)
+        foreach (int flow in FlowValues)
         {
-            foreach (bool abb in new[] { false, true })
+            foreach (string scene in Scenes)
             {
-                if (scene == "MixedPlatform" && abb) continue;
-
-                foreach (int flow in FlowValues)
+                for (int rep = 0; rep < repetitionsPerConfig; rep++)
                 {
-                    // Repeat each configuration the specified number of times
-                    for (int rep = 0; rep < repetitionsPerConfig; rep++)
+                    // --- 1. Symmetric Entry ---
+                    foreach (bool abb in new[] { false, true })
                     {
-                        // --- 1. Symmetric Entry ---
+                        if (scene == "MixedPlatform" && abb) continue;
                         runs.Add(new SimRun
                         {
                             sceneName            = scene,
@@ -138,8 +159,12 @@ public class RunManager : MonoBehaviour
                             alightBeforeBoarding = abb,
                             repetitionIndex      = rep
                         });
+                    }
 
-                        // --- 2. Asymmetric Entry ---
+                    // --- 2. Asymmetric Entry ---
+                    foreach (bool abb in new[] { false, true })
+                    {
+                        if (scene == "MixedPlatform" && abb) continue;
                         runs.Add(new SimRun
                         {
                             sceneName            = scene,
@@ -150,8 +175,12 @@ public class RunManager : MonoBehaviour
                             alightBeforeBoarding = abb,
                             repetitionIndex      = rep
                         });
+                    }
 
-                        // --- 3. Symmetric Exit ---
+                    // --- 3. Symmetric Exit ---
+                    foreach (bool abb in new[] { false, true })
+                    {
+                        if (scene == "MixedPlatform" && abb) continue;
                         runs.Add(new SimRun
                         {
                             sceneName            = scene,
@@ -162,8 +191,12 @@ public class RunManager : MonoBehaviour
                             alightBeforeBoarding = abb,
                             repetitionIndex      = rep
                         });
+                    }
 
-                        // --- 4. Asymmetric Exit ---
+                    // --- 4. Asymmetric Exit ---
+                    foreach (bool abb in new[] { false, true })
+                    {
+                        if (scene == "MixedPlatform" && abb) continue;
                         runs.Add(new SimRun
                         {
                             sceneName            = scene,
@@ -174,8 +207,12 @@ public class RunManager : MonoBehaviour
                             alightBeforeBoarding = abb,
                             repetitionIndex      = rep
                         });
+                    }
 
-                        // --- 5. Symmetric Entry + Exit ---
+                    // --- 5. Symmetric Entry + Exit ---
+                    foreach (bool abb in new[] { false, true })
+                    {
+                        if (scene == "MixedPlatform" && abb) continue;
                         runs.Add(new SimRun
                         {
                             sceneName            = scene,
@@ -218,6 +255,7 @@ public class RunManager : MonoBehaviour
         tc.alightBeforeBoarding = run.alightBeforeBoarding;
         tc.runIndex             = CurrentRunIndex;
         tc.arriveInterval       = arriveInterval;
+        tc.log                  = true;
         
         // Note: If your TestController script tracks repetition indices, 
         // you can assign it here (e.g., tc.repetitionIndex = run.repetitionIndex;)
@@ -239,20 +277,27 @@ public class RunManager : MonoBehaviour
     /// <summary>
     /// Call this when the simulation finishes to advance to the next run.
     /// </summary>
-    public void OnRunComplete()
+    public void OnRunComplete(bool rerun = false)
     {
-        Debug.Log($"[RunManager] Run {CurrentRunIndex + 1}/{TotalRuns} complete.");
+        Debug.Log($"[RunManager] Run {CurrentRunIndex + 1}/{TotalRuns} complete (rerun: {rerun}).");
 
         // Flush and close log files before the scene is destroyed
         Logger logger = FindObjectOfType<Logger>();
 
         if (logger != null)
         {
-            logger.LogRunSummary();
+            if (!rerun)
+            {
+                logger.LogRunSummary();
+                logger.LogYellowLineAndDensity();
+            }
             logger.CloseAllWriters();
         }
 
-        CurrentRunIndex++;
+        if (!rerun)
+        {
+            CurrentRunIndex++;
+        }
 
         if (CurrentRunIndex < TotalRuns)
         {
