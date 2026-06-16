@@ -177,23 +177,23 @@ public class GridParallelBridge : MonoBehaviour
 
     // 2. Extract current managed properties and populate the lookup grid hash bucket
     for (int i = 0; i < agentCount; i++)
-{
-    positions[i] = agentList[i].tr.position;
-    preferredVels[i] = agentList[i].preferredVelocity;
-    isWaitingFlags[i] = agentList[i].isWaiting;
-    isPreparingFlags[i] = agentList[i].isPreparingToBoard;
-    doneFlags[i] = agentList[i].done;
-    walkingSpeeds[i] = agentList[i].walkingSpeed;
+    {
+        positions[i] = agentList[i].tr.position;
+        preferredVels[i] = agentList[i].preferredVelocity;
+        isWaitingFlags[i] = agentList[i].isWaiting;
+        isPreparingFlags[i] = agentList[i].isPreparingToBoard;
+        doneFlags[i] = agentList[i].done;
+        walkingSpeeds[i] = agentList[i].walkingSpeed;
 
-    // Calculate row/column cell hashes exactly like the original simulation loops
-    int r = (int)((agentList[i].tr.position.z - zMinMax.x) / grid.lenOfBin);
-    int c = (int)((agentList[i].tr.position.x - xMinMax.x) / grid.lenOfBin);
-    r = Mathf.Clamp(r, 0, grid.neighbourBins - 1);
-    c = Mathf.Clamp(c, 0, grid.neighbourBins - 1);
+        // Calculate row/column cell hashes exactly like the original simulation loops
+        int r = (int)((agentList[i].tr.position.z - zMinMax.x) / grid.lenOfBin);
+        int c = (int)((agentList[i].tr.position.x - xMinMax.x) / grid.lenOfBin);
+        r = Mathf.Clamp(r, 0, grid.neighbourBins - 1);
+        c = Mathf.Clamp(c, 0, grid.neighbourBins - 1);
 
-    int binKey = r * grid.neighbourBins + c;
-    nativeSpatialGrid.Add(binKey, i); 
-}
+        int binKey = r * grid.neighbourBins + c;
+        nativeSpatialGrid.Add(binKey, i); 
+    }
 
     // 3. Setup the parallel job execution settings
     CollisionAvoidanceJob collisionJob = new CollisionAvoidanceJob
@@ -283,6 +283,10 @@ public class GridParallelBridge : MonoBehaviour
         // 4. Initial values of solution xArray
         for (int i = 0; i < totalGridCells; i++)
         {
+            if (nativeAvailableArea[i] < 0.65f)
+            {
+                grid.xArray[i] = 0.0;
+            }
             nativeXArray[i] = grid.xArray[i];
             nativeLArray[i] = grid.lArray[i];
         }
@@ -379,7 +383,7 @@ public class GridParallelBridge : MonoBehaviour
 
         if (agentLayerMask == -1)
         {
-            agentLayerMask = ~LayerMask.GetMask("WaitingAgent", "Agent");
+            agentLayerMask = ~LayerMask.GetMask("WaitingAgent", "Agent", "Ignore Raycast");
         }
         QueryParameters queryParameters = new QueryParameters(agentLayerMask, false, QueryTriggerInteraction.UseGlobal, false);
 

@@ -55,7 +55,14 @@ public struct LcpMatrixAssemblyJob : IJobParallelFor
             - xEdgeDensity_Left * xEdgeVelocity_Left
             - zEdgeDensity_Lower * zEdgeVelocity_Lower) / cellSize) * dt;
 
-        if (clamped && temp < 0.0) temp = 0.0;
+        if (availableArea[index] < 0.65f)
+        {
+            temp = availableArea[index] * maxDensity;
+        }
+        else if (clamped && temp < 0.0)
+        {
+            temp = 0.0;
+        }
         outB[index] = temp;
 
         CellCoefficients cc = new CellCoefficients();
