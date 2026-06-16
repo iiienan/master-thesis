@@ -68,9 +68,23 @@ public class Train : MonoBehaviour
                     Debug.LogError("Alighting agent material not set for train " + gameObject.name);
                     return;
                 }
-                spawner.Initialize(this, agentContainer, agentPrefab, alightingAgentMaterial, agentsForThisSpawner);
+                spawner.Initialize(this, agentContainer, agentPrefab, alightingAgentMaterial, agentsForThisSpawner, i);
             }
         }
+
+        if(trainController.platformType == TrainController.PlatformType.Mixed)
+        {
+            if(trainLine == 1)
+            {
+                transform.Find("TrainDoorsR").gameObject.SetActive(true);
+            }
+            else if(trainLine == 2)
+            {
+                transform.Find("TrainDoorsL").gameObject.SetActive(true);
+            }
+        }
+
+        
 
     }
 

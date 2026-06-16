@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class SubwaySpawner : MonoBehaviour {
 
@@ -23,6 +24,7 @@ public class SubwaySpawner : MonoBehaviour {
 	private float nextSpawnTimer;
 	private CustomNode spawnerNode;
     public int trainLine;
+	private List<Collider> doorColliders = new List<Collider>();
 
 	// Set the node index for this spawner's node
 	public void SetNode(int node)
@@ -95,6 +97,39 @@ public class SubwaySpawner : MonoBehaviour {
 
 		SetSpawnRate();
 		nextSpawnTimer = 0f;
+
+		if(mainScript.trainController.platformType != TrainController.PlatformType.Mixed) return;
+		
+
+		Transform trainDoorsR = mainScript.trainController.trains[0].transform.Find("TrainDoorsR");
+		if (trainDoorsR != null)
+		{
+			foreach (Transform door in trainDoorsR)
+			{
+				door.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+				Collider doorCollider = door.GetComponent<Collider>();
+				doorColliders.Add(doorCollider);
+			}
+		}
+		else
+		{
+			Debug.LogError("Train doors not found for train 1");
+		}
+
+		Transform trainDoorsL = mainScript.trainController.trains[1].transform.Find("TrainDoorsL");
+		if (trainDoorsL != null)
+		{
+			foreach (Transform door in trainDoorsL)
+			{
+				door.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+				Collider doorCollider = door.GetComponent<Collider>();
+				doorColliders.Add(doorCollider);
+			}
+		}
+		else
+		{
+			Debug.LogError("Train doors not found for train 2");
+		}	
 	}
 
 	internal void SetSpawnRate()
@@ -166,6 +201,16 @@ public class SubwaySpawner : MonoBehaviour {
 
 		mainScript.agentList.Add (agent);
 		mainScript.nEnteringAgents[agent.trainLine - 1]++;
+
+		if(mainScript.trainController.platformType == TrainController.PlatformType.Mixed)
+		{
+			Collider agentCollider = agent.GetComponent<Collider>();
+			
+			foreach (Collider doorCollider in doorColliders)
+			{
+				Physics.IgnoreCollision(agentCollider, doorCollider);
+			}
+		}
 	}
 
 	internal int SetSubwayData(Agent agent, Vector3 startPosition)
@@ -184,8 +229,8 @@ public class SubwaySpawner : MonoBehaviour {
             agent.waitingSpot = waitingAreaSpot.waitingSpot;
             agent.waitingArea = map.allNodes[waitingAreaSpot.waitingArea].GetComponent<WaitingArea>();
         }
+		
         return agentGoal;
-
     }
 
 

@@ -9,21 +9,23 @@ public class CarriageSpawner : MonoBehaviour
     internal Material alightingAgentMaterial;
     private Train train;
     private int nAgentsToSpawn;
-    private List<CustomNode> spawnerNodes;
+    private List<TrainNode> spawnerNodes;
     const int N_DOORS = 4;
     const int SPAWN_AREA_X = 1;
     const int SPAWN_AREA_Z = 2;
     private int[] closestGoals = new int[N_DOORS];
     private float spawnInterval = 0.2f;
     private float timeSinceLastSpawn = 0f;
+    internal int id;
 
     // Start is called before the first frame update
-    public void Initialize(Train train, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, int nAgentsToSpawn)
+    public void Initialize(Train train, GameObject agentContainer, Agent agentPrefab, Material alightingAgentMaterial, int nAgentsToSpawn, int id)
     {
         this.agentPrefab = agentPrefab;
         this.agentContainer = agentContainer;
         this.train = train;
         this.nAgentsToSpawn = nAgentsToSpawn;
+        this.id = id;
         this.alightingAgentMaterial = alightingAgentMaterial;
         mainScript = FindObjectOfType<Main>();
         if (mainScript == null)        {
@@ -35,13 +37,14 @@ public class CarriageSpawner : MonoBehaviour
             Debug.LogError("Alighting agent material not set for train " + train.gameObject.name);
             return;
         }
-        spawnerNodes = new List<CustomNode>();
+        spawnerNodes = new List<TrainNode>();
         foreach(Transform child in transform)
         {
-            CustomNode node = child.GetComponent<CustomNode>();
+            TrainNode node = child.GetComponent<TrainNode>();
             if(node != null)
             {
                 spawnerNodes.Add(node);
+                //node.trainCar = id;
             }
         }
         if(spawnerNodes.Count == 0)
@@ -105,13 +108,14 @@ public class CarriageSpawner : MonoBehaviour
                 float zPos = startZ + stepZ * r;
                 Vector3 startPosition = new Vector3(xPos, 0f, zPos);
 
-                SpawnOneAgent(spawnerNodes[spawnerIndex].index, closestGoals[spawnerIndex], startPosition);
+                SpawnOneAgent(spawnerNodes[spawnerIndex].index, closestGoals[spawnerIndex], spawnerNodes[spawnerIndex].trainCar, startPosition);
                 nAgentsSpawned++;
+                TrainController.instance.nAgentsInCarriage[train.trainLine-1, spawnerNodes[spawnerIndex].trainCar]++;
             }
         }
     }
 
-    public int UpdateSpawner( int nAgentsInsideTrain, int nAgentsToSpawn = N_DOORS)
+    public int UpdateSpawner(int nAgentsInsideTrain, int nAgentsToSpawn = N_DOORS)
     {
         timeSinceLastSpawn += SimulationGrid.instance.dt;
         if (timeSinceLastSpawn < spawnInterval) return 0;
@@ -119,13 +123,14 @@ public class CarriageSpawner : MonoBehaviour
 
         for(int i = 0; i < nAgentsToSpawn; i++)
         {
-            SpawnOneAgent(spawnerNodes[i].index, closestGoals[i], spawnerNodes[i].transform.position);
+            SpawnOneAgent(spawnerNodes[i].index, closestGoals[i], spawnerNodes[i].trainCar, spawnerNodes[i].transform.position);
             timeSinceLastSpawn =- spawnInterval;
+            TrainController.instance.nAgentsInCarriage[train.trainLine-1, spawnerNodes[i].trainCar]++;
         }
         return nAgentsToSpawn;
     }
 
-    public void SpawnOneAgent(int nodeIndex, int goal, Vector3? customPosition = null)
+    public void SpawnOneAgent(int nodeIndex, int goal, int trainCar, Vector3? customPosition = null)
 	{
         Vector3 startPosition = customPosition ?? new Vector3(transform.position.x, 0f, transform.position.z);
 		Agent agent = Instantiate (agentPrefab);
@@ -136,6 +141,7 @@ public class CarriageSpawner : MonoBehaviour
         agent.agentRenderer.material = alightingAgentMaterial;
         agent.trainLine = train.trainLine;
         agent.agentType = TrainController.AgentType.Alighting;
+        agent.trainCar = trainCar;
 
         agent.crossingYellowLine = true;
 		if (agentContainer != null)

@@ -86,6 +86,7 @@ public class Agent : MonoBehaviour
 	internal float sumEntityDensity;
 	internal float sumSocialProximity;
 	internal int nSamples;
+	internal int trainCar;
 
 
 	public float GetAverageEntityDensity()
@@ -143,7 +144,7 @@ public class Agent : MonoBehaviour
 		switch (trainController.platformType)
 		{
 			case TrainController.PlatformType.Central:
-				platformEdgeX = 9f;
+				platformEdgeX = 8.5f;
 				if(Mathf.Abs(tr.position.x) < platformEdgeX)
 				{
 					exitedTrain = true;
@@ -151,7 +152,7 @@ public class Agent : MonoBehaviour
 				}
 				break;
 			case TrainController.PlatformType.Mixed:
-				platformEdgeX = 3f;
+				platformEdgeX = 2.5f;
 				if(Mathf.Abs(tr.position.x) < platformEdgeX)
 				{
 					exitedTrain = true;
@@ -159,7 +160,7 @@ public class Agent : MonoBehaviour
 				}
 				break;
 			case TrainController.PlatformType.Side:
-				platformEdgeX = 3f;
+				platformEdgeX = 3.5f;
 				if(Mathf.Abs(tr.position.x) > platformEdgeX)
 				{
 					exitedTrain = true;
@@ -394,7 +395,7 @@ public class Agent : MonoBehaviour
 			Vector3 endPosition = targetPosition + (dir.normalized * dir.magnitude);
 			if (agentLayerMask == -1)
 			{
-				agentLayerMask = ~LayerMask.GetMask("WaitingAgent", "Agent");
+				agentLayerMask = ~LayerMask.GetMask("WaitingAgent", "Agent", "Ignore Raycast");
 			}
 			if (!Physics.Raycast(targetPosition, dir.normalized, out RaycastHit hit, dir.magnitude, agentLayerMask))
 			{
@@ -453,8 +454,6 @@ public class Agent : MonoBehaviour
 		  //No. We want to go back
 		  	pathIndex -= 1;
 			targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(pos, gameObject.GetInstanceID());
-			shortestPath += Vector3.Distance(pos, previousPosition);
-			previousPosition = pos;
 		}
 		else
 		{

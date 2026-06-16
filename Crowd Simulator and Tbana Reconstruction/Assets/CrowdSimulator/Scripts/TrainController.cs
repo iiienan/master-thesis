@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
 using System.Collections.Generic;
+using Unity.Mathematics;
 
 public class TrainController : MonoBehaviour
 {
@@ -45,6 +46,9 @@ public class TrainController : MonoBehaviour
     private bool[] initialSpawnDone = new bool[2];
     private int[] nAgentsInsideTrain = new int[2];
     private int[] nSpawnedAgents = new int[2];
+    internal int[,] nAgentsInCarriage = new int[2,28];
+    private bool trainCarEmpty = false;
+    private bool[,] boardingStartedForCarriage = new bool[2,28];
 
     void Awake()
     {
@@ -163,6 +167,8 @@ public class TrainController : MonoBehaviour
 
                     if (!alightBeforeBoarding)
                     {
+                        if(testController.log) logger.boardingStartTime[trainLine] = mainScript.simulationTime;
+                        boarding[trainLine] = true;
                         Board(trainLine);
                     }
                 }
@@ -174,7 +180,9 @@ public class TrainController : MonoBehaviour
                 {
                     foreach (var spawner in trainScripts[trainLine].trainSpawners)
                     {
-                        nSpawnedAgents[trainLine] += spawner.SpawnAgents();
+                        int nSpawned = spawner.SpawnAgents();
+                        nSpawnedAgents[trainLine] += nSpawned;
+                        //nAgentsInCarriage[trainLine, spawner.id] += nSpawned;
                     }
                     initialSpawnDone[trainLine] = true;
                 }
@@ -186,7 +194,9 @@ public class TrainController : MonoBehaviour
                         {
                             int nAgentsLeft = testController.exitFlowLines[trainLine] - nSpawnedAgents[trainLine];
                             nAgentsLeft = Mathf.Min(nAgentsLeft,4);
-                            nSpawnedAgents[trainLine] += spawner.UpdateSpawner(nAgentsInsideTrain[trainLine],nAgentsLeft);
+                            int nSpawned = spawner.UpdateSpawner(nAgentsInsideTrain[trainLine],nAgentsLeft);
+                            nSpawnedAgents[trainLine] += nSpawned;
+                            //nAgentsInCarriage[trainLine, spawner.id] += nSpawned;
                         }
                     }
                 }
@@ -195,10 +205,23 @@ public class TrainController : MonoBehaviour
                 bool alightingComplete = nAgentsToAlight[trainLine] <= 0;
 
 
-                if (alightBeforeBoarding && nAgentsInsideTrain[trainLine] <= 0 && !boarding[trainLine])
+                if (alightBeforeBoarding && trainCarEmpty && !boarding[trainLine])
                 {
                     isPreparingToBoard[trainLine] = false;
-                    Board(trainLine);
+                    boarding[trainLine] = true;
+                    if (logger != null) logger.boardingStartTime[trainLine] = mainScript.simulationTime;
+                }
+
+                if(alightBeforeBoarding)
+                {
+                    for(int carriage = 0; carriage < 28; carriage++)
+                    {
+                        if (!boardingStartedForCarriage[trainLine, carriage] && nAgentsInCarriage[trainLine, carriage] <= 0)
+                        {
+                            boardingStartedForCarriage[trainLine, carriage] = true;
+                            BoardCarriage(trainLine, carriage);
+                        }
+                    }
                 }
 
                 if (alightingComplete && alighting[trainLine])
@@ -256,6 +279,11 @@ public class TrainController : MonoBehaviour
                 if (exitedTrain)
                 {
                     nAgentsInsideTrain[agent.trainLine - 1]--;
+                    nAgentsInCarriage[agent.trainLine - 1, agent.trainCar]--;
+                    if(!trainCarEmpty && nAgentsInCarriage[agent.trainLine - 1, agent.trainCar] <= 0)
+                    {
+                        trainCarEmpty = true;
+                    }
                 }
             }
         }
@@ -283,9 +311,9 @@ public class TrainController : MonoBehaviour
                 Rigidbody rb = agent.rbody;
                 rb.constraints = RigidbodyConstraints.None;
 
-                if (waitOutsideTrain)
+                if (waitOutsideTrain && alightBeforeBoarding)
                 {
-                    WaitOutsideTrain(agent);
+                    ApproachTrain(agent);
                 }
                 else
                 {
@@ -318,7 +346,7 @@ public class TrainController : MonoBehaviour
         NativeArray<RaycastCommand> commands = new NativeArray<RaycastCommand>(totalQueries, Allocator.TempJob);
         NativeArray<RaycastHit> results = new NativeArray<RaycastHit>(totalQueries, Allocator.TempJob);
 
-        int layersToIgnore = LayerMask.GetMask("WaitingAgent", "Agent");
+        int layersToIgnore = LayerMask.GetMask("WaitingAgent", "Agent", "Ignore Raycast");
         int layerMask = ~layersToIgnore;
         QueryParameters queryParameters = new QueryParameters(layerMask, false, QueryTriggerInteraction.UseGlobal, false);
 
@@ -398,9 +426,9 @@ public class TrainController : MonoBehaviour
             agent.waitingArea.freeWaitingSpots.Add(agent.waitingSpot);
             agent.isWaitingAgent = false;
         }
-        if (waitOutsideTrain)
+        if (waitOutsideTrain && alightBeforeBoarding)
         {
-            WaitOutsideTrain(agent);
+            ApproachTrain(agent);
         }
         else
         {
@@ -422,20 +450,20 @@ public class TrainController : MonoBehaviour
         Vector3 waitPosition;
         if (agent.tr.position.z < targetPoint.z)
         {
-            waitPosition = new Vector3(targetPoint.x, 0, targetPoint.z - Random.Range(1.5f, 2.5f));
+            waitPosition = new Vector3(targetPoint.x, 0, targetPoint.z - UnityEngine.Random.Range(1.5f, 2.5f));
         }
         else
         {
-            waitPosition = new Vector3(targetPoint.x, 0, targetPoint.z + Random.Range(1.5f, 2.5f));
+            waitPosition = new Vector3(targetPoint.x, 0, targetPoint.z + UnityEngine.Random.Range(1.5f, 2.5f));
         }
 
         if (agent.tr.position.x < targetPoint.x)
         {
-            waitPosition.x = agent.tr.position.x + Random.Range(0.5f, 1f);
+            waitPosition.x = agent.tr.position.x + UnityEngine.Random.Range(0.5f, 1f);
         }
         else
         {
-            waitPosition.x = agent.tr.position.x + Random.Range(-1f, -0.5f);
+            waitPosition.x = agent.tr.position.x + UnityEngine.Random.Range(-1f, -0.5f);
         }
 
         if (platformType == PlatformType.Central)
@@ -475,7 +503,42 @@ public class TrainController : MonoBehaviour
         agent.collisionAvoidanceVelocity = Vector3.zero;
 
         // Wait for a bit
-        agent.setDelay(Random.Range(0.1f, 1f));
+        agent.setDelay(UnityEngine.Random.Range(0.1f, 1f));
+
+        // Start moving towards the train door
+        agent.done = false;
+        agent.isWaiting = false;
+        agent.isPreparingToBoard = true;
+    }
+
+    internal void ApproachTrain(Agent agent)
+    {
+        Vector3 goalPosition = mainScript.roadmap.allNodes[agent.goal].transform.position;
+        float distance = Vector3.Distance(agent.tr.position, goalPosition);
+
+        if (distance <= 5f) 
+        {
+            agent.done = true;
+            agent.shortestPath += Vector3.Distance(agent.tr.position, agent.previousPosition);
+            agent.previousPosition = agent.tr.position;
+            agent.isPreparingToBoard = true;
+            agent.isWaiting = false;
+            agent.waitingPosition = agent.tr.position;
+            return;
+        }
+
+        float stepFactor = 0.2f;
+        float targetX = Mathf.Lerp(agent.tr.position.x, goalPosition.x, stepFactor);
+        Vector3 targetPoint = new Vector3(targetX, agent.tr.position.y, agent.tr.position.z);
+
+        agent.noMapGoal = targetPoint;
+        agent.noMap = true;
+
+        // Reset these values to avoid unexpected movement
+        agent.velocity = Vector3.zero;
+        agent.preferredVelocity = Vector3.zero;
+        agent.continuumVelocity = Vector3.zero;
+        agent.collisionAvoidanceVelocity = Vector3.zero;
 
         // Start moving towards the train door
         agent.done = false;
@@ -485,12 +548,30 @@ public class TrainController : MonoBehaviour
 
     public void Board(int trainLine)
     {
-        if (logger != null) logger.boardingStartTime[trainLine] = mainScript.simulationTime;
-        boarding[trainLine] = true;
+        //if (logger != null) logger.boardingStartTime[trainLine] = mainScript.simulationTime;
+        //boarding[trainLine] = true;
+
         for (int i = mainScript.agentList.Count - 1; i >= 0; i--)
         {
             Agent agent = mainScript.agentList[i];
             if (agent.trainLine == trainLine + 1)
+            {
+                if (!agent.isPreparingToBoard)
+                {
+                    continue;
+                }
+                BoardAgent(agent);
+            }
+        }
+    }
+
+    public void BoardCarriage(int trainLine, int carriage)
+    {
+        boardingStartedForCarriage[trainLine, carriage] = true;
+        for (int i = mainScript.agentList.Count - 1; i >= 0; i--)
+        {
+            Agent agent = mainScript.agentList[i];
+            if (agent.trainLine == trainLine + 1 && agent.trainCar == carriage)
             {
                 if (!agent.isPreparingToBoard)
                 {
@@ -506,7 +587,7 @@ public class TrainController : MonoBehaviour
         waitingAreaController.waitingAgents.Remove(agent);
         agent.Reset();
         agent.isWaitingForDelay = true;
-        agent.delayTimer = Random.Range(0.1f, 1f);
+        agent.delayTimer = UnityEngine.Random.Range(0.1f, 1f);
 
         if (waitingAreaController.agentContainer != null)
         {
@@ -529,7 +610,7 @@ public class TrainController : MonoBehaviour
         int closestNode = -1;
         float closestDistance = Mathf.Infinity;
 
-        int layersToIgnore = LayerMask.GetMask("WaitingAgent", "Agent");
+        int layersToIgnore = LayerMask.GetMask("WaitingAgent", "Agent", "Ignore Raycast");
         int layerMask = ~layersToIgnore; // ignore these layers
 
         for (int j = 0; j < mainScript.roadmap.allNodes.Count; ++j)

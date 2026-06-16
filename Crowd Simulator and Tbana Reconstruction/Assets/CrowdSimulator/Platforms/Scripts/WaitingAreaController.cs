@@ -21,7 +21,7 @@ public class WaitingAreaController : MonoBehaviour
     public Material boardingAgentMaterial;
     private Main mainScript;
     public Train[] trains;
-    private CustomNode[][] trainDoorNodes; 
+    private TrainNode[][] trainDoorNodes; 
     internal Vector3[][] trainDoorPositions;
 
     public void Initialize()
@@ -94,23 +94,23 @@ public class WaitingAreaController : MonoBehaviour
 
         BuildSpawnerWaitingAreaDistances();
 
-        trainDoorNodes = new CustomNode[trains.Length][];
+        trainDoorNodes = new TrainNode[trains.Length][];
         for (int i = 0; i < trains.Length; i++)
         {
             Transform spawnersTransform = trains[i].transform.Find("Spawners");
             if (spawnersTransform == null)
             {
                 Debug.LogError("Spawners not found under train " + trains[i].name);
-                trainDoorNodes[i] = new CustomNode[0];
+                trainDoorNodes[i] = new TrainNode[0];
                 continue;
             }
 
-            List<CustomNode> nodesList = new List<CustomNode>();
+            List<TrainNode> nodesList = new List<TrainNode>();
             foreach (Transform carriageSpawner in spawnersTransform)
             {
                 foreach (Transform spawnNode in carriageSpawner)
                 {
-                    CustomNode node = spawnNode.GetComponent<CustomNode>();
+                    TrainNode node = spawnNode.GetComponent<TrainNode>();
                     if (node != null)
                     {
                         nodesList.Add(node);
@@ -276,8 +276,11 @@ public class WaitingAreaController : MonoBehaviour
             {
                 closestDistance = distance;
                 index = trainDoorNodes[agent.trainLine - 1][i].index;
+                agent.trainCar = trainDoorNodes[agent.trainLine-1][i].trainCar;
             }
         }
+
+        
         
         if(index == -1)
         {
