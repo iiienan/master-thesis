@@ -35,9 +35,13 @@ public class TrainController : MonoBehaviour
     internal bool[] dwelling = new bool[2];
     internal bool waitOutsideTrain = false;
     private Vector3[] nodePositions;
-    [SerializeField] internal float arrivalDelay = 10f;
-    [SerializeField] internal float boardingDelay = 1f;
-    [SerializeField] internal float exitingDelay = 5f;
+    internal float arrivalDelay = 0;
+    internal float boardingDelay = 0f;
+    internal float exitingDelay = 1f;
+    private float minAgentsStepFactor = 250;
+    private float maxAgentsStepFactor = 2500f;
+    private float maxStepFactor = 0.7f;
+    private float minStepFactor = 0.1f;
     internal bool done = false;
     internal int[] nAgentsToAlight = new int[2];
     internal int[] nAgentsToBoard = new int[2];
@@ -513,10 +517,10 @@ public class TrainController : MonoBehaviour
 
     internal void ApproachTrain(Agent agent)
     {
-        Vector3 goalPosition = mainScript.roadmap.allNodes[agent.goal].transform.position;
+        Vector3 goalPosition = mainScript.roadmap.allNodes[agent.path[agent.path.Count - 2]].transform.position;
         float distance = Vector3.Distance(agent.tr.position, goalPosition);
 
-        if (distance <= 5f) 
+        if (distance <= 1f) 
         {
             agent.done = true;
             agent.shortestPath += Vector3.Distance(agent.tr.position, agent.previousPosition);
@@ -527,7 +531,10 @@ public class TrainController : MonoBehaviour
             return;
         }
 
-        float stepFactor = 0.2f;
+        float nAgentsOnTrainLine = testController.entryFlowLines[agent.trainLine - 1];
+        float crowdRatio = Mathf.InverseLerp(minAgentsStepFactor, maxAgentsStepFactor, nAgentsOnTrainLine);
+        float stepFactor = Mathf.Lerp(maxStepFactor, minStepFactor, crowdRatio);
+
         float targetX = Mathf.Lerp(agent.tr.position.x, goalPosition.x, stepFactor);
         Vector3 targetPoint = new Vector3(targetX, agent.tr.position.y, agent.tr.position.z);
 
@@ -586,8 +593,8 @@ public class TrainController : MonoBehaviour
     {
         waitingAreaController.waitingAgents.Remove(agent);
         agent.Reset();
-        agent.isWaitingForDelay = true;
-        agent.delayTimer = UnityEngine.Random.Range(0.1f, 1f);
+        //agent.isWaitingForDelay = true;
+        //agent.delayTimer = UnityEngine.Random.Range(0.1f, 1f);
 
         if (waitingAreaController.agentContainer != null)
         {
