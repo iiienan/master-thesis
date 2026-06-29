@@ -36,7 +36,7 @@ public class TrainController : MonoBehaviour
     internal bool waitOutsideTrain = false;
     private Vector3[] nodePositions;
     internal float arrivalDelay = 0;
-    internal float boardingDelay = 0f;
+    internal float boardingDelay = 0.5f;
     internal float exitingDelay = 1f;
     private float minAgentsStepFactor = 250;
     private float maxAgentsStepFactor = 2500f;
@@ -53,6 +53,7 @@ public class TrainController : MonoBehaviour
     internal int[,] nAgentsInCarriage = new int[2,28];
     private bool trainCarEmpty = false;
     private bool[,] boardingStartedForCarriage = new bool[2,28];
+    private float[,] boardingCarTimer = new float[2,28];
 
     void Awake()
     {
@@ -223,7 +224,14 @@ public class TrainController : MonoBehaviour
                         if (!boardingStartedForCarriage[trainLine, carriage] && nAgentsInCarriage[trainLine, carriage] <= 0)
                         {
                             boardingStartedForCarriage[trainLine, carriage] = true;
-                            BoardCarriage(trainLine, carriage);
+                            boardingCarTimer[trainLine, carriage] = boardingDelay;
+                        }else if(boardingStartedForCarriage[trainLine, carriage] && boardingCarTimer[trainLine, carriage] > 0)
+                        {
+                            boardingCarTimer[trainLine, carriage] -= SimulationGrid.instance.dt;
+                            if(boardingCarTimer[trainLine, carriage] <= 0)
+                            {
+                                BoardCarriage(trainLine, carriage);
+                            }
                         }
                     }
                 }
@@ -269,19 +277,12 @@ public class TrainController : MonoBehaviour
     {
         if (agent.agentType == AgentType.Alighting)
         {
-            if (!agent.crossedYellowLine)
-            {
-                bool crossedYellowLine = agent.CrossedYellowLine();
-                if (crossedYellowLine)
-                {
-                    nAgentsToAlight[agent.trainLine - 1]--;
-                }
-            }
             if (!agent.exitedTrain)
             {
                 bool exitedTrain = agent.ExitedTrain();
                 if (exitedTrain)
                 {
+                    nAgentsToAlight[agent.trainLine - 1]--;
                     nAgentsInsideTrain[agent.trainLine - 1]--;
                     nAgentsInCarriage[agent.trainLine - 1, agent.trainCar]--;
                     if(!trainCarEmpty && nAgentsInCarriage[agent.trainLine - 1, agent.trainCar] <= 0)
@@ -574,7 +575,6 @@ public class TrainController : MonoBehaviour
 
     public void BoardCarriage(int trainLine, int carriage)
     {
-        boardingStartedForCarriage[trainLine, carriage] = true;
         for (int i = mainScript.agentList.Count - 1; i >= 0; i--)
         {
             Agent agent = mainScript.agentList[i];

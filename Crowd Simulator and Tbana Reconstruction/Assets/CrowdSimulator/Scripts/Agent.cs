@@ -105,46 +105,13 @@ public class Agent : MonoBehaviour
 		tr = transform;
 	}
 
-	internal bool CrossedYellowLine()
-	{
-		float yellowLineStart = 0f;
-		switch (trainController.platformType)
-		{
-			case TrainController.PlatformType.Central:
-				yellowLineStart = 7.76f;
-				if(Mathf.Abs(tr.position.x) < yellowLineStart)
-				{
-					crossedYellowLine = true;
-					return true;
-				}
-				break;
-			case TrainController.PlatformType.Mixed:
-				yellowLineStart = 1.76f;
-				if(Mathf.Abs(tr.position.x) < yellowLineStart)
-				{
-					crossedYellowLine = true;
-					return true;
-				}
-				break;
-			case TrainController.PlatformType.Side:
-				yellowLineStart = 4.24f;
-				if(Mathf.Abs(tr.position.x) > yellowLineStart)
-				{
-					crossedYellowLine = true;
-					return true;
-				}
-				break;
-		}
-		return false;
-	}
-
 	internal bool ExitedTrain()
 	{
 		float platformEdgeX = 0f;
 		switch (trainController.platformType)
 		{
 			case TrainController.PlatformType.Central:
-				platformEdgeX = 8.5f;
+				platformEdgeX = 9f;
 				if(Mathf.Abs(tr.position.x) < platformEdgeX)
 				{
 					exitedTrain = true;
@@ -152,7 +119,7 @@ public class Agent : MonoBehaviour
 				}
 				break;
 			case TrainController.PlatformType.Mixed:
-				platformEdgeX = 2.5f;
+				platformEdgeX = 3f;
 				if(Mathf.Abs(tr.position.x) < platformEdgeX)
 				{
 					exitedTrain = true;
@@ -160,7 +127,7 @@ public class Agent : MonoBehaviour
 				}
 				break;
 			case TrainController.PlatformType.Side:
-				platformEdgeX = 3.5f;
+				platformEdgeX = 3f;
 				if(Mathf.Abs(tr.position.x) > platformEdgeX)
 				{
 					exitedTrain = true;
