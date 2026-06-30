@@ -273,7 +273,7 @@ public class Main : MonoBehaviour
 		// Log metrics
 		if (testController.log)
 		{
-			TakeScreenshot();
+			//TakeScreenshot();
 			densityLog.UpdateDensityLog();
 		}
 
@@ -381,7 +381,7 @@ public class Main : MonoBehaviour
 		if (losVisualizer != null && simulationTime >= testController.arriveInterval && takeScreenshot && agentList.Count >= testController.entryFlow)
 		{
 			losVisualizer.UpdateLOS();
-			losVisualizer.takeScreenshot();
+			losVisualizer.TakeScreenshot();
 			takeScreenshot = false;
 		}
 	}
