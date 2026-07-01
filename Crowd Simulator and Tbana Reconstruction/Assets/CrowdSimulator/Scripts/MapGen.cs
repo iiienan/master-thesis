@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 public class MapGen : MonoBehaviour {
@@ -322,6 +322,37 @@ public class MapGen : MonoBehaviour {
 						if (shortestPaths[i][j][shortestPaths[i][j].Count - 2] != closestNode)
 						{
 							shortestPaths[i][j].Insert(shortestPaths[i][j].Count - 1, closestNode);
+						}
+					}
+				}
+
+				if (roadmap.allNodes[i].tag == "InsideTrainNode")
+				{
+					int closestNode = -1;
+					float shortestDistance = Mathf.Infinity;
+					bool isMixed = TrainController.instance.platformType == TrainController.PlatformType.Mixed;
+
+					for (int k = 0; k < dist[i].Count; k++)
+					{
+						if (k == i) continue;
+
+						if (isMixed && !string.Equals(roadmap.allNodes[k].tag, "ExitNode", System.StringComparison.OrdinalIgnoreCase))
+						{
+							continue;
+						}
+
+						if (dist[i][k] < shortestDistance)
+						{
+							shortestDistance = dist[i][k];
+							closestNode = k;
+						}
+					}
+
+					if (!(closestNode == j) && closestNode != -1 && shortestPaths[i][j].Count >= 2)
+					{
+						if (shortestPaths[i][j][1] != closestNode)
+						{
+							shortestPaths[i][j].Insert(1, closestNode);
 						}
 					}
 				}
