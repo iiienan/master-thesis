@@ -274,6 +274,10 @@ public class Agent : MonoBehaviour
 		path = map.shortestPaths[start][goal];
 
 		pathIndex = 1;
+		if(agentType == TrainController.AgentType.Alighting)
+		{
+			pathIndex = 0;
+		}
 		targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(pos, gameObject.GetInstanceID());
 		preferredVelocity = (targetPoint - pos).normalized;
 		agentRenderer = GetComponentInChildren<Renderer>();
@@ -358,8 +362,13 @@ public class Agent : MonoBehaviour
 			Vector3 pos = tr.position;
 			Vector3 next = map.allNodes[path[pathIndex + modifier]].getTargetPoint(pos, gameObject.GetInstanceID());
 			Vector3 targetPosition = pos - tr.forward * colliderRadius;
+
+			targetPosition.y = 0.01f;
+			next.y = 0.01f;
+			
 			Vector3 dir = next - targetPosition;
 			Vector3 endPosition = targetPosition + (dir.normalized * dir.magnitude);
+			
 			if (agentLayerMask == -1)
 			{
 				agentLayerMask = ~LayerMask.GetMask("WaitingAgent", "Agent", "Ignore Raycast");
@@ -391,8 +400,7 @@ public class Agent : MonoBehaviour
 				done = true;
 			}
 
-		else if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (grid.skipNodeIfSeeNext && canSeeNext(map, 1)
-		&& !(agentType == TrainController.AgentType.Alighting && !IsOnPlatform())))
+		else if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (grid.skipNodeIfSeeNext && canSeeNext(map, 1) && !(agentType == TrainController.AgentType.Alighting && pathIndex == 1 && !IsOnPlatform()) ))
 		{	
 			//New node reached
 			collision = false;
@@ -414,6 +422,10 @@ public class Agent : MonoBehaviour
 					preferredVelocity = Vector3.RotateTowards(velocity.normalized, nextDirection, grid.dt * ((35.0f - 400 * grid.dt) * Mathf.PI / 180.0f), 15.0f).normalized;
 					change = true;
 				}
+				else
+				{
+					preferredVelocity = nextDirection;
+				}
 			}
 		}
 		else if (pathIndex > 0 && grid.walkBack && !canSeeNext(map, 0))
@@ -421,6 +433,7 @@ public class Agent : MonoBehaviour
 		  //No. We want to go back
 		  	pathIndex -= 1;
 			targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(pos, gameObject.GetInstanceID());
+			preferredVelocity = (targetPoint - pos).normalized;
 		}
 		else
 		{
