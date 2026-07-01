@@ -19062,15 +19062,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: log
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: exitFlow
-      value: 833
+      value: 3000
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: flowType
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: scenario
@@ -19078,11 +19078,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: entryFlow
-      value: 2500
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: arriveInterval
-      value: 30
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 3179090113925114336, guid: 999ef087cb4cb084cabd36fd7f6c0b05, type: 3}
       propertyPath: waitOutsideTrain
