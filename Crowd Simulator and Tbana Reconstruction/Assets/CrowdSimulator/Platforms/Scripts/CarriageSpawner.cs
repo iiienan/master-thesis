@@ -136,11 +136,10 @@ public class CarriageSpawner : MonoBehaviour
 		Agent agent = Instantiate (agentPrefab);
 
         int node = nodeIndex;
-
+        agent.agentType = TrainController.AgentType.Alighting;
 		agent.InitializeAgent (startPosition, node, goal, mainScript.roadmap);
         agent.agentRenderer.material = alightingAgentMaterial;
         agent.trainLine = train.trainLine;
-        agent.agentType = TrainController.AgentType.Alighting;
         agent.trainCar = trainCar;
 
         agent.crossingYellowLine = true;
