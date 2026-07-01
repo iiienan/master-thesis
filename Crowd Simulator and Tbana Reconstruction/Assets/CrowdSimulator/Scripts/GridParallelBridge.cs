@@ -425,9 +425,11 @@ public class GridParallelBridge : MonoBehaviour
             {
                 Vector3 pos = agent.tr.position;
                 Vector3 targetPos = pos - agent.tr.forward * agent.colliderRadius;
+                targetPos.y = 0.01f;
 
                 // Modifier 0
                 Vector3 next0 = roadmap.allNodes[agent.path[agent.pathIndex]].getTargetPoint(pos, agent.gameObject.GetInstanceID());
+                next0.y = 0.01f;
                 Vector3 dir = next0 - targetPos;
                 float dist = dir.magnitude;
                 
@@ -439,6 +441,7 @@ public class GridParallelBridge : MonoBehaviour
                 if (agent.pathIndex + 1 < agent.path.Count)
                 {
                     Vector3 next1 = roadmap.allNodes[agent.path[agent.pathIndex + 1]].getTargetPoint(pos, agent.gameObject.GetInstanceID());
+                    next1.y = 0.01f;
                     Vector3 dir1 = next1 - targetPos;
                     float dist1 = dir1.magnitude;
 
