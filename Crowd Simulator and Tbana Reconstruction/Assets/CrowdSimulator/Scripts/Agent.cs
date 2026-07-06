@@ -52,6 +52,8 @@ public class Agent : MonoBehaviour
 
 	// Travel distance
 	internal Vector3 previousPosition;
+	internal Vector3 previousPostPhysicsPosition;
+	internal bool wasMovingLastFrame = false;
 	internal float travelDistance = 0f;
 	// Speed
 	internal float movingTime = 0f;
@@ -199,6 +201,7 @@ public class Agent : MonoBehaviour
 			walkingSpeed = UnityEngine.Random.Range(mainScript.agentMinSpeed, mainScript.agentMaxSpeed);
 		}
 		startTime = mainScript.simulationTime;
+		previousPostPhysicsPosition = tr.position;
 
 	}
 
@@ -269,6 +272,7 @@ public class Agent : MonoBehaviour
 	{
 		tr.position = pos;
 		previousPosition = pos;
+		previousPostPhysicsPosition = pos;
 		tickStartPosition = pos;
 		this.goal = goal;
 		path = map.shortestPaths[start][goal];
@@ -393,13 +397,18 @@ public class Agent : MonoBehaviour
 		bool change = false;
 		previousDirection = preferredVelocity.normalized;
 		Vector3 pos = tr.position;
-		if(agentType == TrainController.AgentType.Boarding && pathIndex == path.Count - 1 && isWaitingAgent && canSeeNext(map, 0))
+
+		// The entering agent can see the waiting area, swap to no map and go to waiting area
+		if(agentType == TrainController.AgentType.Boarding && isWaitingAgent && 
+		((path.Count > 2 && pathIndex == path.Count - 2 && canSeeNext(map, 1)) || 
+		(path.Count <= 2 && pathIndex == path.Count - 1 && canSeeNext(map, 0))))
 			{
 				shortestPath += Vector3.Distance(pos, previousPosition);
 				previousPosition = pos;
-				done = true;
+				mainScript.waitingAreaController.walkAgentToWaitingSpot(this);
 			}
 
+		// The agent has reached its current node, OR can see the next one, move to the next one
 		else if (map.allNodes[path[pathIndex]].IsAgentInsideArea(pos) || (grid.skipNodeIfSeeNext && canSeeNext(map, 1) && !(agentType == TrainController.AgentType.Alighting && pathIndex == 1 && !IsOnPlatform()) ))
 		{	
 			//New node reached
@@ -420,7 +429,6 @@ public class Agent : MonoBehaviour
 				if (Vector3.Angle(previousDirection, nextDirection) > 20.0f && grid.smoothTurns)
 				{
 					preferredVelocity = Vector3.RotateTowards(velocity.normalized, nextDirection, grid.dt * ((35.0f - 400 * grid.dt) * Mathf.PI / 180.0f), 15.0f).normalized;
-					change = true;
 				}
 				else
 				{
@@ -428,13 +436,12 @@ public class Agent : MonoBehaviour
 				}
 			}
 		}
+		// The agent can't see the current node, go back
 		else if (pathIndex > 0 && grid.walkBack && !canSeeNext(map, 0))
-		{ //Can we see current heading? Are we trapped?
-		  //No. We want to go back
-		  	pathIndex -= 1;
-			targetPoint = map.allNodes[path[pathIndex]].getTargetPoint(pos, gameObject.GetInstanceID());
-			preferredVelocity = (targetPoint - pos).normalized;
+		{
+		  	preferredVelocity = (map.allNodes[path[pathIndex - 1]].getTargetPoint(pos, gameObject.GetInstanceID()) - pos).normalized;
 		}
+		// The agent can see its current node and is moving toward it
 		else
 		{
 			collision = false;
@@ -445,7 +452,6 @@ public class Agent : MonoBehaviour
 			}
 			else
 			{
-				change = false;
 				preferredVelocity = (targetPoint - pos).normalized;
 			}
 		}
@@ -462,8 +468,6 @@ public class Agent : MonoBehaviour
 		Vector3 pos = tr.position;
 		if ((pos - noMapGoal).magnitude < MapGen.DEFAULT_THRESHOLD)
 		{
-			//New node reached
-			//Done
 			done = true;
 			shortestPath += Vector3.Distance(pos, previousPosition);
 			previousPosition = pos;
@@ -476,25 +480,20 @@ public class Agent : MonoBehaviour
 		preferredVelocity.y = 0f;
 	}
 
-	internal void TickMetrics(bool isMoving)
+	internal void TickMetrics()
 	{
-		float displacement = (tr.position - tickStartPosition).magnitude;
+		Vector3 currentPos = tr.position;
+		float displacement = (currentPos - previousPostPhysicsPosition).magnitude;
 		if (displacement > 0.001f)
 		{
 			travelDistance += displacement;
-			if (isMoving)
+			if (wasMovingLastFrame)
 			{
 				activeTravelDistance += displacement;
 				movingTime += grid.dt;
 			}
 		}
-		/* Debug.DrawLine(
-		tickStartPosition + Vector3.up * 0.1f,
-		tr.position + Vector3.up * 0.1f,
-		Color.green,
-		50f
-		); */
-		tickStartPosition = tr.position;
+		previousPostPhysicsPosition = currentPos;
 	}
 
 

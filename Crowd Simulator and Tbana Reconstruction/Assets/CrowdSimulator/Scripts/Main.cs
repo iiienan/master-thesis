@@ -226,6 +226,7 @@ public class Main : MonoBehaviour
 		{
 			Agent agent = agentList[i];
 
+			agent.TickMetrics();
 			agent.CheckPositionAndRotation();
 			CheckOutsideBounds(agent, i);
 
@@ -306,13 +307,6 @@ public class Main : MonoBehaviour
 		{
 			agent.noMap = false;
 			agent.done = false;
-			MoveAgent(agent, true);
-			return true;
-		}
-		// Agent can see the waiting area
-		if (agent.isWaitingAgent && !agent.noMap)
-		{
-			waitingAreaController.walkAgentToWaitingSpot(agent);
 			MoveAgent(agent, true);
 			return true;
 		}
@@ -481,6 +475,7 @@ public class Main : MonoBehaviour
 
 	private void MoveAgent(Agent agent, bool isMoving)
 	{
+		agent.wasMovingLastFrame = isMoving;
 		if(isMoving)
 		{
 			agent.move(roadmap);
@@ -489,7 +484,6 @@ public class Main : MonoBehaviour
 		{
 			agent.PassiveMove();
 		}
-		agent.TickMetrics(isMoving);
 		agent.rbody.velocity = Vector3.zero;
 		agent.rbody.angularVelocity = Vector3.zero;
 	}
