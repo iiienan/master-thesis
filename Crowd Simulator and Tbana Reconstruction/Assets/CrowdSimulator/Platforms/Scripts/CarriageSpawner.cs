@@ -14,7 +14,7 @@ public class CarriageSpawner : MonoBehaviour
     const int SPAWN_AREA_X = 1;
     const int SPAWN_AREA_Z = 2;
     private int[] closestGoals = new int[N_DOORS];
-    private float spawnInterval = 0.2f;
+    private float spawnInterval = 0.1f;
     private float timeSinceLastSpawn = 0f;
     internal int id;
 
