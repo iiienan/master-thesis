@@ -139,6 +139,7 @@ public class TrainController : MonoBehaviour
         nAgentsToBoard[trainLine] = mainScript.nEnteringAgents[trainLine];
         initialSpawnDone[trainLine] = false;
         nAgentsInsideTrain[trainLine] = testController.exitFlowLines[trainLine];
+        DisableSideWalls(trains[trainLine]);
     }
 
     private void ToggleTrain(int trainLine, bool active)
@@ -635,5 +636,16 @@ public class TrainController : MonoBehaviour
             }
         }
         return closestNode;
+    }
+
+    public void DisableSideWalls(GameObject train)
+    {
+        foreach (Transform child in train.GetComponentsInChildren<Transform>(true))
+        {
+            if (child.name == "SideWall")
+            {
+                child.gameObject.SetActive(false);
+            }
+        }
     }
 }
