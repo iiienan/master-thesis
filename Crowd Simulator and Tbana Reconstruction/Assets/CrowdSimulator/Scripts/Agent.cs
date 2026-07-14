@@ -200,7 +200,14 @@ public class Agent : MonoBehaviour
 		{
 			walkingSpeed = UnityEngine.Random.Range(mainScript.agentMinSpeed, mainScript.agentMaxSpeed);
 		}
-		startTime = mainScript.simulationTime;
+		if(agentType == TrainController.AgentType.Alighting)
+		{
+			startTime = mainScript.logger.alightingStartTime[trainLine-1];
+		}
+		else
+		{
+			startTime = mainScript.simulationTime;
+		}
 		previousPostPhysicsPosition = tr.position;
 
 	}
