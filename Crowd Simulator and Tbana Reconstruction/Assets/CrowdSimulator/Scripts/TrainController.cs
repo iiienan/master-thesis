@@ -51,7 +51,7 @@ public class TrainController : MonoBehaviour
     private int[] nAgentsInsideTrain = new int[2];
     private int[] nSpawnedAgents = new int[2];
     internal int[,] nAgentsInCarriage = new int[2,28];
-    private bool trainCarEmpty = false;
+    private bool[] trainCarEmpty = new bool[2];
     private bool[,] boardingStartedForCarriage = new bool[2,28];
     private float[,] boardingCarTimer = new float[2,28];
 
@@ -211,7 +211,7 @@ public class TrainController : MonoBehaviour
                 bool alightingComplete = nAgentsToAlight[trainLine] <= 0;
 
 
-                if (alightBeforeBoarding && trainCarEmpty && !boarding[trainLine])
+                if (alightBeforeBoarding && trainCarEmpty[trainLine] && !boarding[trainLine])
                 {
                     isPreparingToBoard[trainLine] = false;
                     boarding[trainLine] = true;
@@ -286,9 +286,9 @@ public class TrainController : MonoBehaviour
                     nAgentsToAlight[agent.trainLine - 1]--;
                     nAgentsInsideTrain[agent.trainLine - 1]--;
                     nAgentsInCarriage[agent.trainLine - 1, agent.trainCar]--;
-                    if(!trainCarEmpty && nAgentsInCarriage[agent.trainLine - 1, agent.trainCar] <= 0)
+                    if(!trainCarEmpty[agent.trainLine-1] && nAgentsInCarriage[agent.trainLine - 1, agent.trainCar] <= 0)
                     {
-                        trainCarEmpty = true;
+                        trainCarEmpty[agent.trainLine-1] = true;
                     }
                 }
             }
