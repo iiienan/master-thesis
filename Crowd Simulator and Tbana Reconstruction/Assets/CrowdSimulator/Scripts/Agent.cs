@@ -482,14 +482,17 @@ public class Agent : MonoBehaviour
 	{
 		Vector3 currentPos = tr.position;
 		float displacement = (currentPos - previousPostPhysicsPosition).magnitude;
+		if (wasMovingLastFrame)
+		{
+			movingTime += grid.dt;
+			if (displacement > 0.001f)
+			{
+				activeTravelDistance += displacement;
+			}
+		}
 		if (displacement > 0.001f)
 		{
 			travelDistance += displacement;
-			if (wasMovingLastFrame)
-			{
-				activeTravelDistance += displacement;
-				movingTime += grid.dt;
-			}
 		}
 		previousPostPhysicsPosition = currentPos;
 	}
