@@ -454,6 +454,11 @@ public class Main : MonoBehaviour
 			logger.LogWarning("Moving time is zero or negative");
 			return;
 		}
+		if(agent.travelDistance <= 0)
+		{
+			logger.LogWarning("Travel distance is zero or negative");
+			return;
+		}
 
 		if (agent.agentType == TrainController.AgentType.Boarding)
 		{
