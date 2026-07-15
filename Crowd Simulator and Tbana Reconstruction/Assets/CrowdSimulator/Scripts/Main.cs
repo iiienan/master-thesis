@@ -451,6 +451,27 @@ public class Main : MonoBehaviour
 
 		float averageSpeed = agent.activeTravelDistance / agent.movingTime;
 
+		if(travelTime <= 0)
+		{
+			logger.LogWarning("Travel time is zero or negative");
+			return;
+		}
+		if(agent.shortestPath <= 0)
+		{
+			logger.LogWarning("Shortest path is zero or negative");
+			return;
+		}
+		if(agent.activeTravelDistance <= 0)
+		{
+			logger.LogWarning("Active travel distance is zero or negative");
+			return;
+		}
+		if(agent.movingTime <= 0)
+		{
+			logger.LogWarning("Moving time is zero or negative");
+			return;
+		}
+
 		if (agent.agentType == TrainController.AgentType.Boarding)
 		{
 			logger.totalTravelTime[0, agent.trainLine - 1] += travelTime;
