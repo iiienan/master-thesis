@@ -508,9 +508,6 @@ public class TrainController : MonoBehaviour
         agent.continuumVelocity = Vector3.zero;
         agent.collisionAvoidanceVelocity = Vector3.zero;
 
-        // Wait for a bit
-        agent.setDelay(UnityEngine.Random.Range(0.1f, 1f));
-
         // Start moving towards the train door
         agent.done = false;
         agent.isWaiting = false;

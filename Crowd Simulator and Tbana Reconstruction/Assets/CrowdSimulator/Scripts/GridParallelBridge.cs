@@ -394,7 +394,7 @@ public class GridParallelBridge : MonoBehaviour
             agent.hasCachedCanSeeNext_0 = false;
             agent.hasCachedCanSeeNext_1 = false;
 
-            if (agent.done || agent.isWaitingForDelay || agent.isWaiting || agent.isPreparingToBoard || agent.boarding)
+            if (agent.done || agent.isWaiting || agent.isPreparingToBoard || agent.boarding)
                 continue;
 
             if (agent.path != null && agent.pathIndex < agent.path.Count)
@@ -418,7 +418,7 @@ public class GridParallelBridge : MonoBehaviour
         for (int i = 0; i < agentCount; i++)
         {
             Agent agent = agentList[i];
-            if (agent.done || agent.isWaitingForDelay || agent.isWaiting || agent.isPreparingToBoard || agent.boarding)
+            if (agent.done || agent.isWaiting || agent.isPreparingToBoard || agent.boarding)
                 continue;
 
             if (agent.path != null && agent.pathIndex < agent.path.Count)

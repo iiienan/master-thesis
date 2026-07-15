@@ -60,15 +60,6 @@ public class Agent : MonoBehaviour
 
 	internal Transform tr;
 
-	// Delay
-	internal float delayTimer = 0f;
-	internal bool isWaitingForDelay = false;
-
-	internal void setDelay(float delay)
-	{
-		delayTimer = delay;
-		isWaitingForDelay = true;
-	}
 
 	private Main mainScript;
 	internal float colliderRadius;

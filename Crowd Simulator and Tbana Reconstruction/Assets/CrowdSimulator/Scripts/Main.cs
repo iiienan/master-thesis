@@ -230,12 +230,6 @@ public class Main : MonoBehaviour
 			agent.CheckPositionAndRotation();
 			CheckOutsideBounds(agent, i);
 
-			if (agent.isWaitingForDelay)
-			{
-				HandleAgentWaitingForDelay(agent);
-				continue;
-			}
-
 			if (agent.done)
 			{
 				if (HandleSpecialCaseAgent(agent))
@@ -318,17 +312,6 @@ public class Main : MonoBehaviour
 			return true;
 		}
 		return false;
-	}
-
-	private void HandleAgentWaitingForDelay(Agent agent)
-	{
-		agent.delayTimer -= simulationGrid.dt;
-		if (agent.delayTimer <= 0f)
-		{
-			agent.isWaitingForDelay = false;
-			agent.Reset();
-		}
-				
 	}
 
 	private void StartSimulation()
