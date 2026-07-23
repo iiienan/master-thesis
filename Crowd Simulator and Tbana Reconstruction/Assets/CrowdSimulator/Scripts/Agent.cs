@@ -341,11 +341,24 @@ public class Agent : MonoBehaviour
 		velocity = preferredVelocity + (densityAtAgentPosition - 1 / Mathf.Pow(grid.cellSize, 2)) / SimulationGrid.maxDensity
 		* (continuumVelocity - preferredVelocity);
 		velocity.y = 0f;
+		velocity = velocity + collisionAvoidanceVelocity;
+
+		if ((agentType == TrainController.AgentType.Alighting) || (agentType == TrainController.AgentType.Boarding) && preferredVelocity.sqrMagnitude > 0.001f)
+		{
+			if (Mathf.Abs(preferredVelocity.x) > 0.1f)
+			{
+				if (velocity.x * preferredVelocity.x < 0f)
+				{
+					float minXSpeed = 0.3f * Mathf.Abs(preferredVelocity.x);
+					velocity.x = Mathf.Sign(preferredVelocity.x) * minXSpeed;
+				}
+			}
+		}
+
 		if (velocity != Vector3.zero)
 		{
 			tr.forward = velocity.normalized;
 		}
-		velocity = velocity + collisionAvoidanceVelocity;
 	}
 
 	internal bool canSeeNext(MapGen.map map, int modifier)
