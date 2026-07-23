@@ -56,7 +56,7 @@ public class WaitingAreaController : MonoBehaviour
             if(totalWaitingSpots / 2f < mainScript.testController.entryFlowLines[0] || totalWaitingSpots / 2f < mainScript.testController.entryFlowLines[1])
             {
                 Debug.Log("Warning: Total waiting spots (" + totalWaitingSpots/2f + ") is less than the entry flow for one line. Decreasing waiting spot size.");
-                mainScript.logger.LogWarning("Total waiting spots (" + totalWaitingSpots/2f + ") is less than the entry flow for one line. Decreasing waiting spot size.");
+                if(mainScript.testController.log) mainScript.logger.LogWarning("Total waiting spots (" + totalWaitingSpots/2f + ") is less than the entry flow for one line. Decreasing waiting spot size.");
                 float totalAvailableArea = 0;
 
                 foreach (WaitingArea area in waitingAreas)
