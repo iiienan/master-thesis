@@ -193,7 +193,7 @@ public class Agent : MonoBehaviour
 		}
 		if(agentType == TrainController.AgentType.Alighting)
 		{
-			startTime = mainScript.logger.alightingStartTime[trainLine-1];
+			if(mainScript.testController.log) startTime = mainScript.logger.alightingStartTime[trainLine-1];
 		}
 		else
 		{
