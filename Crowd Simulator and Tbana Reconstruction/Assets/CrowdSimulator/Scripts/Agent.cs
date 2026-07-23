@@ -530,7 +530,7 @@ public class Agent : MonoBehaviour
 		}
 
 		calculatePreferredVelocity(map);
-		if ((!trainController.dwelling[0] && !trainController.dwelling[1]) || agentType == TrainController.AgentType.Alighting)
+		if (!trainController.dwelling[trainLine - 1])
 		{
 			ApplyYellowLineForce();
 		}
@@ -576,7 +576,7 @@ public class Agent : MonoBehaviour
 	private void CheckYellowLine()
 	{
 		Vector3 pos = tr.position;
-		if (trainController.dwelling[trainLine - 1] && agentType != TrainController.AgentType.Alighting) { return; }
+		if (trainController.dwelling[trainLine - 1]) { return; }
 
 		float positionX = Mathf.Abs(pos.x);
 
