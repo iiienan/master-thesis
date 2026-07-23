@@ -437,7 +437,16 @@ public class Agent : MonoBehaviour
 		// The agent can't see the current node, go back
 		else if (pathIndex > 0 && grid.walkBack && !canSeeNext(map, 0))
 		{
-		  	preferredVelocity = (map.allNodes[path[pathIndex - 1]].getTargetPoint(pos, gameObject.GetInstanceID()) - pos).normalized;
+			int targetIndex = pathIndex - 1;
+			for (int i = pathIndex - 1; i >= 0; i--)
+			{
+				if (canSeeNext(map, i - pathIndex))
+				{
+					targetIndex = i;
+					break;
+				}
+			}
+			preferredVelocity = (map.allNodes[path[targetIndex]].getTargetPoint(pos, gameObject.GetInstanceID()) - pos).normalized;
 		}
 		// The agent can see its current node and is moving toward it
 		else
