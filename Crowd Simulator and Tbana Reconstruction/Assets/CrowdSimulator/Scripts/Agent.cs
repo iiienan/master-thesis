@@ -33,6 +33,7 @@ public class Agent : MonoBehaviour
 	Vector3 previousDirection;
 	public float walkingSpeed;
 	public float maxWaitTime = 2f;
+	public float yellowLineStrength = 0.8f;
 	//private bool isProblem = false;
 
 	// Waiting
@@ -827,23 +828,18 @@ public class Agent : MonoBehaviour
 		{
 			float platformEdge = 6f;
 			float yellowLineStart = 7.24f;
-			float zoneWidth = yellowLineStart - platformEdge;
 
 			// approaching from -12)
 			if (agentX > -yellowLineStart && agentX < -platformEdge)
 			{
-				float distToEdge = -platformEdge - agentX;
-				float strength = Mathf.Clamp01(distToEdge / zoneWidth);
-				Vector3 repel = Vector3.left * strength * walkingSpeed;
+				Vector3 repel = Vector3.left * yellowLineStrength * walkingSpeed;
 				collisionAvoidanceVelocity += repel;
 			}
 
 			// approaching from +12)
 			else if (agentX < yellowLineStart && agentX > platformEdge)
 			{
-				float distToEdge = agentX - platformEdge;
-				float strength = Mathf.Clamp01(distToEdge / zoneWidth);
-				Vector3 repel = Vector3.right * strength * walkingSpeed;
+				Vector3 repel = Vector3.right * yellowLineStrength * walkingSpeed;
 				collisionAvoidanceVelocity += repel;
 			}
 		}
@@ -852,21 +848,16 @@ public class Agent : MonoBehaviour
 		{
 			float platformEdge = 3f;
 			float yellowLineStart = 1.76f;
-			float zoneWidth = platformEdge - yellowLineStart;
 
 			if (agentX > -platformEdge && agentX < -yellowLineStart)
 			{
-				float distToEdge = agentX + platformEdge;
-				float strength = Mathf.Clamp01(distToEdge / zoneWidth);
-				Vector3 repel = Vector3.right * strength * walkingSpeed;
+				Vector3 repel = Vector3.right * yellowLineStrength * walkingSpeed;
 				collisionAvoidanceVelocity += repel;
 			}
 
 			else if (agentX < platformEdge && agentX > yellowLineStart)
 			{
-				float distToEdge = platformEdge - agentX;
-				float strength = Mathf.Clamp01(distToEdge / zoneWidth);
-				Vector3 repel = Vector3.left * strength * walkingSpeed;
+				Vector3 repel = Vector3.left * yellowLineStrength * walkingSpeed;
 				collisionAvoidanceVelocity += repel;
 			}
 		}
@@ -877,21 +868,16 @@ public class Agent : MonoBehaviour
 		float agentX = tr.position.x;
 		float platformEdge = 9f;
 		float yellowLineStart = 7.76f;
-		float zoneWidth = platformEdge - yellowLineStart;
 
 		if (agentX > -platformEdge && agentX < -yellowLineStart)
 		{
-			float distToEdge = agentX + platformEdge;
-			float strength = Mathf.Clamp01(distToEdge / zoneWidth);
-			Vector3 repel = Vector3.right * strength * walkingSpeed;
+			Vector3 repel = Vector3.right * yellowLineStrength * walkingSpeed;
 			collisionAvoidanceVelocity += repel;
 		}
 
 		else if (agentX < platformEdge && agentX > yellowLineStart)
 		{
-			float distToEdge = platformEdge - agentX;
-			float strength = Mathf.Clamp01(distToEdge / zoneWidth);
-			Vector3 repel = Vector3.left * strength * walkingSpeed;
+			Vector3 repel = Vector3.left * yellowLineStrength * walkingSpeed;
 			collisionAvoidanceVelocity += repel;
 		}
 	}
@@ -902,23 +888,18 @@ public class Agent : MonoBehaviour
 
 		float platformEdge = 3f;
 		float yellowLineStart = 4.24f;
-		float zoneWidth = yellowLineStart - platformEdge;
 
 		// approaching from -
 		if (agentX > -yellowLineStart && agentX < -platformEdge)
 		{
-			float distToEdge = -platformEdge - agentX;
-			float strength = Mathf.Clamp01(distToEdge / zoneWidth);
-			Vector3 repel = Vector3.left * strength * walkingSpeed;
+			Vector3 repel = Vector3.left * yellowLineStrength * walkingSpeed;
 			collisionAvoidanceVelocity += repel;
 		}
 
 		// approaching from +
 		else if (agentX < yellowLineStart && agentX > platformEdge)
 		{
-			float distToEdge = agentX - platformEdge;
-			float strength = Mathf.Clamp01(distToEdge / zoneWidth);
-			Vector3 repel = Vector3.right * strength * walkingSpeed;
+			Vector3 repel = Vector3.right * yellowLineStrength * walkingSpeed;
 			collisionAvoidanceVelocity += repel;
 		}
 	}
