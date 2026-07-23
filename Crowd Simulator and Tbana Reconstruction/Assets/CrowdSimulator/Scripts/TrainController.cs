@@ -138,7 +138,6 @@ public class TrainController : MonoBehaviour
         mainScript.spawnAgents = false;
         nAgentsToBoard[trainLine] = mainScript.nEnteringAgents[trainLine];
         initialSpawnDone[trainLine] = false;
-        nAgentsInsideTrain[trainLine] = testController.exitFlowLines[trainLine];
         DisableSideWalls(trains[trainLine]);
     }
 
@@ -188,6 +187,7 @@ public class TrainController : MonoBehaviour
                     {
                         int nSpawned = spawner.SpawnAgents();
                         nSpawnedAgents[trainLine] += nSpawned;
+                        nAgentsInsideTrain[trainLine] += nSpawned;
                         //nAgentsInCarriage[trainLine, spawner.id] += nSpawned;
                     }
                     initialSpawnDone[trainLine] = true;
@@ -202,6 +202,7 @@ public class TrainController : MonoBehaviour
                             nAgentsLeft = Mathf.Min(nAgentsLeft,4);
                             int nSpawned = spawner.UpdateSpawner(nAgentsInsideTrain[trainLine],nAgentsLeft);
                             nSpawnedAgents[trainLine] += nSpawned;
+                            nAgentsInsideTrain[trainLine] += nSpawned;
                             //nAgentsInCarriage[trainLine, spawner.id] += nSpawned;
                         }
                     }
