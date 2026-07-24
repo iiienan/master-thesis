@@ -99,7 +99,7 @@ public class DensityLog : MonoBehaviour
                     {
                         platform2Count++;
                     }
-                    if(agentPos.x < 3f && agentPos.x > -3f)
+                    if(agentPos.x <= 3f && agentPos.x >= -3f)
                     {
                         middlePlatformCount++;
                     }

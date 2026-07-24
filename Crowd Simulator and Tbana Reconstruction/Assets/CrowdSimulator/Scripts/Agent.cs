@@ -927,7 +927,7 @@ public class Agent : MonoBehaviour
 			case TrainController.PlatformType.Side:
 				return agentX >= 3f || agentX <= -3f;
 			case TrainController.PlatformType.Mixed:
-				return agentX >= 6f || agentX <= -6f || (agentX > -3f && agentX < 3f);
+				return agentX >= 6f || agentX <= -6f || (agentX >= -3f && agentX <= 3f);
 			default:
 				return false;
 		}
