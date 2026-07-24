@@ -519,9 +519,6 @@ public class GridParallelBridge : MonoBehaviour
     {
         agentPositions = positions,
         neighMatrix = nativeNeighMatrix,
-        availableAreaGrid = this.nativeAvailableArea,
-        train1Doors = train1Doors,
-        train2Doors = train2Doors,
         nCellsX = grid.nCellsX,
         nCellsZ = grid.nCellsZ,
         cellSize = grid.cellSize,
@@ -530,9 +527,6 @@ public class GridParallelBridge : MonoBehaviour
         xMinMax = new float3(xMinMax.x, xMinMax.y, 0f),
         zMinMax = new float3(zMinMax.x, zMinMax.y, 0f),
         platformType = (int)TrainController.instance.platformType,
-        isDwellingT1 = TrainController.instance.dwelling[0],
-        isDwellingT2 = TrainController.instance.dwelling[1],
-        halfDoorWidth = 0.75f,
         outEntityDensity = densities,
         outSocialProximity = proximity
     };

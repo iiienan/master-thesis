@@ -8,9 +8,6 @@ public struct CalculateMetricsJob : IJobParallelFor
 {
     [ReadOnly] public NativeArray<float3> agentPositions;
     [ReadOnly] public NativeMultiHashMap<int, int> neighMatrix;
-    [ReadOnly] public NativeArray<float> availableAreaGrid;
-    [ReadOnly] public NativeArray<float3> train1Doors;
-    [ReadOnly] public NativeArray<float3> train2Doors;
 
     public int nCellsX;
     public int nCellsZ;
@@ -21,9 +18,6 @@ public struct CalculateMetricsJob : IJobParallelFor
     public float3 zMinMax;
 
     public int platformType; // (0 = Central, 1 = Mixed, 2 = Side)
-    public bool isDwellingT1;
-    public bool isDwellingT2;
-    public float halfDoorWidth;
 
     [WriteOnly] public NativeArray<float> outEntityDensity;
     [WriteOnly] public NativeArray<int> outSocialProximity;
