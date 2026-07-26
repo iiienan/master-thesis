@@ -48,7 +48,7 @@ public class RunManager : MonoBehaviour
     [Header("Run Repetitions")]
     [Tooltip("Number of times to repeat each configuration in the matrix.")]
     [Min(1)]
-    public int repetitionsPerConfig = 3; // Set via Unity Inspector
+    public int repetitionsPerConfig = 1; // Set via Unity Inspector
 
     private static readonly string[] Scenes =
     {
@@ -59,14 +59,14 @@ public class RunManager : MonoBehaviour
 
     private static readonly int[] FlowValues =
     {
-        500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000
+        1000, 6000
     };
 
     [Header("Delays & Intervals")]
     public float arriveInterval = 120f;
-    public float arrivalDelay = 15f;
-    public float boardingDelay = 1f;
-    public float exitingDelay = 5f;
+    public float arrivalDelay = 0f;
+    public float boardingDelay = 0f;
+    public float exitingDelay = 0.6f;
 
 
     // -------------------------------------------------------------------------
@@ -141,85 +141,60 @@ public class RunManager : MonoBehaviour
 
         foreach (int flow in FlowValues)
         {
-            foreach (string scene in Scenes)
+            for (int scenarioIndex = 1; scenarioIndex <= 5; scenarioIndex++)
             {
-                for (int rep = 0; rep < repetitionsPerConfig; rep++)
+                foreach (string scene in Scenes)
                 {
-                    // --- 1. Symmetric Entry ---
-                    foreach (bool abb in new[] { false, true })
-                    {
-                        if (scene == "MixedPlatform" && abb) continue;
-                        runs.Add(new SimRun
-                        {
-                            sceneName            = scene,
-                            scenario             = TestController.Scenario.Entry,
-                            flowType             = TrainController.Flow.Symmetric,
-                            entryFlow            = flow,
-                            exitFlow             = flow / 3,
-                            alightBeforeBoarding = abb,
-                            repetitionIndex      = rep
-                        });
-                    }
+                    bool abb = (scene == "CentralPlatform" || scene == "SidePlatform");
 
-                    // --- 2. Asymmetric Entry ---
-                    foreach (bool abb in new[] { false, true })
+                    for (int rep = 0; rep < repetitionsPerConfig; rep++)
                     {
-                        if (scene == "MixedPlatform" && abb) continue;
-                        runs.Add(new SimRun
-                        {
-                            sceneName            = scene,
-                            scenario             = TestController.Scenario.Entry,
-                            flowType             = TrainController.Flow.Asymmetric,
-                            entryFlow            = flow,
-                            exitFlow             = flow / 3,
-                            alightBeforeBoarding = abb,
-                            repetitionIndex      = rep
-                        });
-                    }
+                        TestController.Scenario scenario = TestController.Scenario.Entry;
+                        TrainController.Flow flowType = TrainController.Flow.Symmetric;
+                        int entryFlow = flow;
+                        int exitFlow = flow;
 
-                    // --- 3. Symmetric Exit ---
-                    foreach (bool abb in new[] { false, true })
-                    {
-                        if (scene == "MixedPlatform" && abb) continue;
-                        runs.Add(new SimRun
+                        switch (scenarioIndex)
                         {
-                            sceneName            = scene,
-                            scenario             = TestController.Scenario.Exit,
-                            flowType             = TrainController.Flow.Symmetric,
-                            entryFlow            = flow / 3,
-                            exitFlow             = flow,
-                            alightBeforeBoarding = abb,
-                            repetitionIndex      = rep
-                        });
-                    }
+                            case 1: // Symmetric Entry
+                                scenario = TestController.Scenario.Entry;
+                                flowType = TrainController.Flow.Symmetric;
+                                entryFlow = flow;
+                                exitFlow = flow / 3;
+                                break;
+                            case 2: // Asymmetric Entry
+                                scenario = TestController.Scenario.Entry;
+                                flowType = TrainController.Flow.Asymmetric;
+                                entryFlow = flow;
+                                exitFlow = flow / 3;
+                                break;
+                            case 3: // Symmetric Exit
+                                scenario = TestController.Scenario.Exit;
+                                flowType = TrainController.Flow.Symmetric;
+                                entryFlow = flow / 3;
+                                exitFlow = flow;
+                                break;
+                            case 4: // Asymmetric Exit
+                                scenario = TestController.Scenario.Exit;
+                                flowType = TrainController.Flow.Asymmetric;
+                                entryFlow = flow / 3;
+                                exitFlow = flow;
+                                break;
+                            case 5: // Symmetric Entry + Exit
+                                scenario = TestController.Scenario.EntryExit;
+                                flowType = TrainController.Flow.Symmetric;
+                                entryFlow = flow / 2;
+                                exitFlow = flow / 2;
+                                break;
+                        }
 
-                    // --- 4. Asymmetric Exit ---
-                    foreach (bool abb in new[] { false, true })
-                    {
-                        if (scene == "MixedPlatform" && abb) continue;
                         runs.Add(new SimRun
                         {
                             sceneName            = scene,
-                            scenario             = TestController.Scenario.Exit,
-                            flowType             = TrainController.Flow.Asymmetric,
-                            entryFlow            = flow / 3,
-                            exitFlow             = flow,
-                            alightBeforeBoarding = abb,
-                            repetitionIndex      = rep
-                        });
-                    }
-
-                    // --- 5. Symmetric Entry + Exit ---
-                    foreach (bool abb in new[] { false, true })
-                    {
-                        if (scene == "MixedPlatform" && abb) continue;
-                        runs.Add(new SimRun
-                        {
-                            sceneName            = scene,
-                            scenario             = TestController.Scenario.EntryExit,
-                            flowType             = TrainController.Flow.Symmetric,
-                            entryFlow            = flow / 2,
-                            exitFlow             = flow / 2,
+                            scenario             = scenario,
+                            flowType             = flowType,
+                            entryFlow            = entryFlow,
+                            exitFlow             = exitFlow,
                             alightBeforeBoarding = abb,
                             repetitionIndex      = rep
                         });
