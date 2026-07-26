@@ -107,7 +107,7 @@ public class TestController : MonoBehaviour
     {
         trainController.flow = flowType;
         trainController.nEnteringAgents = entryFlow;
-        trainController.arriveInterval = arriveInterval + 10f;;
+        trainController.arriveInterval = arriveInterval;
         trainController.alightBeforeBoarding = alightBeforeBoarding;
         trainController.trains[0].GetComponent<Train>().numberOfAgents = exitFlowLines[0];
         trainController.trains[1].GetComponent<Train>().numberOfAgents = exitFlowLines[1];
