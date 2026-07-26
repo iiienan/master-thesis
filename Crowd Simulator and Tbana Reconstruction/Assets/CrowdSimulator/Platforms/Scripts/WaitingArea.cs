@@ -21,6 +21,7 @@ public class WaitingArea : MonoBehaviour
     private bool useRowColumns = false;
     public Material[] priorityMaterials;
     private Renderer areaRenderer;
+    public bool avoidForOtherLine = false;
 
     public void Initialize(bool debug, float waitingSpotSize, bool useRowColumns)
     {
