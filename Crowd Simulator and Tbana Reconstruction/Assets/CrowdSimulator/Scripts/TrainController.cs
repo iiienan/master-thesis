@@ -37,7 +37,7 @@ public class TrainController : MonoBehaviour
     private Vector3[] nodePositions;
     internal float arrivalDelay = 0;
     internal float boardingDelay = 0.5f;
-    internal float exitingDelay = 1f;
+    internal float exitingDelay = 0.6f;
     private float minAgentsStepFactor = 250;
     private float maxAgentsStepFactor = 2500f;
     private float maxStepFactor = 0.7f;
@@ -191,6 +191,10 @@ public class TrainController : MonoBehaviour
                         //nAgentsInCarriage[trainLine, spawner.id] += nSpawned;
                     }
                     initialSpawnDone[trainLine] = true;
+                    if (nAgentsInsideTrain[trainLine] <= 0)
+                    {
+                        trainCarEmpty[trainLine] = true;
+                    }
                 }
                 if(nSpawnedAgents[trainLine] < testController.exitFlowLines[trainLine])
                 {
@@ -227,6 +231,10 @@ public class TrainController : MonoBehaviour
                         {
                             boardingStartedForCarriage[trainLine, carriage] = true;
                             boardingCarTimer[trainLine, carriage] = boardingDelay;
+                            if (boardingDelay <= 0f)
+                            {
+                                BoardCarriage(trainLine, carriage);
+                            }
                         }else if(boardingStartedForCarriage[trainLine, carriage] && boardingCarTimer[trainLine, carriage] > 0)
                         {
                             boardingCarTimer[trainLine, carriage] -= SimulationGrid.instance.dt;
