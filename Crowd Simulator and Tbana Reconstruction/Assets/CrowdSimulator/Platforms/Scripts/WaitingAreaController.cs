@@ -11,7 +11,7 @@ public class WaitingAreaController : MonoBehaviour
     internal List<Agent> waitingAgents;                              // Agents that are currently waiting
     public Dictionary<int, List<int>> spawnerWaitingAreaDistances;  // The distance from each spawner to each waiting area in descending order
     public GameObject agentContainer;                               
-    public float wdistance = 1.0f, wdensity = 1.0f, wtrainline = 1.0f, wpriority = 1.0f;
+    public float wdistance = 1.0f, wdensity = 1.0f, wtrainline = 0.3f, wpriority = 1.0f;
     public bool debug = false;
     public float waitingSpotSize = 0.5f;
     public bool useRowColumns = false;
@@ -49,33 +49,97 @@ public class WaitingAreaController : MonoBehaviour
             totalWaitingSpots += waitingArea.NWaitingSpots(waitingSpotSize);
         }
 
-        if(mainScript.testController.flowType == TrainController.Flow.Asymmetric && (
-            trainController.platformType == TrainController.PlatformType.Side 
-            || trainController.platformType == TrainController.PlatformType.Mixed))
+        if(mainScript.testController.flowType == TrainController.Flow.Asymmetric)
         {
-            if(totalWaitingSpots / 2f < mainScript.testController.entryFlowLines[0] || totalWaitingSpots / 2f < mainScript.testController.entryFlowLines[1])
+            if(trainController.platformType == TrainController.PlatformType.Side 
+                || trainController.platformType == TrainController.PlatformType.Mixed)
             {
-                Debug.Log("Warning: Total waiting spots (" + totalWaitingSpots/2f + ") is less than the entry flow for one line. Decreasing waiting spot size.");
-                if(mainScript.testController.log) mainScript.logger.LogWarning("Total waiting spots (" + totalWaitingSpots/2f + ") is less than the entry flow for one line. Decreasing waiting spot size.");
-                float totalAvailableArea = 0;
+                if(totalWaitingSpots / 2f < mainScript.testController.entryFlowLines[0] || totalWaitingSpots / 2f < mainScript.testController.entryFlowLines[1])
+                {
+                    Debug.Log("Warning: Total waiting spots (" + totalWaitingSpots/2f + ") is less than the entry flow for one line. Decreasing waiting spot size.");
+                    if(mainScript.testController.log) mainScript.logger.LogWarning("Total waiting spots (" + totalWaitingSpots/2f + ") is less than the entry flow for one line. Decreasing waiting spot size.");
+                    float totalAvailableArea = 0;
+
+                    foreach (WaitingArea area in waitingAreas)
+                    {
+                        totalAvailableArea += area.GetArea();
+                    }
+
+                    float totalAreaPerPlatform = totalAvailableArea / 2f;
+                    int biggestFlow = Mathf.Max(mainScript.testController.entryFlowLines[0], mainScript.testController.entryFlowLines[1]);
+
+                    float idealWaitingSpotSize = Mathf.Sqrt(totalAreaPerPlatform / biggestFlow);
+                    waitingSpotSize = idealWaitingSpotSize * 0.90f;
+                }
+            }
+            else if(trainController.platformType == TrainController.PlatformType.Central)
+            {
+                int spotsLine1 = 0;
+                int spotsLine2 = 0;
+                int spotsLine1Shareable = 0;
+                int spotsLine2Shareable = 0;
+
+                float areaLine1 = 0f;
+                float areaLine2 = 0f;
+                float areaLine1Shareable = 0f;
+                float areaLine2Shareable = 0f;
 
                 foreach (WaitingArea area in waitingAreas)
                 {
-                    totalAvailableArea += area.GetArea();
+                    int closestTrainLine = (area.transform.position.x >= 0) ? 1 : 2;
+                    int spots = area.NWaitingSpots(waitingSpotSize);
+                    float sizeArea = area.GetArea();
+
+                    if (closestTrainLine == 1)
+                    {
+                        spotsLine1 += spots;
+                        areaLine1 += sizeArea;
+                        if (!area.avoidForOtherLine)
+                        {
+                            spotsLine1Shareable += spots;
+                            areaLine1Shareable += sizeArea;
+                        }
+                    }
+                    else
+                    {
+                        spotsLine2 += spots;
+                        areaLine2 += sizeArea;
+                        if (!area.avoidForOtherLine)
+                        {
+                            spotsLine2Shareable += spots;
+                            areaLine2Shareable += sizeArea;
+                        }
+                    }
                 }
 
-                float totalAreaPerPlatform = totalAvailableArea / 2f;
-                int biggestFlow = Mathf.Max(mainScript.testController.entryFlowLines[0], mainScript.testController.entryFlowLines[1]);
+                int totalSpotsLine1 = spotsLine1 + spotsLine2Shareable;
+                int totalSpotsLine2 = spotsLine2 + spotsLine1Shareable;
 
-                float idealWaitingSpotSize = Mathf.Sqrt(totalAreaPerPlatform / biggestFlow);
-                waitingSpotSize = idealWaitingSpotSize * 0.90f;
+                int entryFlowLine1 = mainScript.testController.entryFlowLines[0];
+                int entryFlowLine2 = mainScript.testController.entryFlowLines[1];
+
+                if (totalSpotsLine1 < entryFlowLine1 || totalSpotsLine2 < entryFlowLine2)
+                {
+                    Debug.Log($"Warning: Waiting spots on Central Platform (Line 1: {totalSpotsLine1}/{entryFlowLine1}, Line 2: {totalSpotsLine2}/{entryFlowLine2}) are less than entry flow. Decreasing waiting spot size.");
+                    if (mainScript.testController.log) 
+                        mainScript.logger.LogWarning($"Waiting spots on Central Platform (Line 1: {totalSpotsLine1}/{entryFlowLine1}, Line 2: {totalSpotsLine2}/{entryFlowLine2}) are less than entry flow. Decreasing waiting spot size.");
+
+                    float totalAreaLine1 = areaLine1 + areaLine2Shareable;
+                    float totalAreaLine2 = areaLine2 + areaLine1Shareable;
+
+                    float idealSizeLine1 = Mathf.Sqrt(totalAreaLine1 / entryFlowLine1);
+                    float idealSizeLine2 = Mathf.Sqrt(totalAreaLine2 / entryFlowLine2);
+
+                    float idealWaitingSpotSize = Mathf.Min(idealSizeLine1, idealSizeLine2);
+                    waitingSpotSize = idealWaitingSpotSize * 0.90f;
+                }
             }
         }
 
         else if(totalWaitingSpots < mainScript.testController.entryFlow)
         {
             Debug.Log("Warning: Total waiting spots (" + totalWaitingSpots + ") is less than the entry flow (" + mainScript.testController.entryFlow + "). Decreasing waiting spot size.");
-            mainScript.logger.LogWarning("Total waiting spots (" + totalWaitingSpots + ") is less than the entry flow (" + mainScript.testController.entryFlow + "). Decreasing waiting spot size.");
+            if(mainScript.testController.log) mainScript.logger.LogWarning("Total waiting spots (" + totalWaitingSpots + ") is less than the entry flow (" + mainScript.testController.entryFlow + "). Decreasing waiting spot size.");
             float totalAvailableArea = 0;
 
             foreach (WaitingArea area in waitingAreas)
@@ -171,6 +235,11 @@ public class WaitingAreaController : MonoBehaviour
             }
 
             if(forceTrainLine && trainLine != closestTrainLine)
+            {
+                continue;
+            }
+
+            if(trainLine != closestTrainLine && waitingArea.avoidForOtherLine)
             {
                 continue;
             }
