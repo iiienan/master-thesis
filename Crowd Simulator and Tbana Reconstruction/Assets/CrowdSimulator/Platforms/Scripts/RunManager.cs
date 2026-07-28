@@ -183,8 +183,8 @@ public class RunManager : MonoBehaviour
                             case 5: // Symmetric Entry + Exit
                                 scenario = TestController.Scenario.EntryExit;
                                 flowType = TrainController.Flow.Symmetric;
-                                entryFlow = flow / 2;
-                                exitFlow = flow / 2;
+                                entryFlow = flow;
+                                exitFlow = flow;
                                 break;
                         }
 
