@@ -172,7 +172,8 @@ public class Logger : MonoBehaviour
         "AvgSpeed_T1_boarding,AvgSpeed_T1_alighting,"+
         "AvgPathEfficiency_T1_boarding,AvgPathEfficiency_T1_alighting,"+
         "AvgEntityDensity_T1_boarding,AvgEntityDensity_T1_alighting,"+
-        "AvgSocialProximity_T1_boarding,AvgSocialProximity_T1_alighting,");
+        "AvgSocialProximity_T1_boarding,AvgSocialProximity_T1_alighting,"+
+        "TotalAgents_T1_boarding,TotalAgents_T1_alighting,");
         
         // Trainline 2 specific metrics
         header.Append("AlightingTime_T2,BoardingTime_T2,TotalBAT_T2,AllAlightersExitTime_T2," +
@@ -181,7 +182,8 @@ public class Logger : MonoBehaviour
         "AvgSpeed_T2_boarding,AvgSpeed_T2_alighting,"+
         "AvgPathEfficiency_T2_boarding,AvgPathEfficiency_T2_alighting,"+
         "AvgEntityDensity_T2_boarding,AvgEntityDensity_T2_alighting,"+
-        "AvgSocialProximity_T2_boarding,AvgSocialProximity_T2_alighting,");
+        "AvgSocialProximity_T2_boarding,AvgSocialProximity_T2_alighting,"+
+        "TotalAgents_T2_boarding,TotalAgents_T2_alighting,");
         
         // Run-wide global metrics
         header.Append("TimeClearPlatformTotal,"+
@@ -191,6 +193,7 @@ public class Logger : MonoBehaviour
         "AvgPathEfficiency_boarding,AvgPathEfficiency_alighting,"+
         "AvgEntityDensity_boarding,AvgEntityDensity_alighting,"+
         "AvgSocialProximity_boarding,AvgSocialProximity_alighting,"+
+        "TotalAgents_boarding,TotalAgents_alighting,"+
         "YellowLineOverstepsTotal");
         
         summaryWriter.WriteLine(header.ToString());
@@ -228,11 +231,12 @@ public class Logger : MonoBehaviour
         warningWriter.WriteLine(line.ToString());
     }
 
-    public void LogYellowLineViolation(Vector3 position)
+    public void LogYellowLineViolation(Vector3 position, TrainController.AgentType passengerType)
     {
         StringBuilder line = new StringBuilder();
         line.Append(scenarioPrefix + ",");
         line.Append(main.simulationTime.ToString("F2", CultureInfo.InvariantCulture) + ",");
+        line.Append(passengerType.ToString() + ",");
         line.Append(position.x.ToString("F2", CultureInfo.InvariantCulture) + ",");
         line.Append(position.z.ToString("F2", CultureInfo.InvariantCulture));
         bufferedYellowLines.Add(line.ToString());
@@ -301,19 +305,19 @@ public class Logger : MonoBehaviour
         int totalAgentsAlighting = totalAgents[1, 0] + totalAgents[1, 1];
 
         float timeClearPlatformTotal = Mathf.Max(allAlightersExitedTimestamp[0], boardingEndTime[0], allAlightersExitedTimestamp[1], boardingEndTime[1]) - Mathf.Min(alightingStartTime[0], boardingStartTime[0], alightingStartTime[1], boardingStartTime[1]);
-        float avgTravelTimeBoarding = (totalTravelTime[0, 0] + totalTravelTime[0, 1]) / totalAgentsBoarding;
-        float avgTravelTimeAlighting = (totalTravelTime[1, 0] + totalTravelTime[1, 1]) / totalAgentsAlighting;
-        float avgDistanceBoarding = (totalDistance[0, 0] + totalDistance[0, 1]) / totalAgentsBoarding;
-        float avgDistanceAlighting = (totalDistance[1, 0] + totalDistance[1, 1]) / totalAgentsAlighting;
-        float avgSpeedBoarding = (totalSpeed[0, 0] + totalSpeed[0, 1]) / totalAgentsBoarding;
-        float avgSpeedAlighting = (totalSpeed[1, 0] + totalSpeed[1, 1]) / totalAgentsAlighting;
-        float avgPathEfficiencyBoarding = (totalPathEfficiency[0, 0] + totalPathEfficiency[0, 1]) / totalAgentsBoarding;
-        float avgPathEfficiencyAlighting = (totalPathEfficiency[1, 0] + totalPathEfficiency[1, 1]) / totalAgentsAlighting;
+        float avgTravelTimeBoarding = totalAgentsBoarding > 0 ? (totalTravelTime[0, 0] + totalTravelTime[0, 1]) / totalAgentsBoarding : 0f;
+        float avgTravelTimeAlighting = totalAgentsAlighting > 0 ? (totalTravelTime[1, 0] + totalTravelTime[1, 1]) / totalAgentsAlighting : 0f;
+        float avgDistanceBoarding = totalAgentsBoarding > 0 ? (totalDistance[0, 0] + totalDistance[0, 1]) / totalAgentsBoarding : 0f;
+        float avgDistanceAlighting = totalAgentsAlighting > 0 ? (totalDistance[1, 0] + totalDistance[1, 1]) / totalAgentsAlighting : 0f;
+        float avgSpeedBoarding = totalAgentsBoarding > 0 ? (totalSpeed[0, 0] + totalSpeed[0, 1]) / totalAgentsBoarding : 0f;
+        float avgSpeedAlighting = totalAgentsAlighting > 0 ? (totalSpeed[1, 0] + totalSpeed[1, 1]) / totalAgentsAlighting : 0f;
+        float avgPathEfficiencyBoarding = totalAgentsBoarding > 0 ? (totalPathEfficiency[0, 0] + totalPathEfficiency[0, 1]) / totalAgentsBoarding : 0f;
+        float avgPathEfficiencyAlighting = totalAgentsAlighting > 0 ? (totalPathEfficiency[1, 0] + totalPathEfficiency[1, 1]) / totalAgentsAlighting : 0f;
 
-        float avgEntityDensityBoarding = (totalEntityDensity[0, 0] + totalEntityDensity[0, 1]) / totalAgentsBoarding;
-        float avgEntityDensityAlighting = (totalEntityDensity[1, 0] + totalEntityDensity[1, 1]) / totalAgentsAlighting;
-        float avgSocialProximityBoarding = (totalSocialProximity[0, 0] + totalSocialProximity[0, 1]) / totalAgentsBoarding;
-        float avgSocialProximityAlighting = (totalSocialProximity[1, 0] + totalSocialProximity[1, 1]) / totalAgentsAlighting;
+        float avgEntityDensityBoarding = totalAgentsBoarding > 0 ? (totalEntityDensity[0, 0] + totalEntityDensity[0, 1]) / totalAgentsBoarding : 0f;
+        float avgEntityDensityAlighting = totalAgentsAlighting > 0 ? (totalEntityDensity[1, 0] + totalEntityDensity[1, 1]) / totalAgentsAlighting : 0f;
+        float avgSocialProximityBoarding = totalAgentsBoarding > 0 ? (totalSocialProximity[0, 0] + totalSocialProximity[0, 1]) / totalAgentsBoarding : 0f;
+        float avgSocialProximityAlighting = totalAgentsAlighting > 0 ? (totalSocialProximity[1, 0] + totalSocialProximity[1, 1]) / totalAgentsAlighting : 0f;
 
 
         StringBuilder line = new StringBuilder();
@@ -330,7 +334,7 @@ public class Logger : MonoBehaviour
         );
         line.AppendFormat(
             CultureInfo.InvariantCulture, 
-            "{0:F2},{1:F2},{2:F2},{3:F2},{4:F2},{5:F2},{6:F2},{7:F2},{8:F2},{9:F2},{10:F2},{11:F2},", 
+            "{0:F2},{1:F2},{2:F2},{3:F2},{4:F2},{5:F2},{6:F2},{7:F2},{8:F2},{9:F2},{10:F2},{11:F2},{12},{13},", 
             avgTravelTime[0, 0], 
             avgTravelTime[1, 0], 
             avgDistance[0, 0], 
@@ -342,7 +346,9 @@ public class Logger : MonoBehaviour
             avgEntityDensity[0, 0],
             avgEntityDensity[1, 0],
             avgSocialProximity[0, 0],
-            avgSocialProximity[1, 0]
+            avgSocialProximity[1, 0],
+            totalAgents[0, 0],
+            totalAgents[1, 0]
         );
 
         // Line 2
@@ -357,7 +363,7 @@ public class Logger : MonoBehaviour
         );
         line.AppendFormat(
             CultureInfo.InvariantCulture, 
-            "{0:F2},{1:F2},{2:F2},{3:F2},{4:F2},{5:F2},{6:F2},{7:F2},{8:F2},{9:F2},{10:F2},{11:F2},", 
+            "{0:F2},{1:F2},{2:F2},{3:F2},{4:F2},{5:F2},{6:F2},{7:F2},{8:F2},{9:F2},{10:F2},{11:F2},{12},{13},", 
             avgTravelTime[0, 1], 
             avgTravelTime[1, 1], 
             avgDistance[0, 1], 
@@ -369,14 +375,16 @@ public class Logger : MonoBehaviour
             avgEntityDensity[0, 1],
             avgEntityDensity[1, 1],
             avgSocialProximity[0, 1],
-            avgSocialProximity[1, 1]
+            avgSocialProximity[1, 1],
+            totalAgents[0, 1],
+            totalAgents[1, 1]
         );
 
         // Run-wide global metrics
 
         line.AppendFormat(
             CultureInfo.InvariantCulture, 
-            "{0:F2},{1:F2},{2:F2},{3:F2},{4:F2},{5:F2},{6:F2},{7:F2},{8:F2},{9:F2},{10:F2},{11:F2},{12:F2},{13}", 
+            "{0:F2},{1:F2},{2:F2},{3:F2},{4:F2},{5:F2},{6:F2},{7:F2},{8:F2},{9:F2},{10:F2},{11:F2},{12:F2},{13},{14},{15}", 
             timeClearPlatformTotal,
             avgTravelTimeBoarding,
             avgTravelTimeAlighting,
@@ -390,6 +398,8 @@ public class Logger : MonoBehaviour
             avgEntityDensityAlighting,
             avgSocialProximityBoarding,
             avgSocialProximityAlighting,
+            totalAgentsBoarding,
+            totalAgentsAlighting,
             nYellowLineOversteps
         );
 
