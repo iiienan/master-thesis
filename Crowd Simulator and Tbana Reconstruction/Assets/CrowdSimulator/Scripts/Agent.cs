@@ -34,6 +34,10 @@ public class Agent : MonoBehaviour
 	public float walkingSpeed;
 	public float maxWaitTime = 2f;
 	public float yellowLineStrength = 0.8f;
+	private const float yellowLineStrengthActiveStart = 0.8f;
+	private const float yellowLineStrengthActiveEnd = 1.2f;
+	private const float yellowLineStrengthPassiveStart = 0.2f;
+	private const float yellowLineStrengthPassiveEnd = 0.6f;
 	//private bool isProblem = false;
 
 	// Waiting
@@ -546,7 +550,7 @@ public class Agent : MonoBehaviour
 		calculatePreferredVelocity(map);
 		if (!trainController.dwelling[trainLine - 1])
 		{
-			ApplyYellowLineForce();
+			ApplyYellowLineForce(false);
 		}
 		setCorrectedVelocity();
 
@@ -567,7 +571,7 @@ public class Agent : MonoBehaviour
 	{
 		if (!trainController.dwelling[trainLine - 1])
 		{
-			ApplyYellowLineForce();
+			ApplyYellowLineForce(true);
 		}
 		Vector3 force = collisionAvoidanceVelocity;
 		force.y = 0f;
@@ -601,7 +605,7 @@ public class Agent : MonoBehaviour
 				{
 					if (mainScript.logger != null)
 					{
-						mainScript.logger.LogYellowLineViolation(pos);
+						mainScript.logger.LogYellowLineViolation(pos, agentType);
 						mainScript.logger.nYellowLineOversteps++;
 					}
 					Debug.DrawLine(pos, pos + Vector3.up * 10f, Color.red, 10f);
@@ -620,7 +624,7 @@ public class Agent : MonoBehaviour
 				{
 					if (mainScript.logger != null)
 					{
-						mainScript.logger.LogYellowLineViolation(pos);
+						mainScript.logger.LogYellowLineViolation(pos, agentType);
 						mainScript.logger.nYellowLineOversteps++;
 					}
 					Debug.DrawLine(pos, pos + Vector3.up * 10f, Color.red, 10f);
@@ -638,7 +642,7 @@ public class Agent : MonoBehaviour
 				{
 					if (mainScript.logger != null)
 					{
-						mainScript.logger.LogYellowLineViolation(pos);
+						mainScript.logger.LogYellowLineViolation(pos, agentType);
 						mainScript.logger.nYellowLineOversteps++;
 					}
 					Debug.DrawLine(pos, pos + Vector3.up * 10f, Color.red, 10f);
@@ -817,104 +821,150 @@ public class Agent : MonoBehaviour
 		tickStartPosition = tr.position;
 	}
 
-	private void ApplyYellowLineForce()
+	private void ApplyYellowLineForce(bool isPassive)
 	{
 		switch (trainController.platformType)
 		{
 			case TrainController.PlatformType.Central:
-				ApplyYellowLineForceCentral();
+				ApplyYellowLineForceCentral(isPassive);
 				break;
 			case TrainController.PlatformType.Mixed:
-				ApplyYellowLineForceMixed();
+				ApplyYellowLineForceMixed(isPassive);
 				break;
 			case TrainController.PlatformType.Side:
-				ApplyYellowLineForceSide();
+				ApplyYellowLineForceSide(isPassive);
 				break;
 		}
 	}
 
-	private void ApplyYellowLineForceMixed()
+	private void ApplyYellowLineForceMixed(bool isPassive)
 	{
 		float agentX = tr.position.x;
 
-		// Side Platforms
+		// Side Platforms (outer regions: x < -4.5f and x > 4.5f)
+		if (agentX < -4.5f)
 		{
 			float platformEdge = 6f;
 			float yellowLineStart = 7.24f;
+			float dangerZoneWidth = yellowLineStart - platformEdge; // 7.24 - 6.0 = 1.24f
 
-			// approaching from -12)
-			if (agentX > -yellowLineStart && agentX < -platformEdge)
+			// Safe zone is x < -7.24f. Track is x > -7.24f.
+			float overstepDistance = agentX + yellowLineStart;
+			if (overstepDistance > 0f)
 			{
-				Vector3 repel = Vector3.left * yellowLineStrength * walkingSpeed;
-				collisionAvoidanceVelocity += repel;
-			}
-
-			// approaching from +12)
-			else if (agentX < yellowLineStart && agentX > platformEdge)
-			{
-				Vector3 repel = Vector3.right * yellowLineStrength * walkingSpeed;
+				float strength = GetYellowLineStrength(overstepDistance, dangerZoneWidth, isPassive);
+				Vector3 repel = Vector3.left * strength * walkingSpeed;
 				collisionAvoidanceVelocity += repel;
 			}
 		}
+		else if (agentX > 4.5f)
+		{
+			float platformEdge = 6f;
+			float yellowLineStart = 7.24f;
+			float dangerZoneWidth = yellowLineStart - platformEdge; // 7.24 - 6.0 = 1.24f
 
-		// Central Platform
+			// Safe zone is x > 7.24f. Track is x < 7.24f.
+			float overstepDistance = yellowLineStart - agentX;
+			if (overstepDistance > 0f)
+			{
+				float strength = GetYellowLineStrength(overstepDistance, dangerZoneWidth, isPassive);
+				Vector3 repel = Vector3.right * strength * walkingSpeed;
+				collisionAvoidanceVelocity += repel;
+			}
+		}
+		// Central Platform (middle region: -4.5f <= x <= 4.5f)
+		else
 		{
 			float platformEdge = 3f;
 			float yellowLineStart = 1.76f;
+			float dangerZoneWidth = platformEdge - yellowLineStart; // 3.0 - 1.76 = 1.24f
 
-			if (agentX > -platformEdge && agentX < -yellowLineStart)
+			if (agentX < -yellowLineStart)
 			{
-				Vector3 repel = Vector3.right * yellowLineStrength * walkingSpeed;
+				float overstepDistance = -agentX - yellowLineStart;
+				float strength = GetYellowLineStrength(overstepDistance, dangerZoneWidth, isPassive);
+				Vector3 repel = Vector3.right * strength * walkingSpeed;
 				collisionAvoidanceVelocity += repel;
 			}
-
-			else if (agentX < platformEdge && agentX > yellowLineStart)
+			else if (agentX > yellowLineStart)
 			{
-				Vector3 repel = Vector3.left * yellowLineStrength * walkingSpeed;
+				float overstepDistance = agentX - yellowLineStart;
+				float strength = GetYellowLineStrength(overstepDistance, dangerZoneWidth, isPassive);
+				Vector3 repel = Vector3.left * strength * walkingSpeed;
 				collisionAvoidanceVelocity += repel;
 			}
 		}
 	}
 
-	private void ApplyYellowLineForceCentral()
+	private void ApplyYellowLineForceCentral(bool isPassive)
 	{
 		float agentX = tr.position.x;
 		float platformEdge = 9f;
 		float yellowLineStart = 7.76f;
+		float dangerZoneWidth = platformEdge - yellowLineStart; // 9.0 - 7.76 = 1.24f
 
-		if (agentX > -platformEdge && agentX < -yellowLineStart)
+		if (agentX < -yellowLineStart)
 		{
-			Vector3 repel = Vector3.right * yellowLineStrength * walkingSpeed;
+			float overstepDistance = -agentX - yellowLineStart;
+			float strength = GetYellowLineStrength(overstepDistance, dangerZoneWidth, isPassive);
+			Vector3 repel = Vector3.right * strength * walkingSpeed;
 			collisionAvoidanceVelocity += repel;
 		}
-
-		else if (agentX < platformEdge && agentX > yellowLineStart)
+		else if (agentX > yellowLineStart)
 		{
-			Vector3 repel = Vector3.left * yellowLineStrength * walkingSpeed;
+			float overstepDistance = agentX - yellowLineStart;
+			float strength = GetYellowLineStrength(overstepDistance, dangerZoneWidth, isPassive);
+			Vector3 repel = Vector3.left * strength * walkingSpeed;
 			collisionAvoidanceVelocity += repel;
 		}
 	}
 
-	private void ApplyYellowLineForceSide()
+	private void ApplyYellowLineForceSide(bool isPassive)
 	{
 		float agentX = tr.position.x;
-
 		float platformEdge = 3f;
 		float yellowLineStart = 4.24f;
+		float dangerZoneWidth = yellowLineStart - platformEdge; // 4.24 - 3.0 = 1.24f
 
-		// approaching from -
-		if (agentX > -yellowLineStart && agentX < -platformEdge)
+		if (agentX < 0f) // Left side platform (x < -3f)
 		{
-			Vector3 repel = Vector3.left * yellowLineStrength * walkingSpeed;
-			collisionAvoidanceVelocity += repel;
+			// Safe zone is x < -4.24f. Track is x > -4.24f.
+			float overstepDistance = agentX + yellowLineStart;
+			if (overstepDistance > 0f)
+			{
+				float strength = GetYellowLineStrength(overstepDistance, dangerZoneWidth, isPassive);
+				Vector3 repel = Vector3.left * strength * walkingSpeed;
+				collisionAvoidanceVelocity += repel;
+			}
 		}
+		else // Right side platform (x > 3f)
+		{
+			// Safe zone is x > 4.24f. Track is x < 4.24f.
+			float overstepDistance = yellowLineStart - agentX;
+			if (overstepDistance > 0f)
+			{
+				float strength = GetYellowLineStrength(overstepDistance, dangerZoneWidth, isPassive);
+				Vector3 repel = Vector3.right * strength * walkingSpeed;
+				collisionAvoidanceVelocity += repel;
+			}
+		}
+	}
 
-		// approaching from +
-		else if (agentX < yellowLineStart && agentX > platformEdge)
-		{
-			Vector3 repel = Vector3.right * yellowLineStrength * walkingSpeed;
-			collisionAvoidanceVelocity += repel;
-		}
+	private float GetYellowLineStrength(float overstepDistance, float dangerZoneWidth, bool isPassive)
+	{
+		if (overstepDistance <= 0f) return 0f;
+
+		float startVal = isPassive ? yellowLineStrengthPassiveStart : yellowLineStrengthActiveStart;
+		float endVal = isPassive ? yellowLineStrengthPassiveEnd : yellowLineStrengthActiveEnd;
+
+		if (dangerZoneWidth <= 0.001f) return startVal;
+
+		float t = overstepDistance / dangerZoneWidth;
+		
+		// Linearly interpolate/extrapolate the strength
+		float strength = startVal + (endVal - startVal) * t;
+
+		return Mathf.Max(0f, strength);
 	}
 
 	public bool IsOnPlatform()
