@@ -229,6 +229,42 @@ public class Main : MonoBehaviour
 			agent.TickMetrics();
 			agent.CheckPositionAndRotation();
 			CheckOutsideBounds(agent, i);
+			if (agent == null)
+			{
+				continue;
+			}
+
+			if (!trainController.dwelling[agent.trainLine - 1] && !agent.IsOnPlatform())
+			{
+				logger.LogWarning($"Agent fell/pushed off platform (Type={agent.agentType}, TrainLine={agent.trainLine})");
+
+				if (agent.isWaitingAgent)
+				{
+					agent.waitingArea.freeWaitingSpots.Add(agent.waitingSpot);
+					agent.isWaitingAgent = false;
+				}
+				if (agent.agentType == TrainController.AgentType.Boarding && trainController.trainStates[agent.trainLine - 1] == TrainController.TrainState.BoardingAlighting)
+				{
+					trainController.nAgentsToBoard[agent.trainLine - 1]--;
+					nEnteringAgents[agent.trainLine - 1]--;
+				}
+				else if (agent.agentType == TrainController.AgentType.Alighting)
+				{
+					nExitingAgents--;
+					nExitingAgentsPerLine[agent.trainLine - 1]--;
+					if (nExitingAgentsPerLine[agent.trainLine - 1] <= 0)
+					{
+						logger.allAlightersExitedTimestamp[agent.trainLine - 1] = simulationTime;
+					}
+					if (!agent.exitedTrain)
+					{
+						trainController.nAgentsToAlight[agent.trainLine - 1]--;
+					}
+				}
+				agentList.RemoveAt(i);
+				Destroy(agent.gameObject);
+				continue;
+			}
 
 			if (agent.done)
 			{
