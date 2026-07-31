@@ -41,6 +41,7 @@ public class RunManager : MonoBehaviour
     private List<SimRun> runs = new List<SimRun>();
     public int CurrentRunIndex { get; private set; } = 0;
     public int TotalRuns => runs.Count;
+    public int CurrentRepetitionIndex => (CurrentRunIndex < runs.Count) ? runs[CurrentRunIndex].repetitionIndex : 0;
 
     // -------------------------------------------------------------------------
     // Configuration — edit here if needed
@@ -49,6 +50,10 @@ public class RunManager : MonoBehaviour
     [Tooltip("Number of times to repeat each configuration in the matrix.")]
     [Min(1)]
     public int repetitionsPerConfig = 1; // Set via Unity Inspector
+
+    [Header("Seeding & Batching")]
+    [Tooltip("Current batch number (e.g., 1, 2, 3, 4, 5). Used to set the random seed.")]
+    public int batchNumber = 1;
 
     private static readonly string[] Scenes =
     {
