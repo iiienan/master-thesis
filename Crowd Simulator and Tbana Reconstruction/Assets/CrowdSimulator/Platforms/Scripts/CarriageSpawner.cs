@@ -117,14 +117,18 @@ public class CarriageSpawner : MonoBehaviour
 
     public int UpdateSpawner(int nAgentsInsideTrain, int nAgentsToSpawn = N_DOORS)
     {
+        if (nAgentsInsideTrain >= 2000) 
+        {
+            timeSinceLastSpawn = spawnInterval;
+            return 0;
+        }
         timeSinceLastSpawn += SimulationGrid.instance.dt;
         if (timeSinceLastSpawn < spawnInterval) return 0;
-        if(nAgentsInsideTrain >= 2000) return 0;
+        timeSinceLastSpawn -= spawnInterval;
 
         for(int i = 0; i < nAgentsToSpawn; i++)
         {
             SpawnOneAgent(spawnerNodes[i].index, closestGoals[i], spawnerNodes[i].trainCar, spawnerNodes[i].transform.position);
-            timeSinceLastSpawn =- spawnInterval;
             TrainController.instance.nAgentsInCarriage[train.trainLine-1, spawnerNodes[i].trainCar]++;
         }
         return nAgentsToSpawn;
