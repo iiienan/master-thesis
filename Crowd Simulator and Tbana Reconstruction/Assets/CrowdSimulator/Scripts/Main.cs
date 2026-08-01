@@ -89,12 +89,12 @@ public class Main : MonoBehaviour
 	{
 		if (RunManager.Instance != null)
 		{
-			int seed = RunManager.Instance.batchNumber + RunManager.Instance.CurrentRepetitionIndex;
-			UnityEngine.Random.InitState(seed);
+			int seed = RunManager.Instance.BaseBatchNumber + RunManager.Instance.CurrentRepetitionIndex;
+			Random.InitState(seed);
 		}
 		else
 		{
-			UnityEngine.Random.InitState(11);
+			Random.InitState(11);
 		}
 
 		plane.transform.localScale = new Vector3(planeSizeX, 1.0f, planeSizeZ);

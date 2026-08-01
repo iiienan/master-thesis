@@ -52,11 +52,6 @@ public class RunManager : MonoBehaviour
     [Tooltip("Number of times to repeat each configuration in the matrix.")]
     [Min(1)]
     public int repetitionsPerConfig = 1; // Set via Unity Inspector
-
-    [Header("Seeding & Batching")]
-    [Tooltip("Current batch number (e.g., 1, 2, 3, 4, 5). Used to set the random seed.")]
-    public int batchNumber = 1;
-
     private static readonly string[] Scenes =
     {
         "CentralPlatform",
