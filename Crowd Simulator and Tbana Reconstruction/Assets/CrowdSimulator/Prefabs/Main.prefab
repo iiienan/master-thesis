@@ -56,24 +56,21 @@ MonoBehaviour:
   p1p2: 0
   p2p3: 0
   p3p4: 0
-  agentPrefabs: {fileID: 1000010616678136, guid: e9bd1b9bec706654aae4f03a25e0212a, type: 3}
-  groupAgentPrefabs: {fileID: 1000010616678136, guid: ddae5f53a9bc5c447922df81f7ed9ec9, type: 3}
-  shirtColorPrefab: {fileID: 114000012423741106, guid: 2c44bda8a2b77f64691d2bc1d7ab160d, type: 3}
   gridPrefab: {fileID: 114000012242863314, guid: cd00fafb131578642bd11c30bd1d99a2, type: 3}
   spawnerPrefab: {fileID: 114000011514121796, guid: 431ca676e53a5da4ea94cd30188ba2a9, type: 3}
   mapGen: {fileID: 114000012251945406, guid: 837b7abe7155c624d9b834f28fc8fcc9, type: 3}
   plane: {fileID: 114000010043078172, guid: fd72e51c92175404799278493295988b, type: 3}
-  cellsPerRow: 30
+  cellSize: 5
   neighbourBins: 100
   roadNodeAmount: 0
   visibleMap: 1
-  customTimeStep: 0
-  timeStep: 0
+  customTimeStep: 1
+  timeStep: 0.02
   alpha: 1
-  maxNumberOfAgents: 1000
   showSplattedDensity: 0
   showSplattedVelocity: 0
   walkBack: 1
   skipNodeIfSeeNext: 0
   smoothTurns: 0
   handleCollision: 1
+  experimentHUD: {fileID: 0}
