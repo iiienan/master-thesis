@@ -87,6 +87,16 @@ public class Main : MonoBehaviour
 	**/
 	void OnEnable()
 	{
+		if (RunManager.Instance != null)
+		{
+			int seed = RunManager.Instance.batchNumber + RunManager.Instance.CurrentRepetitionIndex;
+			UnityEngine.Random.InitState(seed);
+		}
+		else
+		{
+			UnityEngine.Random.InitState(11);
+		}
+
 		plane.transform.localScale = new Vector3(planeSizeX, 1.0f, planeSizeZ);
 		Vector3 planeLength = plane.getLengths(); //Staggered grid length
 		xMinMax = new Vector2(plane.transform.position.x - planeLength.x / 2,
