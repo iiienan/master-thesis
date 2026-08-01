@@ -32,6 +32,7 @@ public class Logger : MonoBehaviour
     private StreamWriter agentMetricsWriter;
     private System.Collections.Generic.List<string> bufferedYellowLines = new System.Collections.Generic.List<string>();
     private System.Collections.Generic.List<string> bufferedDensities = new System.Collections.Generic.List<string>();
+    private System.Collections.Generic.List<string> bufferedAgentMetrics = new System.Collections.Generic.List<string>();
 
     internal float[] alightingStartTime = new float[2];
     internal float[] boardingStartTime = new float[2];
@@ -451,6 +452,15 @@ public class Logger : MonoBehaviour
             }
             bufferedDensities.Clear();
         }
+
+        if (agentMetricsWriter != null)
+        {
+            foreach (string logLine in bufferedAgentMetrics)
+            {
+                agentMetricsWriter.WriteLine(logLine);
+            }
+            bufferedAgentMetrics.Clear();
+        }
     }
 
     void OnApplicationQuit()
@@ -504,6 +514,6 @@ public class Logger : MonoBehaviour
             entryTimeStamp,
             exitTimeStamp
         );
-        agentMetricsWriter.WriteLine(line.ToString());
+        bufferedAgentMetrics.Add(line.ToString());
     }
 }
