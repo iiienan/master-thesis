@@ -516,6 +516,19 @@ public class Main : MonoBehaviour
 			logger.totalSocialProximity[1, agent.trainLine - 1] += agent.GetAverageSocialProximity();
 			logger.totalAgents[1, agent.trainLine - 1]++;
 		}
+
+		logger.LogAgentMetrics(
+			agent.agentType,
+			agent.trainLine,
+			travelTime,
+			agent.travelDistance,
+			averageSpeed,
+			efficiency,
+			agent.GetAverageEntityDensity(),
+			agent.GetAverageSocialProximity(),
+			agent.startTime,
+			simulationTime
+		);
 	}
 
 	private void MoveAgent(Agent agent, bool isMoving)

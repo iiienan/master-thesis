@@ -9,6 +9,7 @@ public class Logger : MonoBehaviour
     internal string fileNameMasterDensity = "master_density_time_series.csv";
     internal string fileNameWarningLog = "warning_log.csv";
     internal string fileNameYellowLineLog = "yellow_line_log.csv";
+    internal string fileNameAgentMetrics = "master_agent_metrics.csv";
 
     private Main main;
     private TrainController trainController;
@@ -19,13 +20,16 @@ public class Logger : MonoBehaviour
     private string filePathMasterDensity;
     private string filePathWarningLog;
     private string filePathYellowLineLog;
+    private string filePathAgentMetrics;
     private string scenarioHeader;
     internal string scenarioPrefix;
+    internal string batchFolderPath;
 
     private StreamWriter summaryWriter;
     private StreamWriter densityTimeSeriesWriter;
     private StreamWriter yellowLineWriter;
     private StreamWriter warningWriter;
+    private StreamWriter agentMetricsWriter;
     private System.Collections.Generic.List<string> bufferedYellowLines = new System.Collections.Generic.List<string>();
     private System.Collections.Generic.List<string> bufferedDensities = new System.Collections.Generic.List<string>();
 
@@ -94,15 +98,17 @@ public class Logger : MonoBehaviour
         }
 
         // Resolve absolute paths
-        filePathMasterSummary = Path.Combine(Application.persistentDataPath, fileNameMasterSummary);
-        filePathMasterDensity = Path.Combine(Application.persistentDataPath, fileNameMasterDensity);
-        filePathWarningLog = Path.Combine(Application.persistentDataPath, fileNameWarningLog);
-        filePathYellowLineLog = Path.Combine(Application.persistentDataPath, fileNameYellowLineLog);
+        filePathMasterSummary = Path.Combine(batchFolderPath, fileNameMasterSummary);
+        filePathMasterDensity = Path.Combine(batchFolderPath, fileNameMasterDensity);
+        filePathWarningLog = Path.Combine(batchFolderPath, fileNameWarningLog);
+        filePathYellowLineLog = Path.Combine(batchFolderPath, fileNameYellowLineLog);
+        filePathAgentMetrics = Path.Combine(batchFolderPath, fileNameAgentMetrics);
 
         EnsureDirectory(filePathMasterSummary);
         EnsureDirectory(filePathMasterDensity);
         EnsureDirectory(filePathWarningLog);
         EnsureDirectory(filePathYellowLineLog);
+        EnsureDirectory(filePathAgentMetrics);
 
         scenarioHeader = "RunID,Platform,Scenario,FlowType,EntryFlowTotal,ExitFlowTotal,AlightBeforeBoarding,EntryFlowT1,EntryFlowT2,ExitFlowT1,ExitFlowT2";
         scenarioPrefix = string.Join(",",
@@ -123,11 +129,13 @@ public class Logger : MonoBehaviour
         densityTimeSeriesWriter = OpenWriter(filePathMasterDensity, true);
         warningWriter = OpenWriter(filePathWarningLog, true);
         yellowLineWriter = OpenWriter(filePathYellowLineLog, true);
+        agentMetricsWriter = OpenWriter(filePathAgentMetrics, true);
 
         if (summaryWriter != null && new FileInfo(filePathMasterSummary).Length == 0) WriteHeaderMasterSummary();
         if (densityTimeSeriesWriter != null && new FileInfo(filePathMasterDensity).Length == 0) WriteHeaderMasterDensity();
         if (warningWriter != null && new FileInfo(filePathWarningLog).Length == 0) WriteHeaderWarningLog();
         if (yellowLineWriter != null && new FileInfo(filePathYellowLineLog).Length == 0) WriteHeaderYellowLineLog();
+        if (agentMetricsWriter != null && new FileInfo(filePathAgentMetrics).Length == 0) WriteHeaderAgentMetrics();
     }
 
     public void CloseAllWriters()
@@ -136,6 +144,7 @@ public class Logger : MonoBehaviour
         FlushAndClose(ref densityTimeSeriesWriter, "Master Density Time Series");
         FlushAndClose(ref warningWriter, "Warning Log");
         FlushAndClose(ref yellowLineWriter, "Yellow Line Log");
+        FlushAndClose(ref agentMetricsWriter, "Agent Metrics");
     }
 
     private void EnsureDirectory(string filePath)
@@ -447,5 +456,54 @@ public class Logger : MonoBehaviour
     void OnApplicationQuit()
     {
         CloseAllWriters();
+    }
+
+    private void WriteHeaderAgentMetrics()
+    {
+        if (agentMetricsWriter == null) return;
+        StringBuilder header = new StringBuilder();
+        header.Append("RunID,Platform,Scenario,FlowType,EntryFlowTotal,ExitFlowTotal,AgentType,TrainLine,TravelTime,Distance,Speed,PathEfficiency,EntityDensity,SocialProximity,EntryTimeStamp,ExitTimeStamp");
+        agentMetricsWriter.WriteLine(header.ToString());
+    }
+
+    public void LogAgentMetrics(
+        TrainController.AgentType agentType,
+        int trainLine,
+        float travelTime,
+        float distance,
+        float speed,
+        float pathEfficiency,
+        float entityDensity,
+        float socialProximity,
+        float entryTimeStamp,
+        float exitTimeStamp)
+    {
+        if (agentMetricsWriter == null) return;
+
+        StringBuilder line = new StringBuilder();
+        line.Append(string.Join(",",
+            testController.runIndex.ToString(),
+            trainController.platformType.ToString(),
+            testController.scenario.ToString(),
+            testController.flowType.ToString(),
+            testController.entryFlow.ToString(),
+            testController.exitFlow.ToString(),
+            agentType.ToString(),
+            trainLine.ToString()
+        ));
+        line.Append(",");
+        line.AppendFormat(
+            CultureInfo.InvariantCulture,
+            "{0:F2},{1:F2},{2:F2},{3:F2},{4:F2},{5:F2},{6:F2},{7:F2}",
+            travelTime,
+            distance,
+            speed,
+            pathEfficiency,
+            entityDensity,
+            socialProximity,
+            entryTimeStamp,
+            exitTimeStamp
+        );
+        agentMetricsWriter.WriteLine(line.ToString());
     }
 }
