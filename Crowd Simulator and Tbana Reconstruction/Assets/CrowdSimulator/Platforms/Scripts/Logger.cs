@@ -75,6 +75,23 @@ public class Logger : MonoBehaviour
         fileNameMasterDensity = $"master_density_time_series.csv";
         fileNameWarningLog = $"warning_log.csv";
         fileNameYellowLineLog = $"yellow_line_log.csv";
+        fileNameAgentMetrics = $"master_agent_metrics.csv";
+
+        // Determine batch folder path
+        int repIndex = testController != null ? testController.repetitionIndex : 0;
+        string batchFolderName = "";
+        if (RunManager.Instance != null)
+        {
+            batchFolderName = $"realBatch{RunManager.Instance.BaseBatchNumber + repIndex}";
+            batchFolderPath = Path.Combine(Application.persistentDataPath, batchFolderName);
+        }
+        else
+        {
+            // Fallback if running scene directly in Editor without RunManager
+            int nextBatchNum = RunManager.GetNextBatchNumber();
+            batchFolderName = $"realBatch{nextBatchNum}";
+            batchFolderPath = Path.Combine(Application.persistentDataPath, batchFolderName);
+        }
 
         // Resolve absolute paths
         filePathMasterSummary = Path.Combine(Application.persistentDataPath, fileNameMasterSummary);

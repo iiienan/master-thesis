@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -13,6 +14,7 @@ public class RunManager : MonoBehaviour
     // Singleton
     // -------------------------------------------------------------------------
     public static RunManager Instance { get; private set; }
+    public int BaseBatchNumber { get; private set; }
 
     // -------------------------------------------------------------------------
     // Run descriptor
@@ -59,7 +61,7 @@ public class RunManager : MonoBehaviour
 
     private static readonly int[] FlowValues =
     {
-        1000, 6000
+        500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000
     };
 
     [Header("Delays & Intervals")]
@@ -81,6 +83,8 @@ public class RunManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        BaseBatchNumber = GetNextBatchNumber();
 
         BuildRunList();
         Debug.Log($"[RunManager] Initialized. {TotalRuns} runs queued (Config Matrix x {repetitionsPerConfig} repetitions).");
@@ -139,16 +143,16 @@ public class RunManager : MonoBehaviour
     {
         runs.Clear();
 
-        foreach (int flow in FlowValues)
+        for (int rep = 0; rep < repetitionsPerConfig; rep++)
         {
-            for (int scenarioIndex = 1; scenarioIndex <= 5; scenarioIndex++)
+            foreach (int flow in FlowValues)
             {
-                foreach (string scene in Scenes)
+                for (int scenarioIndex = 1; scenarioIndex <= 5; scenarioIndex++)
                 {
-                    bool abb = (scene == "CentralPlatform" || scene == "SidePlatform");
-
-                    for (int rep = 0; rep < repetitionsPerConfig; rep++)
+                    foreach (string scene in Scenes)
                     {
+                        bool abb = (scene == "CentralPlatform" || scene == "SidePlatform");
+
                         TestController.Scenario scenario = TestController.Scenario.Entry;
                         TrainController.Flow flowType = TrainController.Flow.Symmetric;
                         int entryFlow = flow;
@@ -228,12 +232,11 @@ public class RunManager : MonoBehaviour
         tc.entryFlow            = run.entryFlow;
         tc.exitFlow             = run.exitFlow;
         tc.alightBeforeBoarding = run.alightBeforeBoarding;
-        tc.runIndex             = CurrentRunIndex;
+        tc.runIndex             = CurrentRunIndex % (TotalRuns / repetitionsPerConfig);
         tc.arriveInterval       = arriveInterval;
         tc.log                  = true;
         
-        // Note: If your TestController script tracks repetition indices, 
-        // you can assign it here (e.g., tc.repetitionIndex = run.repetitionIndex;)
+        tc.repetitionIndex      = run.repetitionIndex;
     }
 
     public void ApplyParamsToTrainController(TrainController tc)
@@ -292,6 +295,35 @@ public class RunManager : MonoBehaviour
     // -------------------------------------------------------------------------
     // Internal helpers
     // -------------------------------------------------------------------------
+    public static int GetNextBatchNumber()
+    {
+        int maxBatch = 0;
+        string path = Application.persistentDataPath;
+        try
+        {
+            if (Directory.Exists(path))
+            {
+                string[] dirs = Directory.GetDirectories(path, "realBatch*");
+                foreach (string dir in dirs)
+                {
+                    string folderName = Path.GetFileName(dir);
+                    if (folderName.StartsWith("realBatch") && int.TryParse(folderName.Substring(9), out int num))
+                    {
+                        if (num > maxBatch)
+                        {
+                            maxBatch = num;
+                        }
+                    }
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[RunManager] Error scanning for realBatch folders: {e.Message}");
+        }
+        return maxBatch + 1;
+    }
+
     private void LoadCurrentScene()
     {
         string sceneName = runs[CurrentRunIndex].sceneName;
