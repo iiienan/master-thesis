@@ -25,6 +25,7 @@ public class TestController : MonoBehaviour
     private Logger logger;
     public bool waitOutsideTrain = false;
     internal int runIndex = 0;
+    internal int repetitionIndex = 0;
 
     internal int[] entryFlowLines = new int[2];
     internal int[] exitFlowLines = new int[2];
