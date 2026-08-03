@@ -417,7 +417,7 @@ public class Agent : MonoBehaviour
 		// The entering agent can see the waiting area, swap to no map and go to waiting area
 		if(agentType == TrainController.AgentType.Boarding && isWaitingAgent && 
 		((path.Count > 2 && pathIndex == path.Count - 2 && canSeeNext(map, 1)) || 
-		(path.Count <= 2 && pathIndex == path.Count - 1 && canSeeNext(map, 0))))
+		(pathIndex == path.Count - 1 && canSeeNext(map, 0))))
 			{
 				shortestPath += Vector3.Distance(pos, previousPosition);
 				previousPosition = pos;
